@@ -141,28 +141,31 @@ class Offices extends StatelessWidget {
       );
     }
 
-    return PageTamplate01(
-      futurefun: Future(() async {
-        try {
-          DB.allusersinfotable = await DBController().getallusersinfo();
-          return DB.allofficeinfotable =
-              await DBController().getallofficeinfo();
-        } catch (e) {}
-      }),
-      table: DB.allofficeinfotable,
-      prepairfunction: Future(() async {
-        try {
-          return getemployees();
-        } catch (e) {}
-      }),
-      tablename: 'offices',
-      appbartitle: ['المكاتب', 'Offices'],
-      addtitle: ['إضافة مكتب', 'Add Office'],
-      mainlebelsdialogmz: mainlabelsdialogmz,
-      bodies: [basics(), addemployee()],
-      actionlist: [SizedBox()],
-      elevationcard: elevationcard,
-      page: 'Offices',
+    return GetBuilder<DBController>(
+      init: dbController,
+      builder: (_) => PageTamplate01(
+        futurefun: Future(() async {
+          try {
+            DB.allusersinfotable = await DBController().getallusersinfo();
+            return DB.allofficeinfotable =
+                await DBController().getallofficeinfo();
+          } catch (e) {}
+        }),
+        table: DB.allofficeinfotable,
+        // prepairfunction: Future(() async {
+        //   try {
+        //     return getemployees();
+        //   } catch (e) {}
+        // }),
+        tablename: 'offices',
+        appbartitle: ['المكاتب', 'Offices'],
+        addtitle: ['إضافة مكتب', 'Add Office'],
+        mainlebelsdialogmz: mainlabelsdialogmz,
+        bodies: [basics(), addemployee()],
+        actionlist: [SizedBox()],
+        elevationcard: elevationcard,
+        page: 'Offices',
+      ),
     );
   }
 

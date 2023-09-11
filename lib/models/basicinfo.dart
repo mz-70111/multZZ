@@ -16,7 +16,7 @@ class BasicInfo {
     ],
     'server-error': [
       'لا يمكن الوصول للمخدم',
-      'some thing error_ try again',
+      'some thing error _cann\'t reach server_ try again',
     ],
     'emptyname-check': [
       'لا يمكن ان يكون حقل الاسم فارغا',

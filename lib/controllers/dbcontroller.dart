@@ -38,37 +38,43 @@ class DBController extends GetxController {
 
   gettableinfo({required List tablesname, required List infoqueries}) async {
     List clmnames = [];
-    List result = [{}];
-    for (var i in tablesname) {
-      result[0].addAll({i: []});
-      clmnames.add([]);
-      List? resp =
-          await requestpost(type: 'select', data: {'customquery': ' desc $i;'});
-      if (resp != null) {
-        for (var j in resp) {
-          clmnames[tablesname.indexOf(i)]!.add(j[0]);
-        }
-      }
-    }
-    for (var i in infoqueries) {
-      List? resp = await requestpost(
-          type: 'select',
-          data: {'customquery': infoqueries[infoqueries.indexOf(i)]});
-      if (resp != null) {
-        for (var j in resp) {
-          result[0][tablesname[infoqueries.indexOf(i)]].add({});
-          for (var o = 0; o < j.length; o++) {
-            result[0][tablesname[infoqueries.indexOf(i)]][resp.indexOf(j)]
-                .addAll({clmnames[infoqueries.indexOf(i)][o]: j[o]});
+    List? result;
+    List? testconnection = await requestpost(
+        type: 'select', data: {'customquery': 'show tables;'});
+    print(testconnection);
+    if (testconnection != null) {
+      result = [{}];
+      for (var i in tablesname) {
+        result[0].addAll({i: []});
+        clmnames.add([]);
+
+        List? resp = await requestpost(
+            type: 'select', data: {'customquery': ' desc $i;'});
+        if (resp != null) {
+          for (var j in resp) {
+            clmnames[tablesname.indexOf(i)]!.add(j[0]);
           }
         }
       }
+      for (var i in infoqueries) {
+        List? resp = await requestpost(
+            type: 'select',
+            data: {'customquery': infoqueries[infoqueries.indexOf(i)]});
+        if (resp != null) {
+          for (var j in resp) {
+            result[0][tablesname[infoqueries.indexOf(i)]].add({});
+            for (var o = 0; o < j.length; o++) {
+              result[0][tablesname[infoqueries.indexOf(i)]][resp.indexOf(j)]
+                  .addAll({clmnames[infoqueries.indexOf(i)][o]: j[o]});
+            }
+          }
+        }
+      }
+      for (var i = 0; i < result[0][tablesname[0]].length; i++) {
+        result[0][tablesname[0]][i]
+            .addAll({'visible': true, 'visiblesearch': true});
+      }
     }
-    for (var i = 0; i < result[0][tablesname[0]].length; i++) {
-      result[0][tablesname[0]][i]
-          .addAll({'visible': true, 'visiblesearch': true});
-    }
-
     return result;
   }
 
