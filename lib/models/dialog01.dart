@@ -4,7 +4,6 @@ import 'package:mz_flutter_07/controllers/maincontroller.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:mz_flutter_07/models/tween.dart';
 import 'package:mz_flutter_07/views/login.dart';
-import 'package:mz_flutter_07/views/wait.dart';
 
 class DialogMz01 extends StatelessWidget {
   const DialogMz01({
@@ -29,7 +28,7 @@ class DialogMz01 extends StatelessWidget {
             scrollable: true,
             title: Text(
               title[BasicInfo.indexlang()],
-              style: TextStyle(fontFamily: 'Cairo', fontSize: 20),
+              style: const TextStyle(fontFamily: 'Cairo', fontSize: 20),
             ),
             content: SizedBox(
               width: MediaQuery.of(context).size.width < 500
@@ -49,17 +48,17 @@ class DialogMz01 extends StatelessWidget {
                                 child: Card(
                                   shape: mi['selected'] == true
                                       ? BasicInfo.selectedlang == 'Ar'
-                                          ? BeveledRectangleBorder(
+                                          ? const BeveledRectangleBorder(
                                               borderRadius:
                                                   BorderRadius.horizontal(
                                                       left: Radius.elliptical(
                                                           20, 20)))
-                                          : BeveledRectangleBorder(
+                                          : const BeveledRectangleBorder(
                                               borderRadius:
                                                   BorderRadius.horizontal(
                                                       right: Radius.elliptical(
                                                           20, 20)))
-                                      : BeveledRectangleBorder(),
+                                      : const BeveledRectangleBorder(),
                                   elevation: mi['selected'] == true ? 6 : 0,
                                   color: BasicInfo.selectedmode == 'Light'
                                       ? Colors.indigoAccent

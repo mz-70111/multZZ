@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:mz_flutter_07/controllers/dbcontroller.dart';
-import 'package:mz_flutter_07/controllers/maincontroller.dart';
 import 'package:mz_flutter_07/models/tween.dart';
 
 class MyLogo extends StatelessWidget {

@@ -1,37 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mz_flutter_07/controllers/dbcontroller.dart';
-import 'package:mz_flutter_07/controllers/themecontroller.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
-import 'package:mz_flutter_07/models/bottonicon.dart';
 import 'package:mz_flutter_07/models/database.dart';
 import 'package:mz_flutter_07/models/dropdowanwithsearch.dart';
-import 'package:mz_flutter_07/models/lang_mode_theme.dart';
 import 'package:mz_flutter_07/models/sharedpref.dart';
 import 'package:mz_flutter_07/views/homepage.dart';
 import 'package:mz_flutter_07/views/login.dart';
 import 'package:mz_flutter_07/views/offices.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class MainController extends GetxController {
-  @override
-  void onInit() async {
-    // TODO: implement onInit
-    super.onInit();
-  }
-
-  @override
-  void onReady() {
-    // TODO: implement onReady
-    super.onReady();
-  }
-
-  @override
-  void onClose() {
-    // TODO: implement onClose
-    super.onClose();
-  }
-
   codepassword({required String word}) {
     String code = 'muoaz153';
     String aftercoded = '';
@@ -318,7 +296,7 @@ class MainController extends GetxController {
   }
 
   switchbuttonnotifioffice(x) {
-    Offices.bodieslist[0]['notifi'] = x;
+    Offices.bodieslistofadd[0]['notifi'] = x;
     update();
   }
 
@@ -405,9 +383,301 @@ class MainController extends GetxController {
     update();
   }
 
-  addemployeetooffice(e) {
-    Offices.addemployeelist[Offices.addemployeelist.indexOf(e)]['visible'] =
-        false;
+  addremoveemployeetooffice({e, type = 'save'}) {
+    if (type == 'save') {
+      Offices.addemployeelist[Offices.addemployeelist.indexOf(e)]['visible'] =
+          false;
+    } else {
+      Offices.addemployeelist[Offices.addemployeelist.indexOf(e)]['visible'] =
+          true;
+    }
+
+    Get.back();
+    update();
+  }
+
+  changeradiopriv({x, index}) {
+    Offices.addemployeelist[index]['position'] = x == 'موظف' || x == 'employee'
+        ? ['موظف', 'employee']
+        : ['مشرف', 'supervisor'];
+    if (x == 'مشرف' || x == 'supervisor') {
+      Offices.addemployeelist[index]['P-addtask'][0] = true;
+      Offices.addemployeelist[index]['P-showalltasks'][0] = true;
+      Offices.addemployeelist[index]['P-addtodo'][0] = true;
+      Offices.addemployeelist[index]['P-showalltodos'][0] = true;
+      Offices.addemployeelist[index]['P-addping'][0] = true;
+      Offices.addemployeelist[index]['P-showallpings'][0] = true;
+      Offices.addemployeelist[index]['P-addemailtest'][0] = true;
+      Offices.addemployeelist[index]['P-showallemailtests'][0] = true;
+      Offices.addemployeelist[index]['P-addremind'][0] = true;
+      Offices.addemployeelist[index]['P-showallreminds'][0] = true;
+      Offices.addemployeelist[index]['P-addhyperlink'][0] = true;
+      Offices.addemployeelist[index]['P-showallhyperlinks'][0] = true;
+      Offices.addemployeelist[index]['P-addcost'][0] = true;
+      Offices.addemployeelist[index]['P-acceptcosts'][0] = true;
+      Offices.addemployeelist[index]['P-showallcosts'][0] = true;
+    } else {
+      Offices.addemployeelist[index]['P-addtask'][0] = false;
+      Offices.addemployeelist[index]['P-showalltasks'][0] = false;
+      Offices.addemployeelist[index]['P-addtodo'][0] = true;
+      Offices.addemployeelist[index]['P-showalltodos'][0] = true;
+      Offices.addemployeelist[index]['P-addping'][0] = true;
+      Offices.addemployeelist[index]['P-showallpings'][0] = true;
+      Offices.addemployeelist[index]['P-addemailtest'][0] = true;
+      Offices.addemployeelist[index]['P-showallemailtests'][0] = true;
+      Offices.addemployeelist[index]['P-addremind'][0] = true;
+      Offices.addemployeelist[index]['P-showallreminds'][0] = true;
+      Offices.addemployeelist[index]['P-addhyperlink'][0] = false;
+      Offices.addemployeelist[index]['P-showallhyperlinks'][0] = false;
+      Offices.addemployeelist[index]['P-addcost'][0] = true;
+      Offices.addemployeelist[index]['P-acceptcosts'][0] = false;
+      Offices.addemployeelist[index]['P-showallcosts'][0] = false;
+    }
+    update();
+  }
+
+  chackboxpriv({x, index, e}) {
+    Offices.addemployeelist[index][e][0] = x;
+
+    update();
+  }
+
+  easyeditaction({listse, listme, colmuname, me, se}) {
+    for (var l in listse) {
+      for (var j in l) {
+        j['elevate'] = 0.0;
+      }
+    }
+
+    listse[listme.indexWhere((i) => i[colmuname] == me[colmuname])][se['i']]
+        ['elevate'] = 3.0;
+
+    update();
+  }
+
+  // setstartdatefor({ctx}) async {
+  //   DateTime? dt = await showDatePicker(
+  //       context: ctx,
+  //       initialDate: Offices.startdate,
+  //       firstDate: DateTime.parse("2023-08-01"),
+  //       lastDate: DateTime.now());
+  //   if (dt != null) {
+  //     Offices.startdate = dt;
+  //     dbController.update();
+  //   }
+  // }
+
+  addoffice() async {
+    BasicInfo.error = null;
+    Offices.bodieslistofadd[0]['tf'][0]['error'] = null;
+    List queries = [
+      '''
+insert into offices(officename,chatid,apitoken,notifi)values
+('${Offices.officenamecontroller.text}',
+'${Offices.chatidcontroller.text}',
+'${Offices.apitokencontroller.text}',
+${Offices.bodieslistofadd[0]['notifi'] == true ? 1 : 0});
+''',
+    ];
+    for (var i in Offices.addemployeelist
+        .where((element) => element['visible'] == false)) {
+      queries.add('''
+            insert into users_priv_office 
+            (upo_user_id,upo_office_id,position,
+            addtask,showalltasks,
+            addping,showallpings,
+            addcost,showallcosts,acceptcosts,
+            addtodo,showalltodos,
+            addremind,showallreminds,
+            addemailtest,showallemailtests,
+            addhyperlink,showallhyperlinks)
+            values(
+            ${i['user_id']},
+            (select max(office_id) from offices),
+            '${i['position'][1]}',
+            ${i['P-addtask'][0] == true ? 1 : 0},${i['P-showalltasks'][0] == true ? 1 : 0},
+            ${i['P-addping'][0] == true ? 1 : 0},${i['P-showallpings'][0] == true ? 1 : 0},
+            ${i['P-addcost'][0] == true ? 1 : 0},${i['P-showallcosts'][0] == true ? 1 : 0},${i['P-acceptcosts'][0] == true ? 1 : 0},
+            ${i['P-addtodo'][0] == true ? 1 : 0},${i['P-showalltodos'][0] == true ? 1 : 0},
+            ${i['P-addremind'][0] == true ? 1 : 0},${i['P-showallreminds'][0] == true ? 1 : 0},
+            ${i['P-addemailtest'][0] == true ? 1 : 0},${i['P-showallemailtests'][0] == true ? 1 : 0},
+            ${i['P-addhyperlink'][0] == true ? 1 : 0},${i['P-showallhyperlinks'][0] == true ? 1 : 0}
+            );
+            ''');
+    }
+    queries.add('''
+insert into logs(log,logdate)values
+("${BasicInfo.LogInInfo![1]} add a new office _name: Officename ${Offices.officenamecontroller.text}",
+"${DateTime.now()}");
+      ''');
+    if (Offices.officenamecontroller.text.isEmpty) {
+      Offices.bodieslistofadd[0]['tf'][0]['error'] =
+          BasicInfo.errorstype['emptyname-check'][BasicInfo.indexlang()];
+      for (var i in Offices.mainlabelsdialogmz) {
+        i['selected'] = false;
+      }
+      Offices.mainlabelsdialogmz[0]['selected'] = true;
+    } else {
+      Offices.actionlistofadd[0]['visible'] = false;
+      Offices.actionlistofadd[2]['visible'] = true;
+      update();
+      try {
+        l:
+        for (var q in queries) {
+          await DBController()
+              .requestpost(type: 'curd', data: {'customquery': '$q'});
+          {
+            if (BasicInfo.error != null) {
+              if (BasicInfo.error!.contains("Duplicate")) {
+                BasicInfo.error = Offices.bodieslistofadd[0]['tf'][0]['error'] =
+                    "${Offices.officenamecontroller.text} ${BasicInfo.errorstype['duplicate'][BasicInfo.indexlang()]}";
+                for (var i in Offices.mainlabelsdialogmz) {
+                  i['selected'] = false;
+                }
+                Offices.mainlabelsdialogmz[0]['selected'] = true;
+              } else {
+                BasicInfo.error = BasicInfo.error;
+              }
+              break l;
+            }
+          }
+        }
+        if (BasicInfo.error == null) {
+          Get.back();
+          DB.allofficeinfotable = await DBController().getallofficeinfo();
+          dbController.update();
+        }
+      } catch (e) {
+        BasicInfo.error =
+            BasicInfo.errorstype['server-error'][BasicInfo.indexlang()];
+      }
+    }
+    Offices.actionlistofadd[0]['visible'] = true;
+    Offices.actionlistofadd[2]['visible'] = false;
+    update();
+  }
+
+//   updateoffice({officeid}) async {
+//     DialogMz.errormsg = null;
+//     List queries = [
+//       '''
+// update office set
+// officename='${Office.officenamecontroller.text}',
+// chatid='${Office.officechatidcontroller.text}',
+// notifi=${Office.notifi == true ? 1 : 0} where office_id=$officeid;
+// ''',
+//       '''
+// delete from users_priv_office where upo_office_id=$officeid;
+// '''
+//     ];
+
+//     for (var i
+//         in Office.offmem.where((element) => element['visible'] == false)) {
+//       queries.add('''
+//             insert into users_priv_office (upo_user_id,upo_office_id,position,addtask,addouttask,addremind,addtodo,addping,addemailtest)
+//             values(
+//             ${i['user_id']},
+//             $officeid,
+//             '${i['Position']}',
+//             ${i['P-addtask'] == true ? 1 : 0},
+//             ${i['P-addouttask'] == true ? 1 : 0},
+//             ${i['P-addremind'] == true ? 1 : 0},
+//             ${i['P-addtodo'] == true ? 1 : 0},
+//             ${i['P-addping'] == true ? 1 : 0},
+//             ${i['P-addemailtest'] == true ? 1 : 0}
+//             );
+//             ''');
+//     }
+//     queries.add('''
+// insert into logs(log,logdate)values
+// ("${LogIn.userinfo![0]} edit office info for office_id $officeid _name: Officename ${Office.officenamecontroller.text}",
+// "${DateTime.now()}");
+//       ''');
+//     if (Office.officenamecontroller.text.isEmpty) {
+//       DialogMz.errormsg =
+//           Lang.lang['name-empty'][Lang.langlist.indexOf(Lang.selectlanguage)];
+//       for (var i = 0; i < DialogMz.selectedlist.length; i++) {
+//         DialogMz.selectedlist[i] = false;
+//       }
+//       DialogMz.selectedlist[0] = true;
+//     } else {
+//       DialogMz.wait = true;
+//       update();
+//       try {
+//         l:
+//         for (var q in queries) {
+//           await DBController().requestpost(
+//               url: "${InfoBasic.host}${InfoBasic.curdtable}",
+//               data: {'customquery': '$q'});
+//           {
+//             if (InfoBasic.error != null) {
+//               if (InfoBasic.error!.contains("Duplicate")) {
+//                 DialogMz.errormsg = Lang.lang['duplicate']
+//                     [Lang.langlist.indexOf(Lang.selectlanguage)];
+//                 break l;
+//               } else {
+//                 DialogMz.errormsg = InfoBasic.error;
+//               }
+//             }
+//           }
+//         }
+//         if (InfoBasic.error == null) {
+//           Get.back();
+//         }
+//         DB.allofficeinfotable = await DBController().getallofficeinfotable();
+//       } catch (e) {
+//         DialogMz.errormsg = LogIn.mainloginerrormsg =
+//             "${Lang.lang['server-error'][Lang.langlist.indexOf(Lang.selectlanguage)]}";
+//       }
+//     }
+//     DialogMz.wait = false;
+//     update();
+//   }
+
+  removeoffice({officeid, listse}) async {
+    List queries = [
+      '''
+insert into logs(log,logdate)values
+("${BasicInfo.LogInInfo![1]} delete office _Officename ${DB.allofficeinfotable[0]['offices'][DB.allofficeinfotable[0]['offices'].indexWhere((r) => r['office_id'] == officeid)]['officename']}",
+"${DateTime.now()}");
+      ''',
+      '''
+delete from users_priv_office where upo_office_id=$officeid;
+''',
+      '''
+update tasks set task_office_id=null where task_office_id=$officeid;
+''',
+      '''
+update remind set remind_office_id=null where remind_office_id=$officeid;
+''',
+      '''
+update todo set todo_office_id=null where todo_office_id=$officeid;
+''',
+      '''
+update cost set cost_office_id=null where cost_office_id=$officeid;
+''',
+      '''
+delete from offices where office_id=$officeid;
+''',
+    ];
+
+    try {
+      for (var q in queries) {
+        await DBController()
+            .requestpost(type: 'curd', data: {'customquery': '$q'});
+      }
+      DB.allofficeinfotable = await DBController().getallofficeinfo();
+      dbController.update();
+    } catch (e) {
+      print(e);
+      null;
+    }
+    for (var l in listse) {
+      for (var j in l) {
+        j['elevate'] = 0.0;
+      }
+    }
+
     update();
   }
 }

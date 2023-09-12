@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mz_flutter_07/controllers/dbcontroller.dart';
-import 'package:mz_flutter_07/controllers/maincontroller.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:mz_flutter_07/models/tween.dart';
-import 'package:mz_flutter_07/views/logo.dart';
-import 'package:mz_flutter_07/views/repare.dart';
 
 class WaitMz extends StatelessWidget {
   const WaitMz({super.key});
@@ -26,7 +23,7 @@ class WaitMz extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text("Please Wait"),
+            const Text("Please Wait"),
             waitmz0(items, context),
           ],
         ),
@@ -69,7 +66,7 @@ class WaitMz extends StatelessWidget {
                           height: 10,
                           width: 10,
                           decoration: BoxDecoration(
-                            boxShadow: [
+                            boxShadow: const [
                               BoxShadow(
                                   color: Colors.deepOrange,
                                   spreadRadius: 2,

@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mz_flutter_07/controllers/dbcontroller.dart';
 import 'package:mz_flutter_07/controllers/maincontroller.dart';
-import 'package:mz_flutter_07/controllers/themecontroller.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
-import 'package:mz_flutter_07/models/lang_mode_theme.dart';
 import 'package:mz_flutter_07/models/textfeild.dart';
 import 'package:mz_flutter_07/views/homepage.dart';
 import 'package:mz_flutter_07/views/wait.dart';
@@ -126,7 +124,7 @@ class LogIn extends StatelessWidget {
                   cursor: SystemMouseCursors.click,
                   child: Card(
                     elevation: 6,
-                    shape: BeveledRectangleBorder(
+                    shape: const BeveledRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10))),
                     child: Row(
                       children: [
@@ -134,7 +132,7 @@ class LogIn extends StatelessWidget {
                           padding: const EdgeInsets.only(left: 20, right: 20),
                           child: Text(
                             e['name'][BasicInfo.indexlang()],
-                            style: TextStyle(fontFamily: 'Cairo', fontSize: 17),
+                            style: const TextStyle(fontFamily: 'Cairo', fontSize: 17),
                           ),
                         ),
                       ],
@@ -145,7 +143,7 @@ class LogIn extends StatelessWidget {
             case 'wait':
               return WaitMz.waitmz0([1, 2, 3, 4, 5, 6, 7], context);
             default:
-              return SizedBox();
+              return const SizedBox();
           }
         })
       ]);
@@ -162,7 +160,7 @@ class LogIn extends StatelessWidget {
       }),
       builder: (_, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
-          return WaitMz();
+          return const WaitMz();
         }
         if (BasicInfo.LogInInfo == null) {
           return SafeArea(
@@ -174,7 +172,7 @@ class LogIn extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                        Expanded(child: SizedBox()),
+                        const Expanded(child: SizedBox()),
                         Expanded(
                           flex: 3,
                           child: SingleChildScrollView(
@@ -238,7 +236,7 @@ class LogIn extends StatelessWidget {
                         )
                       ]))));
         } else {
-          return HomePage();
+          return const HomePage();
         }
       },
     );

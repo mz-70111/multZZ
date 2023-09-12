@@ -1,10 +1,10 @@
+// ignore_for_file: unused_local_variable, prefer_typing_uninitialized_variables
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mz_flutter_07/controllers/dbcontroller.dart';
 import 'package:mz_flutter_07/controllers/maincontroller.dart';
-import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:mz_flutter_07/models/database.dart';
-import 'package:mz_flutter_07/models/sharedpref.dart';
 import 'package:mz_flutter_07/views/login.dart';
 import 'package:mz_flutter_07/views/wait.dart';
 
@@ -26,6 +26,7 @@ class RepairPage extends StatelessWidget {
                       await DBController().getallofficeinfo();
                   return test = await dbController.checkconnect();
                 } catch (e) {
+                  print(e);
                   null;
                 }
               }),

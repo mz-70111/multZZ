@@ -42,6 +42,7 @@ create table if not exists offices
 office_id int(11) unique primary key auto_increment,
 officename varchar(255) unique,
 chatid varchar(255),
+apitoken varchar(255),
 notifi tinyint(1) default 0
 );
 ''',
@@ -65,7 +66,7 @@ upo_user_id int(11),
 foreign key (upo_user_id) references users(user_id),
 upo_office_id int(11),
 foreign key (upo_office_id) references offices(office_id),
-position varchar(11),
+position varchar(225),
 addtask tinyint(1) default 0,
 showalltasks tinyint(1) default 0,
 addping tinyint(1) default 0,
@@ -162,7 +163,7 @@ foreign key (uc_user_id) references users(user_id),
 comments varchar(255),
 commentdate TIMESTAMP  NULL DEFAULT NULL,
 t_name varchar(255),
-t_type varchar(20),
+t_type varchar(255),
 idtype int(11)
 );
 ''',
@@ -198,6 +199,7 @@ attch_file MediumBLOB,
 costdate TIMESTAMP NULL DEFAULT NULL,
 begin_acceptcost tinyint(1),
 final_acceptcost tinyint(1),
+cost_status tinyint(1),
 cost_user_id int(11),
 foreign key (cost_user_id) references users(user_id),
 cost_office_id int(11),
@@ -221,7 +223,6 @@ insert into users_privileges(up_id,up_user_id,admin)values(1,1,1);
       if (t['status'] != 'done') {
         error = t['status'];
       }
-      print(t['status']);
     }
   }
 }

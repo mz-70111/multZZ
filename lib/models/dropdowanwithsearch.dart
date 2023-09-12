@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:mz_flutter_07/controllers/maincontroller.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:mz_flutter_07/models/bottonicon.dart';
 import 'package:mz_flutter_07/models/textfeild.dart';
@@ -20,7 +18,7 @@ class DropDownWithSearchMz extends StatelessWidget {
         IconbuttonMz(
             e: null,
             action: (e) => mainController.showdropwithsearchmz(items),
-            label: ['إضافة عضو', 'Add member']),
+            label: const ['إضافة عضو', 'Add member']),
         Visibility(
           visible: visiblemain,
           child: SizedBox(
@@ -38,7 +36,7 @@ class DropDownWithSearchMz extends StatelessWidget {
               children: [
                 TextFieldMz(
                     controller: searchcontroller,
-                    label: ['بحث', 'search'],
+                    label: const ['بحث', 'search'],
                     onchange: (x) => mainController
                         .search(range: ['name'], list: items, word: x),
                     td: BasicInfo.lang()),

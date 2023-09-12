@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mz_flutter_07/controllers/themecontroller.dart';
-import 'package:mz_flutter_07/models/lang_mode_theme.dart';
 
 class BasicInfo {
   static String? error;
@@ -34,8 +32,13 @@ class BasicInfo {
       'اسم المستخدم او كلمة المرور غير صحيحة',
       'username or password wrong!!'
     ],
-    'not-match': ['كلمة المرور غير متطابقة', 'not-match']
+    'not-match': ['كلمة المرور غير متطابقة', 'not-match'],
+    'duplicate': [
+      'الاسم محجوز مسبقا  _اختر اسما آخر',
+      'reserved name _choose another one'
+    ]
   };
+  // ignore: non_constant_identifier_names
   static List? LogInInfo;
   static TextDirection lang() =>
       selectedlang == 'Ar' ? TextDirection.rtl : TextDirection.ltr;

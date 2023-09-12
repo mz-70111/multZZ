@@ -21,13 +21,14 @@ class TextFieldMz extends StatelessWidget {
   final String? error;
   final List<String> label;
   final Function? onchange;
+  // ignore: prefer_typing_uninitialized_variables
   final action;
   final IconData? icon;
   final TextDirection td;
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(8.0),
       child: SizedBox(
         width: MediaQuery.of(context).size.width < 500
             ? MediaQuery.of(context).size.width
@@ -41,12 +42,12 @@ class TextFieldMz extends StatelessWidget {
             textAlign: TextAlign.center,
             onChanged: (x) => onchange!(x),
             decoration: InputDecoration(
-              border: OutlineInputBorder(
+              border: const OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(5))),
               errorText: error,
               label: Text(
                 label[BasicInfo.indexlang()],
-                style: TextStyle(
+                style: const TextStyle(
                     fontFamily: 'Changa', fontWeight: FontWeight.w700),
               ),
               suffixIcon: IconButton(onPressed: action, icon: Icon(icon)),

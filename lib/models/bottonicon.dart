@@ -1,6 +1,6 @@
+// ignore_for_file: prefer_typing_uninitialized_variables
+
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:mz_flutter_07/controllers/maincontroller.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:mz_flutter_07/views/login.dart';
 
@@ -46,7 +46,7 @@ class IconbuttonMz extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: Text(
                 label[BasicInfo.indexlang()],
-                style: TextStyle(
+                style: const TextStyle(
                     fontFamily: 'Changa', color: Colors.white, fontSize: 15),
               ),
             ),

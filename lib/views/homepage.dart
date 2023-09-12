@@ -7,7 +7,6 @@ import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:mz_flutter_07/models/bottonicon.dart';
 import 'package:mz_flutter_07/models/database.dart';
 import 'package:mz_flutter_07/models/dialog01.dart';
-import 'package:mz_flutter_07/models/lang_mode_theme.dart';
 import 'package:mz_flutter_07/models/sharedpref.dart';
 import 'package:mz_flutter_07/models/textfeild.dart';
 import 'package:mz_flutter_07/models/tween.dart';
@@ -166,11 +165,11 @@ class HomePage extends StatelessWidget {
             child: Stack(
               children: [
                 SizedBox(
-                  width: MediaQuery.of(context).size.width < 300 ? 250 : 500,
+                  width: MediaQuery.of(context).size.width < 300 ? 250 : 300,
                 ),
                 Icon(
                   e['icon'],
-                  size: MediaQuery.of(context).size.width < 300 ? 50 : 80,
+                  size: MediaQuery.of(context).size.width < 300 ? 50 : 60,
                   color: BasicInfo.selectedmode == 'Light'
                       ? Colors.indigoAccent.withOpacity(0.6)
                       : Colors.deepPurpleAccent.withOpacity(0.6),
@@ -178,7 +177,7 @@ class HomePage extends StatelessWidget {
                     BoxShadow(
                       spreadRadius: 0.6,
                       blurRadius: 0.9,
-                      offset: Offset(1, 2),
+                      offset: const Offset(1, 2),
                       color: BasicInfo.selectedmode == 'Light'
                           ? Colors.black.withOpacity(0.6)
                           : Colors.white.withOpacity(0.6),
@@ -187,13 +186,15 @@ class HomePage extends StatelessWidget {
                 ),
                 Positioned(
                   bottom: 0,
-                  left: BasicInfo.lang() == 'Ar' ? null : 0,
-                  right: BasicInfo.lang() == 'Ar' ? null : 0,
+                  left: BasicInfo.selectedlang == 'Ar' ? 0 : null,
+                  right: BasicInfo.selectedlang == 'Ar' ? null : 0,
                   child: Container(
+                    width: MediaQuery.of(context).size.width < 300 ? 150 : 200,
                     height: 50,
                     decoration: BoxDecoration(
-                        borderRadius:
-                            BorderRadius.only(bottomLeft: Radius.circular(10)),
+                        borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(10),
+                            bottomRight: Radius.circular(10)),
                         gradient: LinearGradient(
                             colors: BasicInfo.selectedmode == 'Light'
                                 ? BasicInfo.selectedlang == 'Ar'
@@ -219,7 +220,7 @@ class HomePage extends StatelessWidget {
                       child: Text(
                         e['label'][BasicInfo.indexlang()],
                         textAlign: TextAlign.end,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontFamily: 'Cairo',
                           fontSize: 20,
                         ),
@@ -247,10 +248,11 @@ class HomePage extends StatelessWidget {
               children: [
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(8.0),
                     child: Text(
                       "#_ ${DB.userinfotable[0]['users'][0]['user_id']} ${DB.userinfotable[0]['users'][0]['username']}",
-                      style: TextStyle(fontFamily: 'Changa', fontSize: 20),
+                      style:
+                          const TextStyle(fontFamily: 'Changa', fontSize: 20),
                     ),
                   ),
                 ),
@@ -296,7 +298,7 @@ class HomePage extends StatelessWidget {
           ...privilegesm.map((e) => Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text("_ $e",
-                    style: TextStyle(fontFamily: 'Changa', fontSize: 15)),
+                    style: const TextStyle(fontFamily: 'Changa', fontSize: 15)),
               ))
         ],
       ));
@@ -434,7 +436,7 @@ class HomePage extends StatelessWidget {
                           (ii) => Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Text("_ $ii",
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontFamily: 'Changa', fontSize: 15)),
                           ),
                         )
@@ -473,7 +475,7 @@ class HomePage extends StatelessWidget {
                   action: dialogactionfun(e)[dialogactionlist.indexOf(e)]),
             );
           default:
-            return SizedBox();
+            return const SizedBox();
         }
       });
     }
@@ -493,7 +495,9 @@ class HomePage extends StatelessWidget {
                         await DBController().getallofficeinfo();
                     return DB.userinfotable = await DBController()
                         .getuserinfo(userid: BasicInfo.LogInInfo![0]);
-                  } catch (e) {}
+                  } catch (e) {
+                    null;
+                  }
                 }), builder: (_, snap) {
                   if (snap.connectionState == ConnectionState.waiting) {
                     return WaitMz.waitmz0([1, 2, 3, 4, 5], context);
@@ -513,7 +517,7 @@ class HomePage extends StatelessWidget {
                     );
                   } else {
                     Future(() => Get.back());
-                    return SizedBox();
+                    return const SizedBox();
                   }
                 });
               }),
@@ -544,7 +548,7 @@ class HomePage extends StatelessWidget {
                                   padding: const EdgeInsets.all(8.0),
                                   child: Text(
                                     y['name'][BasicInfo.indexlang()],
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontFamily: 'Cairo',
                                       fontSize: 17,
                                     ),
@@ -584,7 +588,7 @@ class HomePage extends StatelessWidget {
               child: SafeArea(
                   child: Scaffold(
                       appBar: AppBar(
-                        title: Text(
+                        title: const Text(
                           "MultiTool _Z",
                           style: TextStyle(fontFamily: 'Cairo'),
                         ),
@@ -613,7 +617,8 @@ class HomePage extends StatelessWidget {
                                             'اختيار اللغة',
                                             'selected language'
                                           ][BasicInfo.indexlang()],
-                                          style: TextStyle(fontFamily: 'Cairo'),
+                                          style: const TextStyle(
+                                              fontFamily: 'Cairo'),
                                         ),
                                       ),
                                       DropdownButton(
@@ -647,7 +652,7 @@ class HomePage extends StatelessWidget {
                                     height:
                                         MediaQuery.of(context).size.width < 300
                                             ? maincardslist.length * 60.0
-                                            : maincardslist.length * 110.0,
+                                            : maincardslist.length * 70.0,
                                   ),
                                   ...maincardslist
                                       .where((element) =>
@@ -661,7 +666,7 @@ class HomePage extends StatelessWidget {
                                         end: MediaQuery.of(context).size.width <
                                                 300
                                             ? maincardslist.indexOf(e) * 60.0
-                                            : maincardslist.indexOf(e) * 110.0,
+                                            : maincardslist.indexOf(e) * 70.0,
                                         child: maincard(e: e));
                                   })
                                 ],
@@ -727,7 +732,7 @@ alertchangpass({ctx, e}) {
                     y)[passwordchangeactionlist.indexOf(y)]),
           );
         default:
-          return SizedBox();
+          return const SizedBox();
       }
     });
   }
@@ -740,7 +745,7 @@ alertchangpass({ctx, e}) {
         scrollable: true,
         title: Text(
           ['تغيير كلمة المرور', 'Change PassWord'][BasicInfo.indexlang()],
-          style: TextStyle(
+          style: const TextStyle(
               fontFamily: 'Cairo',
               fontSize: 17,
               decoration: TextDecoration.underline,

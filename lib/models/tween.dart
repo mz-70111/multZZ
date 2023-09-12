@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/widgets.dart';
 
 class TweenMz {
+  // ignore: non_constant_identifier_names
   static TweenM(
       {ctx, begin, end, duration, childm, Curve curve = Curves.linear}) {
     return TweenAnimationBuilder<double>(

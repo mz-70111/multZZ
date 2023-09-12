@@ -3,26 +3,29 @@ import 'package:get/get.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:http/http.dart' as http;
 import 'package:mz_flutter_07/models/database.dart';
+import 'package:mz_flutter_07/views/offices.dart';
 
 class DBController extends GetxController {
-  @override
   @override
   void onInit() async {
     super.onInit();
     // try {
-    //   DB().createtables();
+    //   await DB().createtables();
     // } catch (e) {}
+    update();
   }
 
   requestpost({type, data}) async {
     BasicInfo.error = null;
     // ignore: prefer_typing_uninitialized_variables
     var result;
-    var resp = await http.post(
+    var resp;
+    resp = await http.post(
         type == 'select'
             ? Uri.parse("${BasicInfo.host}${BasicInfo.selecttable}")
             : Uri.parse("${BasicInfo.host}${BasicInfo.curdtable}"),
         body: data);
+
     if (resp.statusCode == 200) {
       result = json.decode(resp.body);
     }
@@ -41,7 +44,6 @@ class DBController extends GetxController {
     List? result;
     List? testconnection = await requestpost(
         type: 'select', data: {'customquery': 'show tables;'});
-    print(testconnection);
     if (testconnection != null) {
       result = [{}];
       for (var i in tablesname) {
@@ -124,7 +126,7 @@ class DBController extends GetxController {
 
   checkconnect() async {
     return await requestpost(
-        type: 'select', data: {'customquery': 'show databases;'});
+        type: 'select', data: {'customquery': 'show tables;'});
   }
 
   changpass({userid, password}) async {
