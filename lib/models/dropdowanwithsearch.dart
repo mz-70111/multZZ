@@ -21,6 +21,8 @@ class DropDownWithSearchMz extends StatelessWidget {
         Row(
           children: [
             ...titleiconlist.map((f) => IconbuttonMz(
+                width: 100,
+                height: 50,
                 buttonlist: titleiconlist,
                 elevate: f['elevate'],
                 e: f,

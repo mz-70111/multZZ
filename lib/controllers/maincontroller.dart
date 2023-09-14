@@ -8,6 +8,7 @@ import 'package:mz_flutter_07/models/sharedpref.dart';
 import 'package:mz_flutter_07/views/homepage.dart';
 import 'package:mz_flutter_07/views/login.dart';
 import 'package:mz_flutter_07/views/offices.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MainController extends GetxController {
   codepassword({required String word}) {
@@ -365,11 +366,11 @@ class MainController extends GetxController {
     color != null
         ? list[index]['color'] = BasicInfo.selectedmode == 'Light'
             ? Colors.blueAccent.withOpacity(0.3)
-            : Colors.greenAccent.withOpacity(0.3)
+            : Colors.deepPurple.withOpacity(0.3)
         : null;
     iconsize != null ? list[index]['iconsize'] = 50.0 : null;
     elevate != null ? list[index]['elevate'] = 3.0 : null;
-
+    Offices.actionindex = list[index]['actionindex'] ?? 0;
     update();
   }
 
@@ -377,7 +378,19 @@ class MainController extends GetxController {
     color != null ? list[index]['color'] = Colors.transparent : null;
     iconsize != null ? list[index]['iconsize'] = 40.0 : null;
     elevate != null ? list[index]['elevate'] = 0.0 : null;
+    Offices.actionindex;
     update();
+  }
+
+  urllaunch({url}) async {
+    try {
+      if (!await launchUrl(Uri.parse(url),
+          mode: LaunchMode.externalNonBrowserApplication)) {
+        throw Exception('لا يمكن الوصول للموقع $url');
+      }
+    } catch (e) {
+      null;
+    }
   }
 
   changeradiopriv({x, index}) {
@@ -457,9 +470,9 @@ class MainController extends GetxController {
     List queries = [
       '''
 insert into offices(officename,chatid,apitoken,notifi)values
-('${Offices.officenamecontroller.text}',
-'${Offices.chatidcontroller.text}',
-'${Offices.apitokencontroller.text}',
+('${Offices.officenamecontroller.text.trim()}',
+'${Offices.chatidcontroller.text.trim()}',
+'${Offices.apitokencontroller.text.trim()}',
 ${Offices.bodieslistofadd[0]['notifi'] == true ? 1 : 0});
 ''',
     ];
@@ -618,7 +631,7 @@ insert into logs(log,logdate)values
 //     update();
 //   }
 
-  removeoffice({officeid, listse}) async {
+  removeoffice({officeid}) async {
     List queries = [
       '''
 insert into logs(log,logdate)values
@@ -653,13 +666,7 @@ delete from offices where office_id=$officeid;
       DB.allofficeinfotable = await DBController().getallofficeinfo();
       dbController.update();
     } catch (e) {
-      print(e);
       null;
-    }
-    for (var l in listse) {
-      for (var j in l) {
-        j['elevate'] = 0.0;
-      }
     }
 
     update();

@@ -185,10 +185,10 @@ class HomePage extends StatelessWidget {
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.only(
                           bottomLeft: BasicInfo.selectedlang == 'Ar'
-                              ? Radius.circular(10)
+                              ? Radius.elliptical(500, 500)
                               : Radius.circular(0),
                           bottomRight: BasicInfo.selectedlang == 'En'
-                              ? Radius.circular(10)
+                              ? Radius.elliptical(500, 500)
                               : Radius.circular(0),
                         ),
                         gradient: LinearGradient(
@@ -214,7 +214,7 @@ class HomePage extends StatelessWidget {
                     size: e['iconsize'],
                     color: BasicInfo.selectedmode == 'Light'
                         ? Colors.indigoAccent
-                        : Colors.teal,
+                        : Colors.deepPurple,
                     shadows: [
                       BoxShadow(
                           spreadRadius: 0.6,
@@ -475,16 +475,15 @@ class HomePage extends StatelessWidget {
             return SizedBox(
                 width: 100, child: WaitMz.waitmz0([1, 2, 3, 4], context));
           case 'do-it':
-            return SizedBox(
-              width: 75,
-              child: IconbuttonMz(
-                  buttonlist: dialogactionlist,
-                  elevate: e['elevate'],
-                  label: e['label'],
-                  index: e['index'],
-                  e: e,
-                  action: dialogactionfun(e)[dialogactionlist.indexOf(e)]),
-            );
+            return IconbuttonMz(
+                width: 75,
+                height: 50,
+                buttonlist: dialogactionlist,
+                elevate: e['elevate'],
+                label: e['label'],
+                index: e['index'],
+                e: e,
+                action: dialogactionfun(e)[dialogactionlist.indexOf(e)]);
           default:
             return const SizedBox();
         }
@@ -708,17 +707,16 @@ alertchangpass({ctx, e}) {
         case 'wait':
           return SizedBox(width: 100, child: WaitMz.waitmz0([1, 2, 3, 4], ctx));
         case 'do-it':
-          return SizedBox(
-            width: 75,
-            child: IconbuttonMz(
-                buttonlist: passwordchangeactionlist,
-                elevate: y['elevate'],
-                label: y['label'],
-                e: y,
-                index: y['index'],
-                action: passwordchangeactionfun(
-                    y)[passwordchangeactionlist.indexOf(y)]),
-          );
+          return IconbuttonMz(
+              width: 75,
+              height: 50,
+              buttonlist: passwordchangeactionlist,
+              elevate: y['elevate'],
+              label: y['label'],
+              e: y,
+              index: y['index'],
+              action: passwordchangeactionfun(
+                  y)[passwordchangeactionlist.indexOf(y)]);
         default:
           return const SizedBox();
       }

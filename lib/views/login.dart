@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:mz_flutter_07/controllers/dbcontroller.dart';
 import 'package:mz_flutter_07/controllers/maincontroller.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
+import 'package:mz_flutter_07/models/bottonicon.dart';
 import 'package:mz_flutter_07/models/textfeild.dart';
 import 'package:mz_flutter_07/views/homepage.dart';
 import 'package:mz_flutter_07/views/wait.dart';
@@ -66,11 +67,13 @@ class LogIn extends StatelessWidget {
       'type': 'action',
       'visible': true,
       'name': ['دخول', 'login'],
+      'index': 0,
+      'elevateindex': 0,
+      'elevate': 0.0,
       'action': [
-        () => mainController.checklogin(),
-        () => mainController.mustchgpass()
-      ],
-      'index': 0
+        (x) => mainController.checklogin(),
+        (x) => mainController.mustchgpass()
+      ]
     },
     {
       'visible': false,
@@ -80,8 +83,12 @@ class LogIn extends StatelessWidget {
       'type': 'action',
       'visible': false,
       'name': ['دخول بحساب مختلف', 'login with other account'],
-      'action': [() => mainController.logout()],
-      'index': 0
+      'elevateindex': 1,
+      'elevate': 0.0,
+      'index': 0,
+      'action': [
+        (x) => mainController.logout(),
+      ]
     },
   ];
 
@@ -89,6 +96,7 @@ class LogIn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     MainController mainController = Get.find();
+
     textfieldlogin() {
       return Column(
         children: [
@@ -112,41 +120,34 @@ class LogIn extends StatelessWidget {
     }
 
     loginaction() {
-      return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        ...loginactionlist
-            .where((element) => element['visible'] == true)
-            .map((e) {
-          switch (e['type']) {
-            case 'action':
-              return GestureDetector(
-                onTap: e['action'][e['index']],
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: Card(
-                    elevation: 6,
-                    shape: const BeveledRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10))),
-                    child: Row(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 20, right: 20),
-                          child: Text(
-                            e['name'][BasicInfo.indexlang()],
-                            style: const TextStyle(fontFamily: 'Cairo', fontSize: 17),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            case 'wait':
-              return WaitMz.waitmz0([1, 2, 3, 4, 5, 6, 7], context);
-            default:
-              return const SizedBox();
-          }
-        })
-      ]);
+      return GetBuilder<MainController>(
+        init: mainController,
+        builder: (_) {
+          return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            ...loginactionlist
+                .where((element) => element['visible'] == true)
+                .map((e) {
+              switch (e['type']) {
+                case 'action':
+                  return IconbuttonMz(
+                      e: e,
+                      action: e['action'][e['index']],
+                      label: e['name'],
+                      buttonlist: loginactionlist,
+                      index: e['elevateindex'],
+                      elevate: e['elevate'],
+                      height: 50,
+                      width: 150);
+
+                case 'wait':
+                  return WaitMz.waitmz0([1, 2, 3, 4, 5, 6, 7], context);
+                default:
+                  return const SizedBox();
+              }
+            })
+          ]);
+        },
+      );
     }
 
     return FutureBuilder(
@@ -205,7 +206,9 @@ class LogIn extends StatelessWidget {
                                           ],
                                         ),
                                         textfieldlogin(),
-                                        loginaction(),
+                                        GetBuilder<MainController>(
+                                            init: mainController,
+                                            builder: (_) => loginaction()),
                                         Visibility(
                                             visible: BasicInfo.error != null,
                                             child: Text("${BasicInfo.error}")),
@@ -226,10 +229,10 @@ class LogIn extends StatelessWidget {
                               child: Text(
                                 " by:  مـ عـ ا ذ",
                                 style: TextStyle(
-                                    fontFamily: 'Vibes',
+                                    fontFamily: 'vibes',
                                     fontWeight: FontWeight.w900,
                                     wordSpacing: 2,
-                                    fontSize: 18),
+                                    fontSize: 20),
                               ),
                             ),
                           ],

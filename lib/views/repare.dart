@@ -4,17 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mz_flutter_07/controllers/dbcontroller.dart';
 import 'package:mz_flutter_07/controllers/maincontroller.dart';
+import 'package:mz_flutter_07/models/basicinfo.dart';
+import 'package:mz_flutter_07/models/bottonicon.dart';
 import 'package:mz_flutter_07/models/database.dart';
+import 'package:mz_flutter_07/views/homepage.dart';
 import 'package:mz_flutter_07/views/login.dart';
 import 'package:mz_flutter_07/views/wait.dart';
 
 class RepairPage extends StatelessWidget {
   const RepairPage({super.key});
-
+  static List? version;
   @override
   Widget build(BuildContext context) {
     MainController mainController = Get.find();
-    var test;
+
     DBController dbController = Get.find();
     return GetBuilder<DBController>(
       init: dbController,
@@ -24,9 +27,8 @@ class RepairPage extends StatelessWidget {
                 try {
                   DB.allofficeinfotable =
                       await DBController().getallofficeinfo();
-                  return test = await dbController.checkconnect();
+                  return await dbController.getversion();
                 } catch (e) {
-                  print(e);
                   null;
                 }
               }),
@@ -48,7 +50,56 @@ class RepairPage extends StatelessWidget {
                     ),
                   );
                 } else {
-                  return const LogIn();
+                  if (version![0] == BasicInfo.version) {
+                    return const LogIn();
+                  } else {
+                    List actionlist = [
+                      {
+                        'elevate': 0.0,
+                        'label': ['تخطي', 'skip'],
+                        'index': 0
+                      }
+                    ];
+                    return Scaffold(
+                      body: Center(
+                        child: GetBuilder<MainController>(
+                          init: mainController,
+                          builder: (_) => Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text([
+                                'يتوفر إصدار جديد',
+                                'new version is availble'
+                              ][BasicInfo.indexlang()]),
+                              InkWell(
+                                child: Text(
+                                  "http://192.168.30.8",
+                                  style: TextStyle(
+                                      fontFamily: 'Changa', fontSize: 25),
+                                ),
+                                onTap: () {
+                                  mainController.urllaunch(
+                                      url: "http://192.168.30.8");
+                                },
+                              ),
+                              ...actionlist.map((ibm) => IconbuttonMz(
+                                  width: 80,
+                                  height: 35,
+                                  e: ibm,
+                                  action: (ibm) {
+                                    Future(() => Get.offNamed('/login'));
+                                    return LogIn();
+                                  },
+                                  label: ibm['label'],
+                                  buttonlist: actionlist,
+                                  index: ibm['index']))
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }
                 }
               })),
     );

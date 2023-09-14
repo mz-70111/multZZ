@@ -13,14 +13,21 @@ class IconbuttonMz extends StatelessWidget {
       required this.label,
       this.elevate = 0.0,
       required this.buttonlist,
-      required this.index});
+      required this.index,
+      required this.height,
+      required this.width,
+      this.textsize = 14,
+      this.icon,
+      this.labelvisible = true});
   final List buttonlist;
   final double elevate;
   final e;
   final int index;
   final Function action;
   final List<String> label;
-
+  final double width, height, textsize;
+  final IconData? icon;
+  final bool labelvisible;
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -31,23 +38,43 @@ class IconbuttonMz extends StatelessWidget {
             elevate: elevate, list: buttonlist, index: index),
         onExit: (x) => mainController.onexit(
             elevate: elevate, list: buttonlist, index: index),
-        child: Card(
-          elevation: elevate,
-          color: BasicInfo.selectedmode == 'Light'
-              ? Colors.blueAccent.withOpacity(0.8)
-              : Colors.teal.withOpacity(0.6),
-          shadowColor: BasicInfo.selectedmode == 'Light'
-              ? Colors.black87
-              : Colors.white70,
-          shape:
-              BeveledRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                label[BasicInfo.indexlang()],
-                style: const TextStyle(
-                    fontFamily: 'Changa', color: Colors.white, fontSize: 15),
+        child: SizedBox(
+          width: width,
+          height: height,
+          child: Card(
+            elevation: elevate,
+            color: BasicInfo.selectedmode == 'Light'
+                ? Colors.blueAccent
+                : Colors.deepPurple,
+            shadowColor: BasicInfo.selectedmode == 'Light'
+                ? Colors.black87
+                : Colors.white70,
+            shape:
+                BeveledRectangleBorder(borderRadius: BorderRadius.circular(5)),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(2.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    icon == null
+                        ? SizedBox()
+                        : Icon(
+                            icon,
+                            color: Colors.white,
+                          ),
+                    Visibility(
+                      visible: labelvisible,
+                      child: Text(
+                        label[BasicInfo.indexlang()],
+                        style: TextStyle(
+                            fontFamily: 'Changa',
+                            color: Colors.white,
+                            fontSize: textsize),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

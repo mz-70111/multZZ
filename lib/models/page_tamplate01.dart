@@ -2,9 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mz_flutter_07/controllers/dbcontroller.dart';
 import 'package:mz_flutter_07/controllers/maincontroller.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:mz_flutter_07/models/bottonicon.dart';
+import 'package:mz_flutter_07/models/database.dart';
 import 'package:mz_flutter_07/models/dialog01.dart';
 import 'package:mz_flutter_07/models/textfeild.dart';
 import 'package:mz_flutter_07/views/homepage.dart';
@@ -38,10 +40,14 @@ class PageTamplate01 extends StatelessWidget {
       required this.easyeditlist,
       required this.easyeditaction,
       required this.ini,
-      required this.floateactionbutton});
+      required this.floateactionbutton,
+      required this.prefixotherMainItems,
+      required this.suffixotherMainItems,
+      required this.mainrowcolor});
   final List<String> appbartitle, addtitle, searchrangelist;
   final List<Map> mainlebelsdialogmz;
   final List<Widget> bodiesofadd, actionlist;
+
   final String? page;
   final double elevationcard;
   final futurefun;
@@ -53,12 +59,15 @@ class PageTamplate01 extends StatelessWidget {
       preparefunctionfuture,
       setstartdate,
       setenddate,
+      prefixotherMainItems,
+      suffixotherMainItems,
       ini;
   final List mainItems;
   final bool searchwithdatevisible;
   final DateTime startdate;
   final DateTime enddate;
   final List<Map> floateactionbutton;
+  final Function mainrowcolor;
   @override
   Widget build(BuildContext context) {
     if (BasicInfo.LogInInfo != null) {
@@ -146,31 +155,40 @@ class PageTamplate01 extends StatelessWidget {
                                           child: MouseRegion(
                                             cursor: SystemMouseCursors.click,
                                             child: Card(
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(8.0),
-                                                child: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment.start,
-                                                    children: [
-                                                      ...mainItems
-                                                          .where((element) =>
-                                                              mainItems.indexOf(
-                                                                  element) ==
-                                                              0)
-                                                          .map((i) => Text(
-                                                              "# ${me[i]} _")),
-                                                      ...mainItems
-                                                          .where((element) =>
-                                                              mainItems.indexOf(
-                                                                  element) >
-                                                              0)
-                                                          .map((i) => Expanded(
-                                                              child:
-                                                                  Text(me[i]))),
-                                                      easyeditpanel(
-                                                          ctx: context, me: me)
-                                                    ]),
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                    gradient:
+                                                        LinearGradient(colors: [
+                                                  Colors.transparent,
+                                                  mainrowcolor(me) == true
+                                                      ? Colors.greenAccent
+                                                          .withOpacity(0.3)
+                                                      : Colors.transparent,
+                                                  Colors.transparent
+                                                ])),
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
+                                                  child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        mainitems(
+                                                            me: me,
+                                                            prefixotherMainItems:
+                                                                (me) =>
+                                                                    prefixotherMainItems(
+                                                                        me),
+                                                            suffixotherMainItems:
+                                                                (me) =>
+                                                                    suffixotherMainItems(
+                                                                        me)),
+                                                        easyeditpanel(
+                                                            ctx: context,
+                                                            me: me)
+                                                      ]),
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -189,47 +207,17 @@ class PageTamplate01 extends StatelessWidget {
                     init: mainController,
                     builder: (_) => Row(
                       children: [
-                        ...floateactionbutton.map((f) => SizedBox(
-                              width: 150,
-                              height: 45,
-                              child: IconbuttonMz(
-                                  buttonlist: floateactionbutton,
-                                  elevate: f['elevate'],
-                                  e: f,
-                                  index: f['index'],
-                                  action: (e) {
-                                    showDialog(
-                                        context: context,
-                                        builder: (_) {
-                                          return FutureBuilder(
-                                              future: Future(() async {
-                                            try {
-                                              return await preparefunctionfuture();
-                                            } catch (e) {
-                                              null;
-                                            }
-                                          }), builder: (_, snap) {
-                                            if (snap.connectionState ==
-                                                ConnectionState.waiting) {
-                                              return WaitMz.waitmz0(
-                                                  [1, 2, 3], context);
-                                            } else if (snap.hasData) {
-                                              preparefunction();
-                                              return DialogMz01(
-                                                  title: addtitle,
-                                                  mainlabels:
-                                                      mainlebelsdialogmz,
-                                                  bodies: [...bodiesofadd],
-                                                  actionlist: actionlist);
-                                            } else {
-                                              Future(() => Get.back());
-                                              return const SizedBox();
-                                            }
-                                          });
-                                        });
-                                  },
-                                  label: addtitle),
-                            ))
+                        ...floateactionbutton.map((f) => IconbuttonMz(
+                            width: 150,
+                            height: 50,
+                            buttonlist: floateactionbutton,
+                            elevate: f['elevate'],
+                            e: f,
+                            index: f['index'],
+                            action: (e) {
+                              additemWidget(e: e, ctx: context);
+                            },
+                            label: addtitle))
                       ],
                     ),
                   ),
@@ -268,40 +256,48 @@ class PageTamplate01 extends StatelessWidget {
     }
   }
 
+  mainitems({me, prefixotherMainItems, suffixotherMainItems}) {
+    return Expanded(
+      child: Row(
+        children: [
+          prefixotherMainItems(me),
+          ...mainItems
+              .where((element) => element == mainItems.first)
+              .map((i) => Text("# ${me[i]} _")),
+          ...mainItems
+              .where((element) => mainItems.indexOf(element) > 0)
+              .map((i) => Expanded(
+                      child: Text(
+                    me[i],
+                    style: TextStyle(fontFamily: 'Changa', fontSize: 18),
+                  ))),
+          suffixotherMainItems(me)
+        ],
+      ),
+    );
+  }
+
   easyeditpanel({ctx, me}) {
     return Row(
       children: [
         ...easyeditlist[table[0][tablename].indexOf(me)]
-            .where((y) => y['visible'] == true)
+            .where((y) => y.runtimeType != String && y['visible'] == true)
             .map((se) {
           switch (se['type']) {
             case 'wait':
               return WaitMz.waitmz0([1, 2, 3, 4], ctx);
             case 'do-it':
-              return GestureDetector(
-                onTap: () => easyeditaction(me, se),
-                child: MouseRegion(
-                  onHover: (x) => mainController.onhover(
-                      elevate: se['elevate'],
-                      list: easyeditlist[table[0][tablename].indexOf(me)],
-                      index: se['index']),
-                  onExit: (x) => mainController.onexit(
-                      elevate: se['elevate'],
-                      list: easyeditlist[table[0][tablename].indexOf(me)],
-                      index: se['index']),
-                  child: Card(
-                    elevation: se['elevate'],
-                    child: Row(
-                      children: [
-                        Icon(se['icon']),
-                        Visibility(
-                          visible: se['elevate'] == 0.0 ? false : true,
-                          child: Text(se['label'][BasicInfo.indexlang()]),
-                        )
-                      ],
-                    ),
-                  ),
-                ),
+              return IconbuttonMz(
+                icon: se['icon'],
+                labelvisible: se['elevate'] == 0.0 ? false : true,
+                elevate: se['elevate'],
+                e: me,
+                action: easyeditaction(me),
+                label: se['label'],
+                buttonlist: easyeditlist[table[0][tablename].indexOf(me)],
+                index: se['actionindex'],
+                height: 35,
+                width: se['elevate'] == 0.0 ? 40 : 80,
               );
             default:
               return SizedBox();
@@ -309,5 +305,33 @@ class PageTamplate01 extends StatelessWidget {
         })
       ],
     );
+  }
+
+  additemWidget({e, ctx}) {
+    return showDialog(
+        context: ctx,
+        builder: (_) {
+          return FutureBuilder(future: Future(() async {
+            try {
+              return await preparefunctionfuture();
+            } catch (e) {
+              null;
+            }
+          }), builder: (_, snap) {
+            if (snap.connectionState == ConnectionState.waiting) {
+              return WaitMz.waitmz0([1, 2, 3], ctx);
+            } else if (snap.hasData) {
+              preparefunction();
+              return DialogMz01(
+                  title: addtitle,
+                  mainlabels: mainlebelsdialogmz,
+                  bodies: [...bodiesofadd],
+                  actionlist: actionlist);
+            } else {
+              Future(() => Get.back());
+              return const SizedBox();
+            }
+          });
+        });
   }
 }

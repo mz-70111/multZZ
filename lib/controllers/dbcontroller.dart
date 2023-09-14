@@ -4,6 +4,7 @@ import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:http/http.dart' as http;
 import 'package:mz_flutter_07/models/database.dart';
 import 'package:mz_flutter_07/views/offices.dart';
+import 'package:mz_flutter_07/views/repare.dart';
 
 class DBController extends GetxController {
   @override
@@ -124,15 +125,24 @@ class DBController extends GetxController {
     ]);
   }
 
-  checkconnect() async {
-    return await requestpost(
-        type: 'select', data: {'customquery': 'show tables;'});
-  }
-
   changpass({userid, password}) async {
     await DBController().requestpost(type: "curd", data: {
       'customquery':
           "update users set password='$password' where user_id=$userid;"
     });
+  }
+
+  getversion() async {
+    List? version;
+    version = await gettableinfo(
+        tablesname: ['version'], infoqueries: ['select * from version;']);
+    RepairPage.version = null;
+    if (version != null) {
+      RepairPage.version = [];
+      RepairPage.version!.add(version[0]['version'][0]['version']);
+      RepairPage.version!.add(version[0]['version'][0]['skip']);
+    }
+    // print("${} **");
+    return version;
   }
 }

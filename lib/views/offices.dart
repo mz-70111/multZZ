@@ -5,6 +5,7 @@ import 'package:mz_flutter_07/controllers/maincontroller.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:mz_flutter_07/models/bottonicon.dart';
 import 'package:mz_flutter_07/models/database.dart';
+import 'package:mz_flutter_07/models/dialog01.dart';
 import 'package:mz_flutter_07/models/dropdowanwithsearch.dart';
 import 'package:mz_flutter_07/models/page_tamplate01.dart';
 import 'package:mz_flutter_07/models/textfeild.dart';
@@ -50,6 +51,7 @@ class Offices extends StatelessWidget {
       ]
     }
   ];
+  static int actionindex = 0;
   static List<Map> addemployeelist = [];
   static List<Map> floatactionbutton = [
     {'index': 0, 'elevate': 0.0}
@@ -193,17 +195,16 @@ class Offices extends StatelessWidget {
               .map((u) {
             switch (u['type']) {
               case 'do-it':
-                return SizedBox(
-                  width: 100,
-                  child: IconbuttonMz(
-                      index: u['index'],
-                      buttonlist: actionlistofadd,
-                      elevate: u['elevate'],
-                      e: u,
-                      action:
-                          actionfunlistofadd(null)[actionlistofadd.indexOf(u)],
-                      label: u['label']),
-                );
+                return IconbuttonMz(
+                    height: 40,
+                    width: 75,
+                    index: u['index'],
+                    buttonlist: actionlistofadd,
+                    elevate: u['elevate'],
+                    e: u,
+                    action:
+                        actionfunlistofadd(null)[actionlistofadd.indexOf(u)],
+                    label: u['label']);
               case 'wait':
                 return WaitMz.waitmz0([1, 2, 3, 4, 5, 6, 7, 8], context);
               default:
@@ -219,81 +220,43 @@ class Offices extends StatelessWidget {
       for (var i in DB.allofficeinfotable[0]['offices']) {
         easyeditlist.add([]);
         easyeditlist[DB.allofficeinfotable[0]['offices'].indexOf(i)].addAll({
-          {'visible': false, 'type': 'wait'},
           {
+            'index': DB.allofficeinfotable[0]['offices'].indexOf(i),
+            'actionindex': 0,
             'visible': true,
             'type': 'do-it',
             'icon': Icons.delete_forever,
             'label': ['حذف', 'delete'],
             'elevate': 0.0,
-            'i': 1
           },
+          {'visible': false, 'type': 'wait'},
         });
       }
     }
 
-    List easyeditactionlist(e) => [
-          null,
-          showDialog(
-              context: context,
-              builder: (_) {
-                List actionlist = [
-                  {
-                    'index': 0,
-                    'type': 'do-it',
-                    'visible': true,
-                    'label': ['حذف', 'remove'],
-                    'elevate': 0.0
-                  },
-                  {
-                    'index': 1,
-                    'type': 'do-it',
-                    'visible': true,
-                    'label': ['رجوع', 'close'],
-                    'elevate': 0.0
-                  },
-                  {
-                    'index': 2,
-                    'type': 'wait',
-                    'visible': false,
-                    'label': ['حذف', 'remove'],
-                  }
-                ];
-                return Directionality(
-                  textDirection: BasicInfo.lang(),
-                  child: AlertDialog(
-                    title: Text("${[
-                      'حذف',
-                      'remove'
-                    ][BasicInfo.indexlang()]} ${e['officename']}??"),
-                    actions: [
-                      ...actionlist
-                          .where((element) => element['visible'] == true)
-                          .map((y) => SizedBox(
-                                width: 100,
-                                child: IconbuttonMz(
-                                    index: y['index'],
-                                    buttonlist: actionlist,
-                                    elevate: y['elevate'],
-                                    e: y,
-                                    action: (y) {},
-                                    label: y['label']),
-                              ))
-                    ],
-                  ),
-                );
-              })
+    easyeditactionlist(ibmf) => [
+          (ibmf) => mainController.removeoffice(officeid: ibmf['office_id']),
         ];
+    suffixprefix({m}) {
+      return SizedBox();
+    }
+
+    color(me) {
+      return me['notifi'] == '1' ? true : false;
+    }
 
     return GetBuilder<DBController>(
       init: dbController,
       builder: (_) => PageTamplate01(
+        prefixotherMainItems: (r) => suffixprefix(m: r),
+        suffixotherMainItems: (r) => suffixprefix(m: r),
+        mainrowcolor: (me) => color(me),
         floateactionbutton: floatactionbutton,
         ini: () => buildeasyeditlist(),
         futurefun: Future(() async {
           try {
-            return DB.allofficeinfotable =
-                await DBController().getallofficeinfo();
+            DB.allofficeinfotable = await DBController().getallofficeinfo();
+            return DB.allofficeinfotable;
           } catch (e) {
             null;
           }
@@ -309,11 +272,9 @@ class Offices extends StatelessWidget {
         setstartdate: () => null,
         enddate: enddate,
         setenddate: () => null,
-        openitem: (o) => null,
+        openitem: (o) => edititemWidget(e: o, ctx: context),
         easyeditlist: easyeditlist,
-        easyeditaction: (me, se) {
-          return easyeditactionlist(me)[se['i']];
-        },
+        easyeditaction: (m) => easyeditactionlist(m)[actionindex],
         appbartitle: const ['المكاتب', 'Offices'],
         addtitle: const ['إضافة مكتب', 'Add Office'],
         mainlebelsdialogmz: mainlabelsdialogmz,
@@ -412,6 +373,15 @@ class Offices extends StatelessWidget {
           ],
         });
       }
+    } else {
+      bodieslistofadd[0]['tf'][0]['error'] = null;
+      officenamecontroller.text = e['officename'];
+      chatidcontroller.text = e['chatid'];
+      apitokencontroller.text = e['apitoken'];
+      bodieslistofadd[0]['notifi'] = false;
+      mainlabelsdialogmz[0]['selected'] = true;
+      mainlabelsdialogmz[1]['selected'] = false;
+      DropDownWithSearchMz.visiblemain = false;
     }
   }
 
@@ -529,6 +499,8 @@ class Offices extends StatelessWidget {
                       .map((r) => SizedBox(
                             width: 100,
                             child: IconbuttonMz(
+                                width: 75,
+                                height: 40,
                                 index: r['index'],
                                 buttonlist: actionlist,
                                 elevate: r['elevate'],
@@ -540,6 +512,36 @@ class Offices extends StatelessWidget {
               ),
             ),
           );
+        });
+  }
+
+  edititemWidget({e, ctx}) {
+    return showDialog(
+        context: ctx,
+        builder: (_) {
+          return FutureBuilder(future: Future(() async {
+            try {
+              return DB.allusersinfotable =
+                  await DBController().getallusersinfo();
+            } catch (e) {
+              null;
+            }
+          }), builder: (_, snap) {
+            if (snap.connectionState == ConnectionState.waiting) {
+              return WaitMz.waitmz0([1, 2, 3], ctx);
+            } else if (snap.hasData) {
+              initial(e: e);
+              return DialogMz01(
+                title: ['مكتب', 'Office'],
+                mainlabels: mainlabelsdialogmz,
+                bodies: [SizedBox()],
+                actionlist: [SizedBox()],
+              );
+            } else {
+              Future(() => Get.back());
+              return const SizedBox();
+            }
+          });
         });
   }
 }
