@@ -51,21 +51,25 @@ class Offices extends StatelessWidget {
     }
   ];
   static List<Map> addemployeelist = [];
+  static List<Map> floatactionbutton = [
+    {'index': 0, 'elevate': 0.0}
+  ];
   static List actionlistofadd = [
     {
+      'index': 0,
       'visible': true,
       'type': 'do-it',
       'label': ['إضافة', 'Add'],
+      'elevate': 0.0
     },
     {
+      'index': 1,
       'visible': true,
       'type': 'do-it',
       'label': ['رجوع', 'close'],
+      'elevate': 0.0
     },
-    {
-      'visible': false,
-      'type': 'wait',
-    }
+    {'index': 0, 'visible': false, 'type': 'wait', 'elevate': 0.0}
   ];
   static DateTime startdate = DateTime.now().add(Duration(days: -30));
   static DateTime enddate = DateTime.now();
@@ -192,7 +196,10 @@ class Offices extends StatelessWidget {
                 return SizedBox(
                   width: 100,
                   child: IconbuttonMz(
-                      e: null,
+                      index: u['index'],
+                      buttonlist: actionlistofadd,
+                      elevate: u['elevate'],
+                      e: u,
                       action:
                           actionfunlistofadd(null)[actionlistofadd.indexOf(u)],
                       label: u['label']),
@@ -226,13 +233,62 @@ class Offices extends StatelessWidget {
     }
 
     List easyeditactionlist(e) => [
-          (e) => null,
-          (e) => mainController.removeoffice(officeid: e['office_id'])
+          null,
+          showDialog(
+              context: context,
+              builder: (_) {
+                List actionlist = [
+                  {
+                    'index': 0,
+                    'type': 'do-it',
+                    'visible': true,
+                    'label': ['حذف', 'remove'],
+                    'elevate': 0.0
+                  },
+                  {
+                    'index': 1,
+                    'type': 'do-it',
+                    'visible': true,
+                    'label': ['رجوع', 'close'],
+                    'elevate': 0.0
+                  },
+                  {
+                    'index': 2,
+                    'type': 'wait',
+                    'visible': false,
+                    'label': ['حذف', 'remove'],
+                  }
+                ];
+                return Directionality(
+                  textDirection: BasicInfo.lang(),
+                  child: AlertDialog(
+                    title: Text("${[
+                      'حذف',
+                      'remove'
+                    ][BasicInfo.indexlang()]} ${e['officename']}??"),
+                    actions: [
+                      ...actionlist
+                          .where((element) => element['visible'] == true)
+                          .map((y) => SizedBox(
+                                width: 100,
+                                child: IconbuttonMz(
+                                    index: y['index'],
+                                    buttonlist: actionlist,
+                                    elevate: y['elevate'],
+                                    e: y,
+                                    action: (y) {},
+                                    label: y['label']),
+                              ))
+                    ],
+                  ),
+                );
+              })
         ];
 
     return GetBuilder<DBController>(
       init: dbController,
       builder: (_) => PageTamplate01(
+        floateactionbutton: floatactionbutton,
         ini: () => buildeasyeditlist(),
         futurefun: Future(() async {
           try {
@@ -256,17 +312,7 @@ class Offices extends StatelessWidget {
         openitem: (o) => null,
         easyeditlist: easyeditlist,
         easyeditaction: (me, se) {
-          if (se['elevate'] == 0.0) {
-            return mainController.easyeditaction(
-                me: me,
-                se: se,
-                listme: DB.allofficeinfotable[0]['offices'],
-                listse: easyeditlist,
-                colmuname: 'office_id');
-          } else {
-            return mainController.removeoffice(
-                officeid: me['office_id'], listse: easyeditlist);
-          }
+          return easyeditactionlist(me)[se['i']];
         },
         appbartitle: const ['المكاتب', 'Offices'],
         addtitle: const ['إضافة مكتب', 'Add Office'],
@@ -372,25 +418,30 @@ class Offices extends StatelessWidget {
   setpreivileges({ctx, index, type = 'add', ee}) {
     List actionlist = [
       {
+        'index': 0,
         'visible': true,
         'label': type == 'add' ? ['إضافة', 'save'] : ['حفظ', 'save'],
-        'elavation': 0.0
+        'elevate': 0.0
       },
       {
+        'index': 1,
         'visible': true,
         'label': ['رجوع', 'close'],
-        'elavation': 0.0
+        'elevate': 0.0
       },
       {
+        'index': 2,
         'visible': type == 'add' ? false : true,
         'label': ['حذف', 'delete'],
-        'elavation': 0.0
+        'elevate': 0.0
       },
     ];
-    List actionfun(e) => [
-          (e) => mainController.addremoveemployeetooffice(e: e, type: 'save'),
-          (e) => Get.back(),
-          (e) => mainController.addremoveemployeetooffice(e: e, type: 'edit'),
+    List actionfun(ee) => [
+          (ee) => mainController.addremoveemployeetooffice(
+              list: addemployeelist, y: ee, type: 'save'),
+          (ee) => Get.back(),
+          (ee) => mainController.addremoveemployeetooffice(
+              list: addemployeelist, y: ee, type: 'edit'),
         ];
     return showDialog(
         context: ctx,
@@ -478,9 +529,9 @@ class Offices extends StatelessWidget {
                       .map((r) => SizedBox(
                             width: 100,
                             child: IconbuttonMz(
-                                elevetioncard: r['elavation'],
-                                listbutton: actionlist,
-                                indexbutton: actionlist.indexOf(r),
+                                index: r['index'],
+                                buttonlist: actionlist,
+                                elevate: r['elevate'],
                                 e: ee,
                                 action: actionfun(ee)[actionlist.indexOf(r)],
                                 label: r['label']),

@@ -23,7 +23,7 @@ class WaitMz extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text("Please Wait"),
+            Text(['رجاءا الانتظار', "Please Wait"][BasicInfo.indexlang()]),
             waitmz0(items, context),
           ],
         ),
@@ -68,7 +68,7 @@ class WaitMz extends StatelessWidget {
                           decoration: BoxDecoration(
                             boxShadow: const [
                               BoxShadow(
-                                  color: Colors.deepOrange,
+                                  color: Colors.teal,
                                   spreadRadius: 2,
                                   blurRadius: 5)
                             ],
@@ -77,7 +77,7 @@ class WaitMz extends StatelessWidget {
                                 Border.all(color: Colors.transparent, width: 1),
                             color: BasicInfo.selectedmode == 'Light'
                                 ? Colors.black
-                                : Colors.yellowAccent,
+                                : Colors.white,
                           ),
                         ),
                       ),

@@ -29,9 +29,8 @@ class ThemeController extends GetxController {
   }
 
   changelang(x) async {
-    BasicInfo.selectedlang = BasicInfo.selectedlang == 'Ar' ? 'En' : 'Ar';
-
     HomePage.selectedLang = x;
+    BasicInfo.selectedlang = x == 'عربي' ? 'Ar' : 'En';
     await SharedPreMz.setlang(lang: BasicInfo.selectedlang!);
     update();
   }

@@ -11,14 +11,24 @@ class DropDownWithSearchMz extends StatelessWidget {
   final Function ontap;
   static bool visiblemain = false;
   static TextEditingController searchcontroller = TextEditingController();
+  static List titleiconlist = [
+    {'index': 0, 'elevate': 0.0}
+  ];
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        IconbuttonMz(
-            e: null,
-            action: (e) => mainController.showdropwithsearchmz(items),
-            label: const ['إضافة عضو', 'Add member']),
+        Row(
+          children: [
+            ...titleiconlist.map((f) => IconbuttonMz(
+                buttonlist: titleiconlist,
+                elevate: f['elevate'],
+                e: f,
+                index: f['index'],
+                action: (e) => mainController.showdropwithsearchmz(items),
+                label: const ['إضافة عضو', 'Add member'])),
+          ],
+        ),
         Visibility(
           visible: visiblemain,
           child: SizedBox(
@@ -50,8 +60,8 @@ class DropDownWithSearchMz extends StatelessWidget {
                             .where((element) =>
                                 element['visible'] == true &&
                                 element['visiblesearch'] == true)
-                            .map((e) => GestureDetector(
-                                  onTap: () => ontap(e),
+                            .map((s) => GestureDetector(
+                                  onTap: () => ontap(s),
                                   child: MouseRegion(
                                     cursor: SystemMouseCursors.click,
                                     child: Card(
@@ -59,7 +69,7 @@ class DropDownWithSearchMz extends StatelessWidget {
                                       child: Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: Text(
-                                          e['name'],
+                                          s['name'],
                                           style: const TextStyle(
                                               fontFamily: 'Changa',
                                               fontSize: 15),

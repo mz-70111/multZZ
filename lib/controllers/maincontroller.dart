@@ -300,38 +300,6 @@ class MainController extends GetxController {
     update();
   }
 
-  onhoverbutton({listbutton, indexbutton, page}) {
-    if (listbutton != null) {
-      listbutton[indexbutton]['elevetioncard'] = 3.0;
-    } else {
-      Offices.elevationcard = 3.0;
-      switch (page) {
-        case 'Offices':
-          Offices.elevationcard = 3.0;
-          break;
-        default:
-          null;
-      }
-    }
-    update();
-  }
-
-  onexitbutton({listbutton, indexbutton, page}) {
-    if (listbutton != null) {
-      listbutton[indexbutton]['elevetioncard'] = 0.0;
-    } else {
-      switch (page) {
-        case 'Offices':
-          Offices.elevationcard = 0.0;
-          break;
-        default:
-          null;
-      }
-    }
-
-    update();
-  }
-
   showdropwithsearchmz(list) {
     for (var i in list) {
       i['visiblesearch'] = true;
@@ -383,16 +351,32 @@ class MainController extends GetxController {
     update();
   }
 
-  addremoveemployeetooffice({e, type = 'save'}) {
+  addremoveemployeetooffice({list, y, type = 'save'}) {
     if (type == 'save') {
-      Offices.addemployeelist[Offices.addemployeelist.indexOf(e)]['visible'] =
-          false;
+      list[list.indexOf(y)]['visible'] = false;
     } else {
-      Offices.addemployeelist[Offices.addemployeelist.indexOf(e)]['visible'] =
-          true;
+      list[list.indexOf(y)]['visible'] = true;
     }
-
     Get.back();
+    update();
+  }
+
+  onhover({list, required index, color, iconsize, elevate}) {
+    color != null
+        ? list[index]['color'] = BasicInfo.selectedmode == 'Light'
+            ? Colors.blueAccent.withOpacity(0.3)
+            : Colors.greenAccent.withOpacity(0.3)
+        : null;
+    iconsize != null ? list[index]['iconsize'] = 50.0 : null;
+    elevate != null ? list[index]['elevate'] = 3.0 : null;
+
+    update();
+  }
+
+  onexit({list, required index, color, elevate, iconsize}) {
+    color != null ? list[index]['color'] = Colors.transparent : null;
+    iconsize != null ? list[index]['iconsize'] = 40.0 : null;
+    elevate != null ? list[index]['elevate'] = 0.0 : null;
     update();
   }
 

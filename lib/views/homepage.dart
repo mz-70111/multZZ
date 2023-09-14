@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mz_flutter_07/controllers/dbcontroller.dart';
@@ -84,18 +85,20 @@ class HomePage extends StatelessWidget {
   ];
   static List dialogactionlist = [
     {
+      'index': 0,
       'type': 'do-it',
       'label': ['حفظ', 'save'],
       'visible': true,
-      'elevetioncard': 0.0
+      'elevate': 0.0
     },
     {
+      'index': 1,
       'type': 'do-it',
       'label': ['رجوع', 'close'],
       'visible': true,
-      'elevetioncard': 0.0
+      'elevate': 0.0
     },
-    {'type': 'wait', 'visible': false},
+    {'index': 2, 'type': 'wait', 'visible': false},
   ];
   static IconData passwordvis = Icons.visibility;
   static bool waitchangepass = false;
@@ -119,111 +122,120 @@ class HomePage extends StatelessWidget {
       'error': null
     }
   ];
-  static List lang = ['عربي', 'English'];
-  static String selectedLang = SharedPreMz.getlang() == null
-      ? 'عربي'
-      : SharedPreMz.getlang() == 'Ar'
-          ? 'عربي'
-          : 'English';
+  static List langs = [
+    ['Ar', 'عربي'],
+    ['En', 'English']
+  ];
+  static String selectedLang =
+      (SharedPreMz.getlang() == 'Ar' ? 'عربي' : 'English') ?? 'عربي';
 
   static List maincardslist = [
     {
+      'index': 0,
       'label': ['المكاتب', 'Offices'],
       'icon': Icons.work,
       'visible': DB.userinfotable[0]['users_privileges'][0]['admin'] == '1'
           ? true
           : false,
-      'action': () => Get.toNamed('/home/offices')
+      'action': () => Get.toNamed('/home/offices'),
+      'color': Colors.transparent,
+      'iconsize': 40.0
     },
     {
+      'index': 1,
       'label': ['الحسابات', 'Accounts'],
       'icon': Icons.person_2,
       'visible': DB.userinfotable[0]['users_privileges'][0]['admin'] == '1'
           ? true
           : false,
-      'action': () => Get.toNamed('/home/accounts')
+      'action': () => Get.toNamed('/home/accounts'),
+      'color': Colors.transparent,
+      'iconsize': 40.0
     },
     {
+      'index': 2,
       'label': ['النفقات', 'Costs'],
       'icon': Icons.money_rounded,
       'visible': DB.userinfotable[0]['users_privileges'][0]['admin'] == '1'
           ? true
           : false,
-      'action': () => Get.toNamed('/home/costs')
+      'action': () => Get.toNamed('/home/costs'),
+      'color': Colors.transparent,
+      'iconsize': 40.0
     },
   ];
   @override
   Widget build(BuildContext context) {
     List actionappbar(e) => [() => themeController.changemode()];
     maincard({e}) {
-      return GetBuilder<ThemeController>(
-        init: themeController,
+      return GetBuilder<MainController>(
+        init: mainController,
         builder: (_) => GestureDetector(
           onTap: e['action'],
           child: MouseRegion(
+            onHover: (x) => mainController.onhover(
+                list: maincardslist, index: e['index'], iconsize: 1, color: 1),
+            onExit: (x) => mainController.onexit(
+                list: maincardslist, index: e['index'], iconsize: 1, color: 1),
             cursor: SystemMouseCursors.click,
             child: Stack(
               children: [
-                SizedBox(
-                  width: MediaQuery.of(context).size.width < 300 ? 250 : 300,
+                Card(
+                  child: Container(
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: BasicInfo.selectedlang == 'Ar'
+                              ? Radius.circular(10)
+                              : Radius.circular(0),
+                          bottomRight: BasicInfo.selectedlang == 'En'
+                              ? Radius.circular(10)
+                              : Radius.circular(0),
+                        ),
+                        gradient: LinearGradient(
+                            colors: BasicInfo.selectedmode == 'Light'
+                                ? BasicInfo.selectedlang == 'Ar'
+                                    ? [e['color'], Colors.transparent]
+                                    : [
+                                        Colors.transparent,
+                                        e['color'],
+                                      ]
+                                : BasicInfo.selectedlang == 'En'
+                                    ? [
+                                        Colors.transparent,
+                                        e['color'],
+                                      ]
+                                    : [e['color'], Colors.transparent])),
+                  ),
                 ),
-                Icon(
-                  e['icon'],
-                  size: MediaQuery.of(context).size.width < 300 ? 50 : 60,
-                  color: BasicInfo.selectedmode == 'Light'
-                      ? Colors.indigoAccent.withOpacity(0.6)
-                      : Colors.deepPurpleAccent.withOpacity(0.6),
-                  shadows: [
-                    BoxShadow(
-                      spreadRadius: 0.6,
-                      blurRadius: 0.9,
-                      offset: const Offset(1, 2),
-                      color: BasicInfo.selectedmode == 'Light'
-                          ? Colors.black.withOpacity(0.6)
-                          : Colors.white.withOpacity(0.6),
-                    )
-                  ],
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Icon(
+                    e['icon'],
+                    size: e['iconsize'],
+                    color: BasicInfo.selectedmode == 'Light'
+                        ? Colors.indigoAccent
+                        : Colors.teal,
+                    shadows: [
+                      BoxShadow(
+                          spreadRadius: 0.6,
+                          blurRadius: 0.9,
+                          offset: const Offset(1, 2),
+                          color: Colors.black)
+                    ],
+                  ),
                 ),
                 Positioned(
                   bottom: 0,
                   left: BasicInfo.selectedlang == 'Ar' ? 0 : null,
                   right: BasicInfo.selectedlang == 'Ar' ? null : 0,
-                  child: Container(
-                    width: MediaQuery.of(context).size.width < 300 ? 150 : 200,
-                    height: 50,
-                    decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(10),
-                            bottomRight: Radius.circular(10)),
-                        gradient: LinearGradient(
-                            colors: BasicInfo.selectedmode == 'Light'
-                                ? BasicInfo.selectedlang == 'Ar'
-                                    ? [
-                                        Colors.blueGrey.withOpacity(0.5),
-                                        Colors.transparent
-                                      ]
-                                    : [
-                                        Colors.transparent,
-                                        Colors.blueGrey.withOpacity(0.5),
-                                      ]
-                                : BasicInfo.selectedlang == 'En'
-                                    ? [
-                                        Colors.transparent,
-                                        Colors.grey.withOpacity(0.5),
-                                      ]
-                                    : [
-                                        Colors.grey.withOpacity(0.5),
-                                        Colors.transparent
-                                      ])),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        e['label'][BasicInfo.indexlang()],
-                        textAlign: TextAlign.end,
-                        style: const TextStyle(
-                          fontFamily: 'Cairo',
-                          fontSize: 20,
-                        ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      e['label'][BasicInfo.indexlang()],
+                      textAlign: TextAlign.end,
+                      style: const TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: 20,
                       ),
                     ),
                   ),
@@ -466,11 +478,10 @@ class HomePage extends StatelessWidget {
             return SizedBox(
               width: 75,
               child: IconbuttonMz(
-                  elevetioncard: dialogactionlist[dialogactionlist.indexOf(e)]
-                      ['elevetioncard'],
-                  listbutton: dialogactionlist,
-                  indexbutton: dialogactionlist.indexOf(e),
+                  buttonlist: dialogactionlist,
+                  elevate: e['elevate'],
                   label: e['label'],
+                  index: e['index'],
                   e: e,
                   action: dialogactionfun(e)[dialogactionlist.indexOf(e)]),
             );
@@ -502,18 +513,15 @@ class HomePage extends StatelessWidget {
                   if (snap.connectionState == ConnectionState.waiting) {
                     return WaitMz.waitmz0([1, 2, 3, 4, 5], context);
                   } else if (snap.hasData) {
-                    return GetBuilder<MainController>(
-                      init: mainController,
-                      builder: (_) => DialogMz01(
-                        title: draweractionlist[0]['name'],
-                        mainlabels: dialogmainlabellist,
-                        bodies: [
-                          basicinfo(),
-                          privileges(),
-                          privilegesatoofice()
-                        ],
-                        actionlist: [...dialogaction()],
-                      ),
+                    return DialogMz01(
+                      title: draweractionlist[0]['name'],
+                      mainlabels: dialogmainlabellist,
+                      bodies: [basicinfo(), privileges(), privilegesatoofice()],
+                      actionlist: [
+                        GetBuilder<MainController>(
+                            init: mainController,
+                            builder: (_) => Row(children: [...dialogaction()]))
+                      ],
                     );
                   } else {
                     Future(() => Get.back());
@@ -623,9 +631,10 @@ class HomePage extends StatelessWidget {
                                       ),
                                       DropdownButton(
                                           value: selectedLang,
-                                          items: lang
+                                          items: langs
                                               .map((e) => DropdownMenuItem(
-                                                  value: e, child: Text("$e")))
+                                                  value: e[1],
+                                                  child: Text("${e[1]}")))
                                               .toList(),
                                           onChanged: (x) =>
                                               themeController.changelang(x)),
@@ -637,41 +646,19 @@ class HomePage extends StatelessWidget {
                           ),
                         ),
                       ),
-                      body: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.max,
+                      body: GridView(
+                          gridDelegate:
+                              SliverGridDelegateWithMaxCrossAxisExtent(
+                                  maxCrossAxisExtent: 300, mainAxisExtent: 150),
                           children: [
-                            Expanded(
-                                child: SingleChildScrollView(
-                              child: Stack(
-                                alignment: AlignmentDirectional.topCenter,
-                                children: [
-                                  SizedBox(
-                                    width: MediaQuery.of(context).size.width,
-                                    height:
-                                        MediaQuery.of(context).size.width < 300
-                                            ? maincardslist.length * 60.0
-                                            : maincardslist.length * 70.0,
-                                  ),
-                                  ...maincardslist
-                                      .where((element) =>
-                                          element['visible'] == true)
-                                      .map((e) {
-                                    return TweenMz.translateYM(
-                                        ctx: context,
-                                        duration:
-                                            maincardslist.indexOf(e) * 300,
-                                        begin: 0.0,
-                                        end: MediaQuery.of(context).size.width <
-                                                300
-                                            ? maincardslist.indexOf(e) * 60.0
-                                            : maincardslist.indexOf(e) * 70.0,
-                                        child: maincard(e: e));
-                                  })
-                                ],
-                              ),
-                            ))
+                            ...maincardslist
+                                .where((element) => element['visible'] == true)
+                                .map((e) {
+                              return Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: maincard(e: e),
+                              );
+                            })
                           ])))));
     } else {
       Future(() => Get.offAllNamed('/'));
@@ -690,18 +677,20 @@ alertchangpass({ctx, e}) {
   BasicInfo.error = null;
   List passwordchangeactionlist = [
     {
+      'index': 0,
       'type': 'do-it',
       'label': ['حفظ', 'save'],
       'visible': !HomePage.waitchangepass,
-      'elevetioncard': 0.0
+      'elevate': 0.0
     },
     {
+      'index': 1,
       'type': 'do-it',
       'label': ['رجوع', 'close'],
       'visible': !HomePage.waitchangepass,
-      'elevetioncard': 0.0
+      'elevate': 0.0
     },
-    {'type': 'wait', 'visible': HomePage.waitchangepass}
+    {'index': 2, 'type': 'wait', 'visible': HomePage.waitchangepass}
   ];
   List passwordchangeactionfun(e) => [
         (e) => mainController.changepasswordpersonal(
@@ -722,12 +711,11 @@ alertchangpass({ctx, e}) {
           return SizedBox(
             width: 75,
             child: IconbuttonMz(
-                elevetioncard: passwordchangeactionlist[
-                    passwordchangeactionlist.indexOf(y)]['elevetioncard'],
-                listbutton: passwordchangeactionlist,
-                indexbutton: passwordchangeactionlist.indexOf(y),
+                buttonlist: passwordchangeactionlist,
+                elevate: y['elevate'],
                 label: y['label'],
                 e: y,
+                index: y['index'],
                 action: passwordchangeactionfun(
                     y)[passwordchangeactionlist.indexOf(y)]),
           );

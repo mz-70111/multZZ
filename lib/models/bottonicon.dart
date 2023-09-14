@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
+import 'package:mz_flutter_07/views/homepage.dart';
 import 'package:mz_flutter_07/views/login.dart';
 
 class IconbuttonMz extends StatelessWidget {
@@ -10,32 +11,31 @@ class IconbuttonMz extends StatelessWidget {
       required this.e,
       required this.action,
       required this.label,
-      this.elevetioncard = 0.0,
-      this.listbutton,
-      this.indexbutton,
-      this.page});
-  final double elevetioncard;
+      this.elevate = 0.0,
+      required this.buttonlist,
+      required this.index});
+  final List buttonlist;
+  final double elevate;
   final e;
+  final int index;
   final Function action;
   final List<String> label;
-  final List? listbutton;
-  final int? indexbutton;
-  final String? page;
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => action(e),
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
-        onHover: (x) => mainController.onhoverbutton(
-            listbutton: listbutton, indexbutton: indexbutton, page: page),
-        onExit: (x) => mainController.onexitbutton(
-            listbutton: listbutton, indexbutton: indexbutton, page: page),
+        onHover: (x) => mainController.onhover(
+            elevate: elevate, list: buttonlist, index: index),
+        onExit: (x) => mainController.onexit(
+            elevate: elevate, list: buttonlist, index: index),
         child: Card(
-          elevation: elevetioncard,
+          elevation: elevate,
           color: BasicInfo.selectedmode == 'Light'
-              ? Colors.indigoAccent
-              : Colors.deepPurpleAccent,
+              ? Colors.blueAccent.withOpacity(0.8)
+              : Colors.teal.withOpacity(0.6),
           shadowColor: BasicInfo.selectedmode == 'Light'
               ? Colors.black87
               : Colors.white70,

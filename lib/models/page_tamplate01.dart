@@ -7,6 +7,7 @@ import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:mz_flutter_07/models/bottonicon.dart';
 import 'package:mz_flutter_07/models/dialog01.dart';
 import 'package:mz_flutter_07/models/textfeild.dart';
+import 'package:mz_flutter_07/views/homepage.dart';
 import 'package:mz_flutter_07/views/login.dart';
 import 'package:mz_flutter_07/views/wait.dart';
 import 'package:intl/intl.dart' as df;
@@ -36,7 +37,8 @@ class PageTamplate01 extends StatelessWidget {
       required this.openitem,
       required this.easyeditlist,
       required this.easyeditaction,
-      required this.ini});
+      required this.ini,
+      required this.floateactionbutton});
   final List<String> appbartitle, addtitle, searchrangelist;
   final List<Map> mainlebelsdialogmz;
   final List<Widget> bodiesofadd, actionlist;
@@ -56,7 +58,7 @@ class PageTamplate01 extends StatelessWidget {
   final bool searchwithdatevisible;
   final DateTime startdate;
   final DateTime enddate;
-
+  final List<Map> floateactionbutton;
   @override
   Widget build(BuildContext context) {
     if (BasicInfo.LogInInfo != null) {
@@ -148,69 +150,27 @@ class PageTamplate01 extends StatelessWidget {
                                                 padding:
                                                     const EdgeInsets.all(8.0),
                                                 child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.start,
-                                                  children: [
-                                                    ...mainItems
-                                                        .where((element) =>
-                                                            mainItems.indexOf(
-                                                                element) ==
-                                                            0)
-                                                        .map((i) => Text(
-                                                            "# ${me[i]} _")),
-                                                    ...mainItems
-                                                        .where((element) =>
-                                                            mainItems.indexOf(
-                                                                element) >
-                                                            0)
-                                                        .map((i) => Expanded(
-                                                            child:
-                                                                Text(me[i]))),
-                                                    ...easyeditlist[table[0]
-                                                                [tablename]
-                                                            .indexOf(me)]
-                                                        .where((y) =>
-                                                            y['visible'] ==
-                                                            true)
-                                                        .map((se) {
-                                                      switch (se['type']) {
-                                                        case 'wait':
-                                                          return WaitMz.waitmz0(
-                                                              [1, 2, 3, 4],
-                                                              context);
-                                                        case 'do-it':
-                                                          return GestureDetector(
-                                                            onTap: () =>
-                                                                easyeditaction(
-                                                                    me, se),
-                                                            child: Card(
-                                                              elevation:
-                                                                  se['elevate'],
-                                                              child: Row(
-                                                                children: [
-                                                                  Icon(se[
-                                                                      'icon']),
-                                                                  Visibility(
-                                                                    visible: se['elevate'] ==
-                                                                            0.0
-                                                                        ? false
-                                                                        : true,
-                                                                    child: Text(se[
-                                                                            'label']
-                                                                        [
-                                                                        BasicInfo
-                                                                            .indexlang()]),
-                                                                  )
-                                                                ],
-                                                              ),
-                                                            ),
-                                                          );
-                                                        default:
-                                                          return SizedBox();
-                                                      }
-                                                    })
-                                                  ],
-                                                ),
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.start,
+                                                    children: [
+                                                      ...mainItems
+                                                          .where((element) =>
+                                                              mainItems.indexOf(
+                                                                  element) ==
+                                                              0)
+                                                          .map((i) => Text(
+                                                              "# ${me[i]} _")),
+                                                      ...mainItems
+                                                          .where((element) =>
+                                                              mainItems.indexOf(
+                                                                  element) >
+                                                              0)
+                                                          .map((i) => Expanded(
+                                                              child:
+                                                                  Text(me[i]))),
+                                                      easyeditpanel(
+                                                          ctx: context, me: me)
+                                                    ]),
                                               ),
                                             ),
                                           ),
@@ -225,42 +185,53 @@ class PageTamplate01 extends StatelessWidget {
                       ),
                     ),
                   ),
-                  floatingActionButton: SizedBox(
-                    width: 150,
-                    height: 45,
-                    child: IconbuttonMz(
-                        elevetioncard: elevationcard,
-                        page: page,
-                        e: null,
-                        action: (e) {
-                          showDialog(
-                              context: context,
-                              builder: (_) {
-                                return FutureBuilder(future: Future(() async {
-                                  try {
-                                    return await preparefunctionfuture();
-                                  } catch (e) {
-                                    null;
-                                  }
-                                }), builder: (_, snap) {
-                                  if (snap.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return WaitMz.waitmz0([1, 2, 3], context);
-                                  } else if (snap.hasData) {
-                                    preparefunction();
-                                    return DialogMz01(
-                                        title: addtitle,
-                                        mainlabels: mainlebelsdialogmz,
-                                        bodies: [...bodiesofadd],
-                                        actionlist: actionlist);
-                                  } else {
-                                    Future(() => Get.back());
-                                    return const SizedBox();
-                                  }
-                                });
-                              });
-                        },
-                        label: addtitle),
+                  floatingActionButton: GetBuilder<MainController>(
+                    init: mainController,
+                    builder: (_) => Row(
+                      children: [
+                        ...floateactionbutton.map((f) => SizedBox(
+                              width: 150,
+                              height: 45,
+                              child: IconbuttonMz(
+                                  buttonlist: floateactionbutton,
+                                  elevate: f['elevate'],
+                                  e: f,
+                                  index: f['index'],
+                                  action: (e) {
+                                    showDialog(
+                                        context: context,
+                                        builder: (_) {
+                                          return FutureBuilder(
+                                              future: Future(() async {
+                                            try {
+                                              return await preparefunctionfuture();
+                                            } catch (e) {
+                                              null;
+                                            }
+                                          }), builder: (_, snap) {
+                                            if (snap.connectionState ==
+                                                ConnectionState.waiting) {
+                                              return WaitMz.waitmz0(
+                                                  [1, 2, 3], context);
+                                            } else if (snap.hasData) {
+                                              preparefunction();
+                                              return DialogMz01(
+                                                  title: addtitle,
+                                                  mainlabels:
+                                                      mainlebelsdialogmz,
+                                                  bodies: [...bodiesofadd],
+                                                  actionlist: actionlist);
+                                            } else {
+                                              Future(() => Get.back());
+                                              return const SizedBox();
+                                            }
+                                          });
+                                        });
+                                  },
+                                  label: addtitle),
+                            ))
+                      ],
+                    ),
                   ),
                 ),
               ));
@@ -295,5 +266,48 @@ class PageTamplate01 extends StatelessWidget {
       Future(() => Get.offAllNamed('/'));
       return const SizedBox();
     }
+  }
+
+  easyeditpanel({ctx, me}) {
+    return Row(
+      children: [
+        ...easyeditlist[table[0][tablename].indexOf(me)]
+            .where((y) => y['visible'] == true)
+            .map((se) {
+          switch (se['type']) {
+            case 'wait':
+              return WaitMz.waitmz0([1, 2, 3, 4], ctx);
+            case 'do-it':
+              return GestureDetector(
+                onTap: () => easyeditaction(me, se),
+                child: MouseRegion(
+                  onHover: (x) => mainController.onhover(
+                      elevate: se['elevate'],
+                      list: easyeditlist[table[0][tablename].indexOf(me)],
+                      index: se['index']),
+                  onExit: (x) => mainController.onexit(
+                      elevate: se['elevate'],
+                      list: easyeditlist[table[0][tablename].indexOf(me)],
+                      index: se['index']),
+                  child: Card(
+                    elevation: se['elevate'],
+                    child: Row(
+                      children: [
+                        Icon(se['icon']),
+                        Visibility(
+                          visible: se['elevate'] == 0.0 ? false : true,
+                          child: Text(se['label'][BasicInfo.indexlang()]),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            default:
+              return SizedBox();
+          }
+        })
+      ],
+    );
   }
 }
