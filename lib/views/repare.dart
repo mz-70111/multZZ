@@ -25,6 +25,7 @@ class RepairPage extends StatelessWidget {
           body: FutureBuilder(
               future: Future.delayed(const Duration(seconds: 2), () async {
                 try {
+                  DB.allusersinfotable = await DBController().getallusersinfo();
                   DB.allofficeinfotable =
                       await DBController().getallofficeinfo();
                   return await dbController.getversion();
@@ -84,6 +85,7 @@ class RepairPage extends StatelessWidget {
                                 },
                               ),
                               ...actionlist.map((ibm) => IconbuttonMz(
+                                  backcolor: Colors.transparent,
                                   width: 80,
                                   height: 35,
                                   e: ibm,

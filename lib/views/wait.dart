@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mz_flutter_07/controllers/dbcontroller.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
+import 'package:mz_flutter_07/models/lang_mode_theme.dart';
 import 'package:mz_flutter_07/models/tween.dart';
 
 class WaitMz extends StatelessWidget {
@@ -23,8 +24,32 @@ class WaitMz extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(['رجاءا الانتظار', "Please Wait"][BasicInfo.indexlang()]),
-            waitmz0(items, context),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    ['رجاءا الانتظار', "Please Wait"][BasicInfo.indexlang()],
+                    style: ThemeMz.titlemediumChanga(),
+                  ),
+                  waitmz0(items, context),
+                ],
+              ),
+            ),
+            Divider(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'by: مـ عـ ا ذ',
+                    style: TextStyle(fontFamily: 'Vibes', fontSize: 20),
+                  ),
+                ),
+              ],
+            )
           ],
         ),
       ),

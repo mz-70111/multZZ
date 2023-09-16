@@ -18,7 +18,8 @@ class IconbuttonMz extends StatelessWidget {
       required this.width,
       this.textsize = 14,
       this.icon,
-      this.labelvisible = true});
+      this.labelvisible = true,
+      required this.backcolor});
   final List buttonlist;
   final double elevate;
   final e;
@@ -28,6 +29,7 @@ class IconbuttonMz extends StatelessWidget {
   final double width, height, textsize;
   final IconData? icon;
   final bool labelvisible;
+  final Color backcolor;
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -35,7 +37,10 @@ class IconbuttonMz extends StatelessWidget {
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         onHover: (x) => mainController.onhover(
-            elevate: elevate, list: buttonlist, index: index),
+            elevate: elevate,
+            list: buttonlist,
+            index: index,
+            backcolor: backcolor),
         onExit: (x) => mainController.onexit(
             elevate: elevate, list: buttonlist, index: index),
         child: SizedBox(
@@ -43,9 +48,7 @@ class IconbuttonMz extends StatelessWidget {
           height: height,
           child: Card(
             elevation: elevate,
-            color: BasicInfo.selectedmode == 'Light'
-                ? Colors.blueAccent
-                : Colors.deepPurple,
+            color: backcolor,
             shadowColor: BasicInfo.selectedmode == 'Light'
                 ? Colors.black87
                 : Colors.white70,
@@ -61,7 +64,11 @@ class IconbuttonMz extends StatelessWidget {
                         ? SizedBox()
                         : Icon(
                             icon,
-                            color: Colors.white,
+                            color: backcolor == Colors.transparent
+                                ? BasicInfo.selectedmode == 'Light'
+                                    ? Colors.indigoAccent
+                                    : Colors.white
+                                : Colors.white,
                           ),
                     Visibility(
                       visible: labelvisible,

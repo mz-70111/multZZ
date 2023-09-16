@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:http/http.dart' as http;
 import 'package:mz_flutter_07/models/database.dart';
+import 'package:mz_flutter_07/models/lang_mode_theme.dart';
 import 'package:mz_flutter_07/views/offices.dart';
 import 'package:mz_flutter_07/views/repare.dart';
 
@@ -17,7 +18,7 @@ class DBController extends GetxController {
   }
 
   requestpost({type, data}) async {
-    BasicInfo.error = null;
+    Lang.mainerrormsg = null;
     // ignore: prefer_typing_uninitialized_variables
     var result;
     var resp;
@@ -32,7 +33,7 @@ class DBController extends GetxController {
     }
     try {
       if (result['status'] != 'done') {
-        BasicInfo.error = result['status'];
+        Lang.mainerrormsg = result['status'];
       }
     } catch (e) {
       null;

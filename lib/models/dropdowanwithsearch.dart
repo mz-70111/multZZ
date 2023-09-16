@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:mz_flutter_07/models/bottonicon.dart';
+import 'package:mz_flutter_07/models/lang_mode_theme.dart';
 import 'package:mz_flutter_07/models/textfeild.dart';
 import 'package:mz_flutter_07/views/login.dart';
 
 class DropDownWithSearchMz extends StatelessWidget {
   const DropDownWithSearchMz(
-      {super.key, required this.items, required this.ontap});
+      {super.key,
+      required this.items,
+      required this.ontap,
+      required this.label});
   final List items;
+  final List<String> label;
   final Function ontap;
   static bool visiblemain = false;
   static TextEditingController searchcontroller = TextEditingController();
@@ -21,14 +26,15 @@ class DropDownWithSearchMz extends StatelessWidget {
         Row(
           children: [
             ...titleiconlist.map((f) => IconbuttonMz(
-                width: 100,
-                height: 50,
+                backcolor: ThemeMz.iconbuttonmzbc(),
+                width: 150,
+                height: 35,
                 buttonlist: titleiconlist,
                 elevate: f['elevate'],
                 e: f,
                 index: f['index'],
                 action: (e) => mainController.showdropwithsearchmz(items),
-                label: const ['إضافة عضو', 'Add member'])),
+                label: label)),
           ],
         ),
         Visibility(

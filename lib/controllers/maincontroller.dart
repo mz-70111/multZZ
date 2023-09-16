@@ -4,6 +4,7 @@ import 'package:mz_flutter_07/controllers/dbcontroller.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:mz_flutter_07/models/database.dart';
 import 'package:mz_flutter_07/models/dropdowanwithsearch.dart';
+import 'package:mz_flutter_07/models/lang_mode_theme.dart';
 import 'package:mz_flutter_07/models/sharedpref.dart';
 import 'package:mz_flutter_07/views/homepage.dart';
 import 'package:mz_flutter_07/views/login.dart';
@@ -52,14 +53,14 @@ class MainController extends GetxController {
       i['error'] = null;
     }
     List? userinfo;
-    BasicInfo.error = null;
+    Lang.mainerrormsg = null;
     update();
     if (LogIn.usernamecontroller.text.isEmpty) {
       LogIn.textfieldloginlist[0]['error'] =
-          BasicInfo.errorstype['emptyname-check'][BasicInfo.indexlang()];
+          Lang.errormsgs['emptyname-check'][BasicInfo.indexlang()];
     } else if (LogIn.passwordcontroller.text.isEmpty) {
       LogIn.textfieldloginlist[1]['error'] =
-          BasicInfo.errorstype['emptypass-check'][BasicInfo.indexlang()];
+          Lang.errormsgs['emptypass-check'][BasicInfo.indexlang()];
     } else {
       LogIn.loginactionlist[0]['visible'] = false;
       LogIn.loginactionlist[1]['visible'] = true;
@@ -88,7 +89,7 @@ class MainController extends GetxController {
                   userid: userinfo[0]['users'][0]['user_id']);
               Get.offNamed('/home');
             } else {
-              BasicInfo.error = null;
+              Lang.mainerrormsg = null;
               BasicInfo.LogInInfo = null;
               LogIn.loginactionlist[0]['index'] = 1;
               LogIn.textfieldloginlist[0]['readonly'] = true;
@@ -99,17 +100,17 @@ class MainController extends GetxController {
             }
           } else {
             BasicInfo.LogInInfo = null;
-            BasicInfo.error =
-                BasicInfo.errorstype['account-disable'][BasicInfo.indexlang()];
+            Lang.mainerrormsg =
+                Lang.errormsgs['account-disable'][BasicInfo.indexlang()];
           }
         } else {
           BasicInfo.LogInInfo = null;
-          BasicInfo.error = BasicInfo.errorstype['wrong-uesernameorpassword']
+          Lang.mainerrormsg = Lang.errormsgs['wrong-uesernameorpassword']
               [BasicInfo.indexlang()];
         }
       } catch (e) {
-        BasicInfo.error =
-            BasicInfo.errorstype['server-error'][BasicInfo.indexlang()];
+        Lang.mainerrormsg =
+            Lang.errormsgs['server-error'][BasicInfo.indexlang()];
       }
     }
     LogIn.loginactionlist[0]['visible'] = true;
@@ -121,20 +122,18 @@ class MainController extends GetxController {
     for (var i in LogIn.textfieldloginlist) {
       i['error'] = null;
     }
-    BasicInfo.error = null;
+    Lang.mainerrormsg = null;
     List? userinfo;
     update();
     if (LogIn.newpasswordcontroller.text.isEmpty) {
       LogIn.textfieldloginlist[2]['error'] =
-          BasicInfo.errorstype['emptypass-check'][BasicInfo.indexlang()];
+          Lang.errormsgs['emptypass-check'][BasicInfo.indexlang()];
     } else if (LogIn.newpasswordcontroller.text !=
         LogIn.confirmnewpasswordcontroller.text) {
-      BasicInfo.error =
-          BasicInfo.errorstype['not-match'][BasicInfo.indexlang()];
+      Lang.mainerrormsg = Lang.errormsgs['not-match'][BasicInfo.indexlang()];
     } else {
       LogIn.loginactionlist[0]['visible'] = false;
       LogIn.loginactionlist[2]['visible'] = false;
-
       LogIn.loginactionlist[1]['visible'] = true;
       update();
       try {
@@ -169,8 +168,8 @@ class MainController extends GetxController {
         LogIn.textfieldloginlist[2]['visible'] = false;
         LogIn.textfieldloginlist[3]['visible'] = false;
       } catch (e) {
-        BasicInfo.error =
-            BasicInfo.errorstype['server-error'][BasicInfo.indexlang()];
+        Lang.mainerrormsg =
+            Lang.errormsgs['server-error'][BasicInfo.indexlang()];
       }
     }
     LogIn.loginactionlist[0]['visible'] = true;
@@ -183,7 +182,7 @@ class MainController extends GetxController {
   logout() async {
     await SharedPreMz.sharedpref.remove('login');
     BasicInfo.LogInInfo = null;
-    BasicInfo.error = null;
+    Lang.mainerrormsg = null;
     LogIn.usernamecontroller.text = LogIn.passwordcontroller.text = '';
     LogIn.newpasswordcontroller.text =
         LogIn.confirmnewpasswordcontroller.text = '';
@@ -206,10 +205,10 @@ class MainController extends GetxController {
   }
 
   updatepesonalinfo({fullname, mobile, email}) async {
-    BasicInfo.error = null;
+    Lang.mainerrormsg = null;
     if (fullname.isEmpty) {
-      BasicInfo.error =
-          BasicInfo.errorstype['emptyname-check'][BasicInfo.indexlang()];
+      Lang.mainerrormsg =
+          Lang.errormsgs['emptyname-check'][BasicInfo.indexlang()];
     } else {
       HomePage.dialogactionlist[0]['visible'] = false;
       HomePage.dialogactionlist[1]['visible'] = true;
@@ -229,8 +228,8 @@ class MainController extends GetxController {
 
         Get.back();
       } catch (e) {
-        BasicInfo.error =
-            BasicInfo.errorstype['server-error'][BasicInfo.indexlang()];
+        Lang.mainerrormsg =
+            Lang.errormsgs['server-error'][BasicInfo.indexlang()];
       }
     }
 
@@ -254,7 +253,7 @@ class MainController extends GetxController {
       {required String oldpassword,
       required String newpass,
       required String newpassconfirm}) async {
-    BasicInfo.error = null;
+    Lang.mainerrormsg = null;
     for (var i in HomePage.changepassword) {
       i['error'] = null;
     }
@@ -288,8 +287,8 @@ class MainController extends GetxController {
         Get.back();
         logout();
       } catch (e) {
-        BasicInfo.error =
-            BasicInfo.errorstype['server-error'][BasicInfo.indexlang()];
+        Lang.mainerrormsg =
+            Lang.errormsgs['server-error'][BasicInfo.indexlang()];
       }
     }
 
@@ -352,6 +351,17 @@ class MainController extends GetxController {
     update();
   }
 
+  chooseoffice({required List list, officeslist, officenameclmname, x}) {
+    officeslist[0] = x;
+    for (var i in list) {
+      i['visible'] = false;
+    }
+    for (var i in list.where((element) => element[officenameclmname] == x)) {
+      i['visible'] = true;
+    }
+    update();
+  }
+
   addremoveemployeetooffice({list, y, type = 'save'}) {
     if (type == 'save') {
       list[list.indexOf(y)]['visible'] = false;
@@ -362,7 +372,7 @@ class MainController extends GetxController {
     update();
   }
 
-  onhover({list, required index, color, iconsize, elevate}) {
+  onhover({list, required index, color, iconsize, elevate, backcolor}) {
     color != null
         ? list[index]['color'] = BasicInfo.selectedmode == 'Light'
             ? Colors.blueAccent.withOpacity(0.3)
@@ -370,15 +380,24 @@ class MainController extends GetxController {
         : null;
     iconsize != null ? list[index]['iconsize'] = 50.0 : null;
     elevate != null ? list[index]['elevate'] = 3.0 : null;
-    Offices.actionindex = list[index]['actionindex'] ?? 0;
+    BasicInfo.actionindex = list[index]['actionindex'] ?? 0;
+    try {
+      backcolor != null
+          ? list[index]['backcolor'] = ThemeMz.iconbuttonmzbc
+          : null;
+    } catch (r) {}
+
     update();
   }
 
-  onexit({list, required index, color, elevate, iconsize}) {
+  onexit({list, required index, color, elevate, iconsize, backcolor}) {
     color != null ? list[index]['color'] = Colors.transparent : null;
     iconsize != null ? list[index]['iconsize'] = 40.0 : null;
     elevate != null ? list[index]['elevate'] = 0.0 : null;
-    Offices.actionindex;
+    try {
+      list[index]['backcolor'] = Colors.transparent;
+    } catch (e) {}
+
     update();
   }
 
@@ -452,20 +471,20 @@ class MainController extends GetxController {
     update();
   }
 
-  // setstartdatefor({ctx}) async {
-  //   DateTime? dt = await showDatePicker(
-  //       context: ctx,
-  //       initialDate: Offices.startdate,
-  //       firstDate: DateTime.parse("2023-08-01"),
-  //       lastDate: DateTime.now());
-  //   if (dt != null) {
-  //     Offices.startdate = dt;
-  //     dbController.update();
-  //   }
-  // }
+  setstartdatefor({ctx, list}) async {
+    DateTime? dt = await showDatePicker(
+        context: ctx,
+        initialDate: DateTime.now(),
+        firstDate: DateTime.parse("2023-08-01"),
+        lastDate: DateTime.now());
+    if (dt != null) {
+      list[0] = dt;
+      dbController.update();
+    }
+  }
 
   addoffice() async {
-    BasicInfo.error = null;
+    Lang.mainerrormsg = null;
     Offices.bodieslistofadd[0]['tf'][0]['error'] = null;
     List queries = [
       '''
@@ -509,14 +528,14 @@ insert into logs(log,logdate)values
       ''');
     if (Offices.officenamecontroller.text.isEmpty) {
       Offices.bodieslistofadd[0]['tf'][0]['error'] =
-          BasicInfo.errorstype['emptyname-check'][BasicInfo.indexlang()];
-      for (var i in Offices.mainlabelsdialogmz) {
+          Lang.errormsgs['emptyname-check'][BasicInfo.indexlang()];
+      for (var i in Offices.maintitlesdialogMz01) {
         i['selected'] = false;
       }
-      Offices.mainlabelsdialogmz[0]['selected'] = true;
+      Offices.maintitlesdialogMz01[0]['selected'] = true;
     } else {
-      Offices.actionlistofadd[0]['visible'] = false;
-      Offices.actionlistofadd[2]['visible'] = true;
+      Offices.listofactionbuttonforadd[0]['visible'] = false;
+      Offices.listofactionbuttonforadd[2]['visible'] = true;
       update();
       try {
         l:
@@ -524,33 +543,37 @@ insert into logs(log,logdate)values
           await DBController()
               .requestpost(type: 'curd', data: {'customquery': '$q'});
           {
-            if (BasicInfo.error != null) {
-              if (BasicInfo.error!.contains("Duplicate")) {
-                BasicInfo.error = Offices.bodieslistofadd[0]['tf'][0]['error'] =
-                    "${Offices.officenamecontroller.text} ${BasicInfo.errorstype['duplicate'][BasicInfo.indexlang()]}";
-                for (var i in Offices.mainlabelsdialogmz) {
+            if (Lang.mainerrormsg != null) {
+              if (Lang.mainerrormsg!.contains("Duplicate")) {
+                Lang.mainerrormsg = Offices.bodieslistofadd[0]['tf'][0]
+                        ['error'] =
+                    "${Offices.officenamecontroller.text} ${Lang.errormsgs['duplicate'][BasicInfo.indexlang()]}";
+                for (var i in Offices.maintitlesdialogMz01) {
                   i['selected'] = false;
                 }
-                Offices.mainlabelsdialogmz[0]['selected'] = true;
+                Offices.maintitlesdialogMz01[0]['selected'] = true;
               } else {
-                BasicInfo.error = BasicInfo.error;
+                Lang.mainerrormsg = Lang.mainerrormsg;
               }
               break l;
             }
           }
         }
-        if (BasicInfo.error == null) {
-          Get.back();
+        if (Lang.mainerrormsg == null) {
           DB.allofficeinfotable = await DBController().getallofficeinfo();
+          DB.userinfotable =
+              await DBController().getuserinfo(userid: BasicInfo.LogInInfo![0]);
+          DB.allusersinfotable = await DBController().getallusersinfo();
           dbController.update();
+          Get.back();
         }
       } catch (e) {
-        BasicInfo.error =
-            BasicInfo.errorstype['server-error'][BasicInfo.indexlang()];
+        Lang.mainerrormsg =
+            Lang.errormsgs['server-error'][BasicInfo.indexlang()];
       }
     }
-    Offices.actionlistofadd[0]['visible'] = true;
-    Offices.actionlistofadd[2]['visible'] = false;
+    Offices.listofactionbuttonforadd[0]['visible'] = true;
+    Offices.listofactionbuttonforadd[2]['visible'] = false;
     update();
   }
 
@@ -664,7 +687,11 @@ delete from offices where office_id=$officeid;
             .requestpost(type: 'curd', data: {'customquery': '$q'});
       }
       DB.allofficeinfotable = await DBController().getallofficeinfo();
+      DB.userinfotable =
+          await DBController().getuserinfo(userid: BasicInfo.LogInInfo![0]);
+      DB.allusersinfotable = await DBController().getallusersinfo();
       dbController.update();
+      Get.back();
     } catch (e) {
       null;
     }

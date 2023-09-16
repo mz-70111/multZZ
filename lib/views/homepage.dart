@@ -8,6 +8,7 @@ import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:mz_flutter_07/models/bottonicon.dart';
 import 'package:mz_flutter_07/models/database.dart';
 import 'package:mz_flutter_07/models/dialog01.dart';
+import 'package:mz_flutter_07/models/lang_mode_theme.dart';
 import 'package:mz_flutter_07/models/sharedpref.dart';
 import 'package:mz_flutter_07/models/textfeild.dart';
 import 'package:mz_flutter_07/models/tween.dart';
@@ -212,9 +213,7 @@ class HomePage extends StatelessWidget {
                   child: Icon(
                     e['icon'],
                     size: e['iconsize'],
-                    color: BasicInfo.selectedmode == 'Light'
-                        ? Colors.indigoAccent
-                        : Colors.deepPurple,
+                    color: ThemeMz.iconbuttonmzbc(),
                     shadows: [
                       BoxShadow(
                           spreadRadius: 0.6,
@@ -233,10 +232,7 @@ class HomePage extends StatelessWidget {
                     child: Text(
                       e['label'][BasicInfo.indexlang()],
                       textAlign: TextAlign.end,
-                      style: const TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 20,
-                      ),
+                      style: ThemeMz.titlelargCairo(),
                     ),
                   ),
                 ),
@@ -439,7 +435,6 @@ class HomePage extends StatelessWidget {
           ...privilegeso.map((i) => SizedBox(
                 width: MediaQuery.of(context).size.width,
                 child: Card(
-                  shadowColor: Colors.deepOrange,
                   elevation: 6,
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -476,6 +471,7 @@ class HomePage extends StatelessWidget {
                 width: 100, child: WaitMz.waitmz0([1, 2, 3, 4], context));
           case 'do-it':
             return IconbuttonMz(
+                backcolor: ThemeMz.iconbuttonmzbc(),
                 width: 75,
                 height: 50,
                 buttonlist: dialogactionlist,
@@ -499,34 +495,15 @@ class HomePage extends StatelessWidget {
           () => showDialog(
               context: ctx,
               builder: (_) {
-                return FutureBuilder(future: Future(() async {
-                  try {
-                    DB.allofficeinfotable =
-                        await DBController().getallofficeinfo();
-                    return DB.userinfotable = await DBController()
-                        .getuserinfo(userid: BasicInfo.LogInInfo![0]);
-                  } catch (e) {
-                    null;
-                  }
-                }), builder: (_, snap) {
-                  if (snap.connectionState == ConnectionState.waiting) {
-                    return WaitMz.waitmz0([1, 2, 3, 4, 5], context);
-                  } else if (snap.hasData) {
-                    return DialogMz01(
-                      title: draweractionlist[0]['name'],
-                      mainlabels: dialogmainlabellist,
-                      bodies: [basicinfo(), privileges(), privilegesatoofice()],
-                      actionlist: [
-                        GetBuilder<MainController>(
-                            init: mainController,
-                            builder: (_) => Row(children: [...dialogaction()]))
-                      ],
-                    );
-                  } else {
-                    Future(() => Get.back());
-                    return const SizedBox();
-                  }
-                });
+                Lang.mainerrormsg = null;
+                return DialogMz01(
+                  title: draweractionlist[1]['name'],
+                  mainlabels: dialogmainlabellist,
+                  bodies: [basicinfo(), privileges(), privilegesatoofice()],
+                  actionlist: GetBuilder<MainController>(
+                      init: mainController,
+                      builder: (_) => Row(children: [...dialogaction()])),
+                );
               }),
           () => mainController.logout()
         ];
@@ -534,18 +511,26 @@ class HomePage extends StatelessWidget {
       return SizedBox(
         height: MediaQuery.of(context).size.height,
         child: SingleChildScrollView(
-          child: Column(
-            children: [
-              ...draweractionlist.map((y) => GetBuilder<MainController>(
-                    init: mainController,
-                    builder: (_) => GestureDetector(
-                      onTap: draweritemslist(
-                          e: y, ctx: context)[draweractionlist.indexOf(y)],
-                      child: MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
+          child: Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Column(
+              children: [
+                ...draweractionlist.map((y) => GetBuilder<MainController>(
+                      init: mainController,
+                      builder: (_) => GestureDetector(
+                        onTap: draweritemslist(
+                            e: y, ctx: context)[draweractionlist.indexOf(y)],
+                        child: MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: Card(
+                            elevation: 6,
+                            shape: BasicInfo.selectedlang == 'Ar'
+                                ? const BeveledRectangleBorder(
+                                    borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(25)))
+                                : const BeveledRectangleBorder(
+                                    borderRadius: BorderRadius.only(
+                                        topRight: Radius.circular(25))),
                             child: Row(
                               children: [
                                 Icon(
@@ -555,10 +540,7 @@ class HomePage extends StatelessWidget {
                                   padding: const EdgeInsets.all(8.0),
                                   child: Text(
                                     y['name'][BasicInfo.indexlang()],
-                                    style: const TextStyle(
-                                      fontFamily: 'Cairo',
-                                      fontSize: 17,
-                                    ),
+                                    style: ThemeMz.titlemediumCairo(),
                                   ),
                                 )
                               ],
@@ -566,9 +548,9 @@ class HomePage extends StatelessWidget {
                           ),
                         ),
                       ),
-                    ),
-                  ))
-            ],
+                    ))
+              ],
+            ),
           ),
         ),
       );
@@ -595,9 +577,9 @@ class HomePage extends StatelessWidget {
               child: SafeArea(
                   child: Scaffold(
                       appBar: AppBar(
-                        title: const Text(
+                        title: Text(
                           "MultiTool _Z",
-                          style: TextStyle(fontFamily: 'Cairo'),
+                          style: ThemeMz.titlelargCairo(),
                         ),
                         centerTitle: true,
                         actions: [appbaractionwidget()],
@@ -673,7 +655,7 @@ alertchangpass({ctx, e}) {
     i['v'] = true;
   }
   HomePage.passwordvis = Icons.visibility;
-  BasicInfo.error = null;
+  Lang.mainerrormsg = null;
   List passwordchangeactionlist = [
     {
       'index': 0,
@@ -708,6 +690,7 @@ alertchangpass({ctx, e}) {
           return SizedBox(width: 100, child: WaitMz.waitmz0([1, 2, 3, 4], ctx));
         case 'do-it':
           return IconbuttonMz(
+              backcolor: ThemeMz.iconbuttonmzbc(),
               width: 75,
               height: 50,
               buttonlist: passwordchangeactionlist,
@@ -731,11 +714,7 @@ alertchangpass({ctx, e}) {
         scrollable: true,
         title: Text(
           ['تغيير كلمة المرور', 'Change PassWord'][BasicInfo.indexlang()],
-          style: const TextStyle(
-              fontFamily: 'Cairo',
-              fontSize: 17,
-              decoration: TextDecoration.underline,
-              decorationStyle: TextDecorationStyle.dotted),
+          style: ThemeMz.titlemediumCairo(),
         ),
         content: Column(
           children: [
@@ -757,8 +736,8 @@ alertchangpass({ctx, e}) {
                   error: p['error'],
                 )),
             Visibility(
-              visible: BasicInfo.error == null ? false : true,
-              child: Text("${BasicInfo.error}"),
+              visible: Lang.mainerrormsg == null ? false : true,
+              child: Text("${Lang.mainerrormsg}"),
             )
           ],
         ),

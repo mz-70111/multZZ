@@ -7,6 +7,7 @@ import 'package:mz_flutter_07/models/bottonicon.dart';
 import 'package:mz_flutter_07/models/database.dart';
 import 'package:mz_flutter_07/models/dialog01.dart';
 import 'package:mz_flutter_07/models/dropdowanwithsearch.dart';
+import 'package:mz_flutter_07/models/lang_mode_theme.dart';
 import 'package:mz_flutter_07/models/page_tamplate01.dart';
 import 'package:mz_flutter_07/models/textfeild.dart';
 import 'package:mz_flutter_07/views/login.dart';
@@ -14,7 +15,7 @@ import 'package:mz_flutter_07/views/wait.dart';
 
 class Offices extends StatelessWidget {
   const Offices({super.key});
-  static List<Map> mainlabelsdialogmz = [
+  static List<Map> maintitlesdialogMz01 = [
     {
       'name': ['معلومات عامة', 'Basics'],
       'selected': true,
@@ -51,12 +52,11 @@ class Offices extends StatelessWidget {
       ]
     }
   ];
-  static int actionindex = 0;
   static List<Map> addemployeelist = [];
   static List<Map> floatactionbutton = [
     {'index': 0, 'elevate': 0.0}
   ];
-  static List actionlistofadd = [
+  static List<Map> listofactionbuttonforadd = [
     {
       'index': 0,
       'visible': true,
@@ -73,8 +73,11 @@ class Offices extends StatelessWidget {
     },
     {'index': 0, 'visible': false, 'type': 'wait', 'elevate': 0.0}
   ];
-  static DateTime startdate = DateTime.now().add(Duration(days: -30));
-  static DateTime enddate = DateTime.now();
+  static List<DateTime> searchbydate = [
+    DateTime.now().add(Duration(days: -30)),
+    DateTime.now()
+  ];
+
   static List easyeditlist = [];
   @override
   Widget build(BuildContext context) {
@@ -168,6 +171,7 @@ class Offices extends StatelessWidget {
             const Divider(),
             Card(
               child: DropDownWithSearchMz(
+                label: ['إضافة موظف', 'add employee'],
                 items: addemployeelist,
                 ontap: (it) {
                   return setpreivileges(
@@ -180,40 +184,10 @@ class Offices extends StatelessWidget {
       );
     }
 
-    actionfunlistofadd(e) => [
+    List<Function> listoffunctionforadd(e) => [
           (e) async => await mainController.addoffice(),
           (e) => Get.back(),
         ];
-
-    actionoffaddWidget() {
-      return GetBuilder<MainController>(
-        init: mainController,
-        builder: (_) =>
-            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-          ...actionlistofadd
-              .where((element) => element['visible'] == true)
-              .map((u) {
-            switch (u['type']) {
-              case 'do-it':
-                return IconbuttonMz(
-                    height: 40,
-                    width: 75,
-                    index: u['index'],
-                    buttonlist: actionlistofadd,
-                    elevate: u['elevate'],
-                    e: u,
-                    action:
-                        actionfunlistofadd(null)[actionlistofadd.indexOf(u)],
-                    label: u['label']);
-              case 'wait':
-                return WaitMz.waitmz0([1, 2, 3, 4, 5, 6, 7, 8], context);
-              default:
-                return SizedBox();
-            }
-          })
-        ]),
-      );
-    }
 
     buildeasyeditlist() {
       easyeditlist.clear();
@@ -228,6 +202,7 @@ class Offices extends StatelessWidget {
             'icon': Icons.delete_forever,
             'label': ['حذف', 'delete'],
             'elevate': 0.0,
+            'backcolor': Colors.transparent
           },
           {'visible': false, 'type': 'wait'},
         });
@@ -248,19 +223,16 @@ class Offices extends StatelessWidget {
     return GetBuilder<DBController>(
       init: dbController,
       builder: (_) => PageTamplate01(
+        appbartitle: const ['المكاتب', 'Offices'], //done
+        mainItem: (x) => Text(x['officename']),
+
+        listoffunctionforadd: (e) => listoffunctionforadd(e),
         prefixotherMainItems: (r) => suffixprefix(m: r),
         suffixotherMainItems: (r) => suffixprefix(m: r),
+        listofactionbuttonforadd: listofactionbuttonforadd,
         mainrowcolor: (me) => color(me),
         floateactionbutton: floatactionbutton,
         ini: () => buildeasyeditlist(),
-        futurefun: Future(() async {
-          try {
-            DB.allofficeinfotable = await DBController().getallofficeinfo();
-            return DB.allofficeinfotable;
-          } catch (e) {
-            null;
-          }
-        }),
         preparefunctionfuture: () => getemployees0(),
         preparefunction: () => initial(),
         table: DB.allofficeinfotable,
@@ -268,20 +240,16 @@ class Offices extends StatelessWidget {
         mainItems: ['office_id', 'officename'],
         searchrangelist: ['officename'],
         searchwithdatevisible: false,
-        startdate: startdate,
+        startdate: searchbydate[0],
         setstartdate: () => null,
-        enddate: enddate,
+        enddate: searchbydate[1],
         setenddate: () => null,
         openitem: (o) => edititemWidget(e: o, ctx: context),
         easyeditlist: easyeditlist,
-        easyeditaction: (m) => easyeditactionlist(m)[actionindex],
-        appbartitle: const ['المكاتب', 'Offices'],
+        easyeditaction: (m) => easyeditactionlist(m)[BasicInfo.actionindex],
         addtitle: const ['إضافة مكتب', 'Add Office'],
-        mainlebelsdialogmz: mainlabelsdialogmz,
-        bodiesofadd: [basics(), addemployee()],
-        actionlist: [actionoffaddWidget()],
-        elevationcard: elevationcard,
-        page: 'Offices',
+        maintitlesdialogMz01: maintitlesdialogMz01,
+        lisofpagesforadd: [basics(), addemployee()],
       ),
     );
   }
@@ -298,8 +266,8 @@ class Offices extends StatelessWidget {
       chatidcontroller.text = '';
       apitokencontroller.text = '';
       bodieslistofadd[0]['notifi'] = false;
-      mainlabelsdialogmz[0]['selected'] = true;
-      mainlabelsdialogmz[1]['selected'] = false;
+      maintitlesdialogMz01[0]['selected'] = true;
+      maintitlesdialogMz01[1]['selected'] = false;
       DropDownWithSearchMz.visiblemain = false;
       for (var i in DB.allusersinfotable[0]['users']) {
         addemployeelist.add({});
@@ -379,8 +347,8 @@ class Offices extends StatelessWidget {
       chatidcontroller.text = e['chatid'];
       apitokencontroller.text = e['apitoken'];
       bodieslistofadd[0]['notifi'] = false;
-      mainlabelsdialogmz[0]['selected'] = true;
-      mainlabelsdialogmz[1]['selected'] = false;
+      maintitlesdialogMz01[0]['selected'] = true;
+      maintitlesdialogMz01[1]['selected'] = false;
       DropDownWithSearchMz.visiblemain = false;
     }
   }
@@ -496,18 +464,16 @@ class Offices extends StatelessWidget {
                 actions: [
                   ...actionlist
                       .where((element) => element['visible'] == true)
-                      .map((r) => SizedBox(
-                            width: 100,
-                            child: IconbuttonMz(
-                                width: 75,
-                                height: 40,
-                                index: r['index'],
-                                buttonlist: actionlist,
-                                elevate: r['elevate'],
-                                e: ee,
-                                action: actionfun(ee)[actionlist.indexOf(r)],
-                                label: r['label']),
-                          ))
+                      .map((r) => IconbuttonMz(
+                          backcolor: ThemeMz.iconbuttonmzbc(),
+                          width: 75,
+                          height: 40,
+                          index: r['index'],
+                          buttonlist: actionlist,
+                          elevate: r['elevate'],
+                          e: ee,
+                          action: actionfun(ee)[actionlist.indexOf(r)],
+                          label: r['label']))
                 ],
               ),
             ),
@@ -533,9 +499,9 @@ class Offices extends StatelessWidget {
               initial(e: e);
               return DialogMz01(
                 title: ['مكتب', 'Office'],
-                mainlabels: mainlabelsdialogmz,
+                mainlabels: maintitlesdialogMz01,
                 bodies: [SizedBox()],
-                actionlist: [SizedBox()],
+                actionlist: SizedBox(),
               );
             } else {
               Future(() => Get.back());

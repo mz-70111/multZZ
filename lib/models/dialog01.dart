@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mz_flutter_07/controllers/maincontroller.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
+import 'package:mz_flutter_07/models/lang_mode_theme.dart';
 import 'package:mz_flutter_07/models/tween.dart';
 import 'package:mz_flutter_07/views/login.dart';
 
@@ -16,7 +17,7 @@ class DialogMz01 extends StatelessWidget {
   final List<String> title;
   final List<Map> mainlabels;
   final List<Widget> bodies;
-  final List<Widget> actionlist;
+  final Widget actionlist;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +29,7 @@ class DialogMz01 extends StatelessWidget {
             scrollable: true,
             title: Text(
               title[BasicInfo.indexlang()],
-              style: const TextStyle(fontFamily: 'Cairo', fontSize: 20),
+              style: ThemeMz.titlemediumCairo(),
             ),
             content: SizedBox(
               width: MediaQuery.of(context).size.width < 500
@@ -91,14 +92,14 @@ class DialogMz01 extends StatelessWidget {
                         .indexWhere((element) => element['selected'] == true)],
                   ),
                   Visibility(
-                      visible: BasicInfo.error == null ? false : true,
+                      visible: Lang.mainerrormsg == null ? false : true,
                       child: Center(
-                        child: Text("${BasicInfo.error}"),
+                        child: Text("${Lang.mainerrormsg}"),
                       ))
                 ],
               ),
             ),
-            actions: actionlist,
+            actions: [actionlist],
           ),
         ));
   }

@@ -4,6 +4,7 @@ import 'package:mz_flutter_07/controllers/dbcontroller.dart';
 import 'package:mz_flutter_07/controllers/maincontroller.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:mz_flutter_07/models/bottonicon.dart';
+import 'package:mz_flutter_07/models/lang_mode_theme.dart';
 import 'package:mz_flutter_07/models/textfeild.dart';
 import 'package:mz_flutter_07/views/homepage.dart';
 import 'package:mz_flutter_07/views/wait.dart';
@@ -130,6 +131,7 @@ class LogIn extends StatelessWidget {
               switch (e['type']) {
                 case 'action':
                   return IconbuttonMz(
+                      backcolor: ThemeMz.iconbuttonmzbc(),
                       e: e,
                       action: e['action'][e['index']],
                       label: e['name'],
@@ -152,7 +154,7 @@ class LogIn extends StatelessWidget {
 
     return FutureBuilder(
       future: Future(() async {
-        BasicInfo.error = null;
+        Lang.mainerrormsg = null;
         if (BasicInfo.LogInInfo != null) {
           await mainController.checklogin(
               username: BasicInfo.LogInInfo![1],
@@ -196,13 +198,10 @@ class LogIn extends StatelessWidget {
                                               MainAxisAlignment.center,
                                           children: [
                                             Text(
-                                              BasicInfo.errorstype['login']
-                                                  [BasicInfo.indexlang()],
-                                              style: const TextStyle(
-                                                fontFamily: 'Cairo',
-                                                fontSize: 25,
-                                              ),
-                                            )
+                                                Lang.titles['login']
+                                                    [BasicInfo.indexlang()],
+                                                style:
+                                                    ThemeMz.titlelargCairo()),
                                           ],
                                         ),
                                         textfieldlogin(),
@@ -210,8 +209,9 @@ class LogIn extends StatelessWidget {
                                             init: mainController,
                                             builder: (_) => loginaction()),
                                         Visibility(
-                                            visible: BasicInfo.error != null,
-                                            child: Text("${BasicInfo.error}")),
+                                            visible: Lang.mainerrormsg != null,
+                                            child:
+                                                Text("${Lang.mainerrormsg}")),
                                       ],
                                     ),
                                   ),

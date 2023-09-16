@@ -2,14 +2,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mz_flutter_07/controllers/dbcontroller.dart';
 import 'package:mz_flutter_07/controllers/maincontroller.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:mz_flutter_07/models/bottonicon.dart';
 import 'package:mz_flutter_07/models/database.dart';
 import 'package:mz_flutter_07/models/dialog01.dart';
+import 'package:mz_flutter_07/models/lang_mode_theme.dart';
 import 'package:mz_flutter_07/models/textfeild.dart';
-import 'package:mz_flutter_07/views/homepage.dart';
 import 'package:mz_flutter_07/views/login.dart';
 import 'package:mz_flutter_07/views/wait.dart';
 import 'package:intl/intl.dart' as df;
@@ -17,14 +16,13 @@ import 'package:intl/intl.dart' as df;
 class PageTamplate01 extends StatelessWidget {
   const PageTamplate01(
       {super.key,
-      required this.appbartitle,
-      required this.addtitle,
-      required this.mainlebelsdialogmz,
-      required this.actionlist,
-      required this.bodiesofadd,
-      this.elevationcard = 0.0,
-      this.page,
-      this.futurefun,
+      this.officenameclmname,
+      required this.appbartitle, //page title
+      required this.mainItem,
+      required this.addtitle, //add action title  n
+      required this.maintitlesdialogMz01, //main titles for pages of dialogMz01 _List of maps contain selected to choose n
+      required this.listofactionbuttonforadd, //button for add functions
+      required this.lisofpagesforadd,
       required this.table,
       required this.tablename,
       required this.preparefunction,
@@ -43,14 +41,16 @@ class PageTamplate01 extends StatelessWidget {
       required this.floateactionbutton,
       required this.prefixotherMainItems,
       required this.suffixotherMainItems,
-      required this.mainrowcolor});
-  final List<String> appbartitle, addtitle, searchrangelist;
-  final List<Map> mainlebelsdialogmz;
-  final List<Widget> bodiesofadd, actionlist;
-
-  final String? page;
-  final double elevationcard;
-  final futurefun;
+      required this.mainrowcolor,
+      this.chooseofficevisible = false,
+      required this.listoffunctionforadd});
+  final List<String> appbartitle;
+  final Function mainItem;
+  final String? officenameclmname;
+  final List<String> addtitle, searchrangelist;
+  final List<Map> listofactionbuttonforadd, maintitlesdialogMz01;
+  final Function listoffunctionforadd;
+  final List<Widget> lisofpagesforadd;
   final List table, easyeditlist;
   final String tablename;
   final Function preparefunction,
@@ -63,68 +63,102 @@ class PageTamplate01 extends StatelessWidget {
       suffixotherMainItems,
       ini;
   final List mainItems;
-  final bool searchwithdatevisible;
+  final bool searchwithdatevisible, chooseofficevisible;
   final DateTime startdate;
   final DateTime enddate;
   final List<Map> floateactionbutton;
   final Function mainrowcolor;
   @override
   Widget build(BuildContext context) {
+    List officeslist = [];
+    officeslist.clear();
+    for (var i in DB.allofficeinfotable[0]['offices']) {
+      if (DB.allofficeinfotable[0]['offices'].isNotEmpty) {
+        for (var j in DB.userinfotable[0]['users_priv_office']) {
+          if (j.isNotEmpty && j['upo_office_id'] == i['office_id']) {
+            officeslist.add(i['officename']);
+          }
+        }
+      }
+    }
+
     if (BasicInfo.LogInInfo != null) {
       ini();
-      return FutureBuilder(
-          future: futurefun,
-          builder: (_, snap) {
-            if (snap.connectionState == ConnectionState.waiting) {
-              return const WaitMz();
-            } else if (snap.hasData) {
-              return SafeArea(
-                  child: Directionality(
-                textDirection: BasicInfo.lang(),
-                child: Scaffold(
-                  appBar: AppBar(
-                    centerTitle: true,
-                    title: Text(
-                      appbartitle[BasicInfo.indexlang()],
-                      style: const TextStyle(fontFamily: 'Cairo'),
-                    ),
-                  ),
-                  body: GetBuilder<MainController>(
-                    init: mainController,
-                    builder: (_) => SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          TextFieldMz(
-                              label: ['بحث', 'search'],
-                              onchange: (x) => mainController.search(
-                                  range: searchrangelist,
-                                  word: x,
-                                  list: table[0][tablename]),
-                              td: BasicInfo.lang()),
-                          Visibility(
-                              visible: searchwithdatevisible,
-                              child: SizedBox(
-                                width: MediaQuery.of(context).size.width < 500
-                                    ? MediaQuery.of(context).size.width
-                                    : 500,
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
+      return SafeArea(
+          child: Directionality(
+        textDirection: BasicInfo.lang(),
+        child: GetBuilder<MainController>(
+          init: mainController,
+          builder: (_) => Scaffold(
+            appBar: AppBar(
+              centerTitle: true,
+              title: Text(
+                appbartitle[BasicInfo.indexlang()],
+                style: const TextStyle(fontFamily: 'Cairo'),
+              ),
+            ),
+            body: GetBuilder<MainController>(
+              init: mainController,
+              builder: (_) => SizedBox(
+                width: MediaQuery.of(context).size.width,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextFieldMz(
+                        label: const ['بحث', 'search'],
+                        onchange: (x) => mainController.search(
+                            range: searchrangelist,
+                            word: x,
+                            list: table[0][tablename]),
+                        td: BasicInfo.lang()),
+                    officeslist.length > 1
+                        ? Visibility(
+                            visible: chooseofficevisible,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                  Text([
+                                    '  اختيار المكتب',
+                                    'Choose Office  '
+                                  ][BasicInfo.indexlang()]),
+                                  DropdownButton(
+                                      value: officeslist[0],
+                                      items: officeslist
+                                          .map((ol) => DropdownMenuItem(
+                                              value: ol, child: Text(ol)))
+                                          .toList(),
+                                      onChanged: (x) {
+                                        mainController.chooseoffice(
+                                            x: x,
+                                            officeslist: officeslist,
+                                            officenameclmname:
+                                                officenameclmname,
+                                            list: table[0][tablename]);
+                                      }),
+                                ],
+                              ),
+                            ))
+                        : SizedBox(),
+                    Visibility(
+                      visible: true,
+                      child: SizedBox(
+                          width: MediaQuery.of(context).size.width < 500
+                              ? MediaQuery.of(context).size.width
+                              : 500,
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Row(
                                   children: [
-                                    Row(
-                                      children: [
-                                        Text([
-                                          'من',
-                                          'from'
-                                        ][BasicInfo.indexlang()]),
-                                        TextButton(
-                                            onPressed: () => setstartdate(),
-                                            child: Text(
-                                                df.DateFormat("yyyy-MM-dd")
-                                                    .format(startdate)))
-                                      ],
+                                    Text(['من', 'from'][BasicInfo.indexlang()]),
+                                    TextButton(
+                                      onPressed: () => setstartdate(),
+                                      child: Text(df.DateFormat("yyyy-MM-dd")
+                                          .format(startdate)),
+                                      style: Theme.of(context)
+                                          .textButtonTheme
+                                          .style,
                                     ),
                                     Row(
                                       children: [
@@ -141,115 +175,50 @@ class PageTamplate01 extends StatelessWidget {
                                     )
                                   ],
                                 ),
-                              )),
-                          Expanded(
-                            child: SingleChildScrollView(
-                                child: Column(
-                              children: [
-                                ...table[0][tablename]
-                                    .where((element) =>
-                                        element['visible'] == true &&
-                                        element['visiblesearch'] == true)
-                                    .map((me) => GestureDetector(
-                                          onTap: () => openitem(me),
-                                          child: MouseRegion(
-                                            cursor: SystemMouseCursors.click,
-                                            child: Card(
-                                              child: Container(
-                                                decoration: BoxDecoration(
-                                                    gradient:
-                                                        LinearGradient(colors: [
-                                                  Colors.transparent,
-                                                  mainrowcolor(me) == true
-                                                      ? Colors.greenAccent
-                                                          .withOpacity(0.3)
-                                                      : Colors.transparent,
-                                                  Colors.transparent
-                                                ])),
-                                                child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(8.0),
-                                                  child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        mainitems(
-                                                            me: me,
-                                                            prefixotherMainItems:
-                                                                (me) =>
-                                                                    prefixotherMainItems(
-                                                                        me),
-                                                            suffixotherMainItems:
-                                                                (me) =>
-                                                                    suffixotherMainItems(
-                                                                        me)),
-                                                        easyeditpanel(
-                                                            ctx: context,
-                                                            me: me)
-                                                      ]),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ))
-                              ],
-                            )),
-                          ),
-                          SizedBox(
-                            height: AppBar().preferredSize.height,
-                          )
-                        ],
+                              ])),
+                    ),
+                    GetBuilder<MainController>(
+                      init: mainController,
+                      builder: (_) => Expanded(
+                        child: SingleChildScrollView(
+                            child: Column(
+                          children: [
+                            ...table[0][tablename]
+                                .where((element) =>
+                                    element['visible'] == true &&
+                                    element['visiblesearch'] == true)
+                                .map((me) => mainItem(me))
+                          ],
+                        )),
                       ),
                     ),
-                  ),
-                  floatingActionButton: GetBuilder<MainController>(
-                    init: mainController,
-                    builder: (_) => Row(
-                      children: [
-                        ...floateactionbutton.map((f) => IconbuttonMz(
-                            width: 150,
-                            height: 50,
-                            buttonlist: floateactionbutton,
-                            elevate: f['elevate'],
-                            e: f,
-                            index: f['index'],
-                            action: (e) {
-                              additemWidget(e: e, ctx: context);
-                            },
-                            label: addtitle))
-                      ],
-                    ),
-                  ),
+                    SizedBox(
+                      height: AppBar().preferredSize.height,
+                    )
+                  ],
                 ),
-              ));
-            } else {
-              return Directionality(
-                textDirection: BasicInfo.lang(),
-                child: Scaffold(
-                  appBar: AppBar(),
-                  body: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text([
-                          'حصل خطأ في الاتصال مع المخدم _أعد المحاولة',
-                          'some thing wrong _retry'
-                        ][BasicInfo.indexlang()]),
-                        IconButton(
-                            onPressed: () {
-                              dbController.update();
-                            },
-                            icon: const Icon(Icons.refresh)),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }
-          });
+              ),
+            ),
+            floatingActionButton: GetBuilder<MainController>(
+              init: mainController,
+              builder: (_) => Row(
+                children: [
+                  ...floateactionbutton.map((f) => IconbuttonMz(
+                      backcolor: ThemeMz.iconbuttonmzbc(),
+                      width: 150,
+                      height: 50,
+                      buttonlist: floateactionbutton,
+                      elevate: f['elevate'],
+                      e: f,
+                      index: f['index'],
+                      action: (e) => adddialogasWidget(ctx: context),
+                      label: addtitle))
+                ],
+              ),
+            ),
+          ),
+        ),
+      ));
     } else {
       Future(() => Get.offAllNamed('/'));
       return const SizedBox();
@@ -288,6 +257,7 @@ class PageTamplate01 extends StatelessWidget {
               return WaitMz.waitmz0([1, 2, 3, 4], ctx);
             case 'do-it':
               return IconbuttonMz(
+                backcolor: se['backcolor'],
                 icon: se['icon'],
                 labelvisible: se['elevate'] == 0.0 ? false : true,
                 elevate: se['elevate'],
@@ -307,31 +277,47 @@ class PageTamplate01 extends StatelessWidget {
     );
   }
 
-  additemWidget({e, ctx}) {
+  GetBuilder<MainController> addactionaswidget({ctx}) {
+    return GetBuilder<MainController>(
+      init: mainController,
+      builder: (_) => Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+        ...listofactionbuttonforadd
+            .where((element) => element['visible'] == true)
+            .map((u) {
+          switch (u['type']) {
+            case 'do-it':
+              return IconbuttonMz(
+                  backcolor: ThemeMz.iconbuttonmzbc(),
+                  height: 40,
+                  width: 75,
+                  index: u['index'],
+                  buttonlist: listofactionbuttonforadd,
+                  elevate: u['elevate'],
+                  e: u,
+                  action: listoffunctionforadd(
+                      u)[listofactionbuttonforadd.indexOf(u)],
+                  label: u['label']);
+            case 'wait':
+              return WaitMz.waitmz0([1, 2, 3, 4, 5, 6, 7, 8], ctx);
+            default:
+              return SizedBox();
+          }
+        })
+      ]),
+    );
+  }
+
+  adddialogasWidget({ctx}) {
+    Lang.mainerrormsg = null;
     return showDialog(
         context: ctx,
         builder: (_) {
-          return FutureBuilder(future: Future(() async {
-            try {
-              return await preparefunctionfuture();
-            } catch (e) {
-              null;
-            }
-          }), builder: (_, snap) {
-            if (snap.connectionState == ConnectionState.waiting) {
-              return WaitMz.waitmz0([1, 2, 3], ctx);
-            } else if (snap.hasData) {
-              preparefunction();
-              return DialogMz01(
-                  title: addtitle,
-                  mainlabels: mainlebelsdialogmz,
-                  bodies: [...bodiesofadd],
-                  actionlist: actionlist);
-            } else {
-              Future(() => Get.back());
-              return const SizedBox();
-            }
-          });
+          preparefunction();
+          return DialogMz01(
+              title: addtitle,
+              mainlabels: maintitlesdialogMz01,
+              bodies: [...lisofpagesforadd],
+              actionlist: addactionaswidget(ctx: ctx));
         });
   }
 }
