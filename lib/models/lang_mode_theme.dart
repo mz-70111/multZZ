@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
 
 class ThemeMz {
-  static ThemeData lightmode() => ThemeData.light();
+  static ThemeData lightmode() =>
+      ThemeData(colorScheme: const ColorScheme.light());
   static ThemeData darkmode() => ThemeData(
       switchTheme: const SwitchThemeData(
         trackOutlineColor: MaterialStatePropertyAll(Colors.deepPurple),
@@ -14,8 +15,9 @@ class ThemeMz {
       colorScheme: const ColorScheme.dark(
         error: Colors.orangeAccent,
       ));
-  static Color iconbuttonmzbc() =>
-      BasicInfo.selectedmode == 'Light' ? Colors.blueAccent : Colors.deepPurple;
+  static Color iconbuttonmzbc() => BasicInfo.selectedmode == 'Light'
+      ? Colors.blue.shade900
+      : Colors.deepPurple;
   static TextStyle titlemediumChanga() => BasicInfo.selectedmode == 'Light'
       ? const TextStyle(fontFamily: 'Changa', fontSize: 18)
       : const TextStyle(fontFamily: 'Changa', fontSize: 18);

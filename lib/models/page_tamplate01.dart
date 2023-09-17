@@ -16,203 +16,215 @@ import 'package:intl/intl.dart' as df;
 class PageTamplate01 extends StatelessWidget {
   const PageTamplate01(
       {super.key,
-      this.officenameclmname,
-      required this.appbartitle, //page title
-      required this.mainItem,
-      required this.addtitle, //add action title  n
-      required this.maintitlesdialogMz01, //main titles for pages of dialogMz01 _List of maps contain selected to choose n
-      required this.listofactionbuttonforadd, //button for add functions
-      required this.lisofpagesforadd,
-      required this.table,
-      required this.tablename,
-      required this.preparefunction,
-      required this.preparefunctionfuture,
-      required this.mainItems,
-      required this.searchrangelist,
+      required this.appbartitle, //app bar title
       this.searchwithdatevisible = false,
-      required this.startdate,
-      required this.enddate,
+      required this.searchrangelist, //search range
+      required this.table, //main table like DB.alloffice
+      required this.tablename, //table name like 'offices'
+      this.chooseofficevisible = false,
+      this.officechooselist, //offices list for choose
+      this.officenameclmname, //column name of office name for choose
+      this.startdate,
+      this.enddate,
       required this.setstartdate,
       required this.setenddate,
-      required this.openitem,
-      required this.easyeditlist,
-      required this.easyeditaction,
-      required this.ini,
-      required this.floateactionbutton,
-      required this.prefixotherMainItems,
-      required this.suffixotherMainItems,
-      required this.mainrowcolor,
-      this.chooseofficevisible = false,
-      required this.listoffunctionforadd});
-  final List<String> appbartitle;
-  final Function mainItem;
-  final String? officenameclmname;
-  final List<String> addtitle, searchrangelist;
-  final List<Map> listofactionbuttonforadd, maintitlesdialogMz01;
-  final Function listoffunctionforadd;
-  final List<Widget> lisofpagesforadd;
-  final List table, easyeditlist;
-  final String tablename;
-  final Function preparefunction,
-      easyeditaction,
-      openitem,
-      preparefunctionfuture,
+      required this.mainItem, //main items in page like user name ,office name
+      required this.addactionvisible, //visible of add action
+      required this.initialofadd,
+      required this.floateactionbuttonlist, //float action button list
+      required this.addactiontitle, //add action title
+      required this.addactionpages, //pages of add action
+      required this.addactionmainlabelsofpages, //titles of pages of add action
+      required this.listoffunctionforadd, //list of function for button for add action
+      required this.listofactionbuttonforadd, //list of buttom for add action
+      required this.initial});
+  final String? tablename, officenameclmname;
+  final List? table, officechooselist;
+  final List<String> appbartitle, searchrangelist, addactiontitle;
+  final List<Widget> addactionpages;
+  final List<Map> addactionmainlabelsofpages,
+      listofactionbuttonforadd,
+      floateactionbuttonlist;
+  final bool addactionvisible;
+  final DateTime? startdate, enddate;
+  final Function mainItem,
       setstartdate,
       setenddate,
-      prefixotherMainItems,
-      suffixotherMainItems,
-      ini;
-  final List mainItems;
+      initialofadd,
+      initial,
+      listoffunctionforadd;
   final bool searchwithdatevisible, chooseofficevisible;
-  final DateTime startdate;
-  final DateTime enddate;
-  final List<Map> floateactionbutton;
-  final Function mainrowcolor;
+
+  static String? selectedoffice;
+  static TextEditingController searchcontroller = TextEditingController();
   @override
   Widget build(BuildContext context) {
+    //create list of sort by office if user who login and in tow office at least
     List officeslist = [];
     officeslist.clear();
-    for (var i in DB.allofficeinfotable[0]['offices']) {
-      if (DB.allofficeinfotable[0]['offices'].isNotEmpty) {
-        for (var j in DB.userinfotable[0]['users_priv_office']) {
-          if (j.isNotEmpty && j['upo_office_id'] == i['office_id']) {
-            officeslist.add(i['officename']);
-          }
-        }
+    for (var i in DB.userinfotable[0]['users_priv_office']) {
+      if (DB.userinfotable[0]['users_priv_office'].isNotEmpty) {
+        officeslist.add(DB.allofficeinfotable[0]['offices'][DB
+                .allofficeinfotable[0]['offices']
+                .indexWhere((of) => of['office_id'] == i['upo_office_id'])]
+            ['officename']);
+        selectedoffice = selectedoffice ?? officeslist[0];
       }
     }
-
+    //check if user login by correct username and password
     if (BasicInfo.LogInInfo != null) {
-      ini();
+      //set visible options for begin
+      for (var i in table![0][tablename]) {
+        i['visiblesearch'] = true;
+      }
+      searchcontroller.text = '';
+      if (chooseofficevisible == true) {
+        mainController.chooseoffice(
+            list: officechooselist,
+            x: selectedoffice,
+            officenameclmname: officenameclmname);
+      }
+      initial();
       return SafeArea(
           child: Directionality(
         textDirection: BasicInfo.lang(),
-        child: GetBuilder<MainController>(
-          init: mainController,
-          builder: (_) => Scaffold(
-            appBar: AppBar(
-              centerTitle: true,
-              title: Text(
-                appbartitle[BasicInfo.indexlang()],
-                style: const TextStyle(fontFamily: 'Cairo'),
-              ),
+        child: Scaffold(
+          appBar: AppBar(
+            centerTitle: true,
+            title: Text(
+              appbartitle[BasicInfo.indexlang()], //app bar title
+              style: ThemeMz.titlelargCairo(),
             ),
-            body: GetBuilder<MainController>(
-              init: mainController,
-              builder: (_) => SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextFieldMz(
-                        label: const ['بحث', 'search'],
-                        onchange: (x) => mainController.search(
-                            range: searchrangelist,
-                            word: x,
-                            list: table[0][tablename]),
-                        td: BasicInfo.lang()),
-                    officeslist.length > 1
-                        ? Visibility(
-                            visible: chooseofficevisible,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
+          ),
+          body: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                //search
+                TextFieldMz(
+                    controller: searchcontroller,
+                    label: const ['بحث', 'search'],
+                    onchange: (x) => mainController.search(
+                        range: searchrangelist,
+                        word: x,
+                        list: table![0][tablename]),
+                    td: BasicInfo.lang()),
+                //choose by office
+                officeslist.length > 1
+                    ? Visibility(
+                        visible: chooseofficevisible,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width < 500
+                                ? MediaQuery.of(context).size.width
+                                : 500,
+                            child: Card(
+                              shape: const BeveledRectangleBorder(
+                                  borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(10))),
                               child: Row(
                                 children: [
                                   Text([
                                     '  اختيار المكتب',
                                     'Choose Office  '
                                   ][BasicInfo.indexlang()]),
-                                  DropdownButton(
-                                      value: officeslist[0],
-                                      items: officeslist
-                                          .map((ol) => DropdownMenuItem(
-                                              value: ol, child: Text(ol)))
-                                          .toList(),
-                                      onChanged: (x) {
-                                        mainController.chooseoffice(
-                                            x: x,
-                                            officeslist: officeslist,
-                                            officenameclmname:
-                                                officenameclmname,
-                                            list: table[0][tablename]);
-                                      }),
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 10, right: 10),
+                                    child: DropdownButton(
+                                        value: selectedoffice,
+                                        items: officeslist
+                                            .map((ol) => DropdownMenuItem(
+                                                value: ol, child: Text(ol)))
+                                            .toList(),
+                                        onChanged: (x) {
+                                          mainController.chooseoffice(
+                                              x: x,
+                                              list: officechooselist,
+                                              officenameclmname:
+                                                  officenameclmname);
+                                        }),
+                                  ),
                                 ],
                               ),
-                            ))
-                        : SizedBox(),
-                    Visibility(
-                      visible: true,
-                      child: SizedBox(
-                          width: MediaQuery.of(context).size.width < 500
-                              ? MediaQuery.of(context).size.width
-                              : 500,
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(['من', 'from'][BasicInfo.indexlang()]),
-                                    TextButton(
-                                      onPressed: () => setstartdate(),
-                                      child: Text(df.DateFormat("yyyy-MM-dd")
-                                          .format(startdate)),
-                                      style: Theme.of(context)
-                                          .textButtonTheme
-                                          .style,
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text([
-                                          'إلى',
-                                          'to'
-                                        ][BasicInfo.indexlang()]),
-                                        TextButton(
-                                            onPressed: () => setenddate(),
-                                            child: Text(
-                                                df.DateFormat("yyyy-MM-dd")
-                                                    .format(enddate)))
-                                      ],
-                                    )
-                                  ],
-                                ),
-                              ])),
-                    ),
-                    GetBuilder<MainController>(
-                      init: mainController,
-                      builder: (_) => Expanded(
-                        child: SingleChildScrollView(
-                            child: Column(
+                            ),
+                          ),
+                        ))
+                    : SizedBox(),
+                //search by date range
+                Visibility(
+                  visible: searchwithdatevisible,
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width < 500
+                        ? MediaQuery.of(context).size.width
+                        : 500,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Row(children: [
+                          Text(['من', 'from'][BasicInfo.indexlang()]),
+                          TextButton(
+                            onPressed: () => setstartdate(),
+                            style: Theme.of(context).textButtonTheme.style,
+                            child: Text(
+                                df.DateFormat("yyyy-MM-dd").format(startdate!)),
+                          ),
+                        ]),
+                        Row(
                           children: [
-                            ...table[0][tablename]
-                                .where((element) =>
-                                    element['visible'] == true &&
-                                    element['visiblesearch'] == true)
-                                .map((me) => mainItem(me))
+                            Text(['إلى', 'to'][BasicInfo.indexlang()]),
+                            TextButton(
+                                onPressed: () => setenddate(),
+                                child: Text(df.DateFormat("yyyy-MM-dd")
+                                    .format(enddate!)))
                           ],
-                        )),
-                      ),
+                        )
+                      ],
                     ),
-                    SizedBox(
-                      height: AppBar().preferredSize.height,
-                    )
-                  ],
+                  ),
                 ),
-              ),
+                const Divider(),
+                GetBuilder<MainController>(
+                  init: mainController,
+                  builder: (_) {
+                    return Expanded(
+                      child: SingleChildScrollView(
+                          child: Column(
+                        children: [
+                          ...table![0][tablename]
+                              .where((element) =>
+                                  element['visible'] == true &&
+                                  element['visiblesearch'] == true)
+                              .map((me) => mainItem(me))
+                        ],
+                      )),
+                    );
+                  },
+                ),
+                SizedBox(
+                  height: AppBar().preferredSize.height,
+                )
+              ],
             ),
-            floatingActionButton: GetBuilder<MainController>(
+          ),
+          floatingActionButton: Visibility(
+            visible: addactionvisible,
+            child: GetBuilder<MainController>(
               init: mainController,
               builder: (_) => Row(
                 children: [
-                  ...floateactionbutton.map((f) => IconbuttonMz(
+                  ...floateactionbuttonlist.map((f) => IconbuttonMz(
                       backcolor: ThemeMz.iconbuttonmzbc(),
                       width: 150,
                       height: 50,
-                      buttonlist: floateactionbutton,
+                      buttonlist: floateactionbuttonlist,
                       elevate: f['elevate'],
                       e: f,
                       index: f['index'],
                       action: (e) => adddialogasWidget(ctx: context),
-                      label: addtitle))
+                      label: addactiontitle))
                 ],
               ),
             ),
@@ -225,58 +237,7 @@ class PageTamplate01 extends StatelessWidget {
     }
   }
 
-  mainitems({me, prefixotherMainItems, suffixotherMainItems}) {
-    return Expanded(
-      child: Row(
-        children: [
-          prefixotherMainItems(me),
-          ...mainItems
-              .where((element) => element == mainItems.first)
-              .map((i) => Text("# ${me[i]} _")),
-          ...mainItems
-              .where((element) => mainItems.indexOf(element) > 0)
-              .map((i) => Expanded(
-                      child: Text(
-                    me[i],
-                    style: TextStyle(fontFamily: 'Changa', fontSize: 18),
-                  ))),
-          suffixotherMainItems(me)
-        ],
-      ),
-    );
-  }
-
-  easyeditpanel({ctx, me}) {
-    return Row(
-      children: [
-        ...easyeditlist[table[0][tablename].indexOf(me)]
-            .where((y) => y.runtimeType != String && y['visible'] == true)
-            .map((se) {
-          switch (se['type']) {
-            case 'wait':
-              return WaitMz.waitmz0([1, 2, 3, 4], ctx);
-            case 'do-it':
-              return IconbuttonMz(
-                backcolor: se['backcolor'],
-                icon: se['icon'],
-                labelvisible: se['elevate'] == 0.0 ? false : true,
-                elevate: se['elevate'],
-                e: me,
-                action: easyeditaction(me),
-                label: se['label'],
-                buttonlist: easyeditlist[table[0][tablename].indexOf(me)],
-                index: se['actionindex'],
-                height: 35,
-                width: se['elevate'] == 0.0 ? 40 : 80,
-              );
-            default:
-              return SizedBox();
-          }
-        })
-      ],
-    );
-  }
-
+//for add action
   GetBuilder<MainController> addactionaswidget({ctx}) {
     return GetBuilder<MainController>(
       init: mainController,
@@ -309,14 +270,14 @@ class PageTamplate01 extends StatelessWidget {
 
   adddialogasWidget({ctx}) {
     Lang.mainerrormsg = null;
+    initialofadd();
     return showDialog(
         context: ctx,
         builder: (_) {
-          preparefunction();
           return DialogMz01(
-              title: addtitle,
-              mainlabels: maintitlesdialogMz01,
-              bodies: [...lisofpagesforadd],
+              title: addactiontitle,
+              mainlabels: addactionmainlabelsofpages,
+              bodies: [...addactionpages],
               actionlist: addactionaswidget(ctx: ctx));
         });
   }

@@ -5,6 +5,7 @@ import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:mz_flutter_07/models/database.dart';
 import 'package:mz_flutter_07/models/dropdowanwithsearch.dart';
 import 'package:mz_flutter_07/models/lang_mode_theme.dart';
+import 'package:mz_flutter_07/models/page_tamplate01.dart';
 import 'package:mz_flutter_07/models/sharedpref.dart';
 import 'package:mz_flutter_07/views/homepage.dart';
 import 'package:mz_flutter_07/views/login.dart';
@@ -351,15 +352,17 @@ class MainController extends GetxController {
     update();
   }
 
-  chooseoffice({required List list, officeslist, officenameclmname, x}) {
-    officeslist[0] = x;
+  chooseoffice({list, officenameclmname, x}) {
+    PageTamplate01.selectedoffice = x;
     for (var i in list) {
       i['visible'] = false;
     }
     for (var i in list.where((element) => element[officenameclmname] == x)) {
       i['visible'] = true;
     }
-    update();
+    try {
+      update();
+    } catch (e) {}
   }
 
   addremoveemployeetooffice({list, y, type = 'save'}) {
@@ -383,10 +386,11 @@ class MainController extends GetxController {
     BasicInfo.actionindex = list[index]['actionindex'] ?? 0;
     try {
       backcolor != null
-          ? list[index]['backcolor'] = ThemeMz.iconbuttonmzbc
+          ? list[index]['backcolor'] = BasicInfo.selectedmode == 'Light'
+              ? Colors.blueAccent
+              : Colors.deepPurple
           : null;
     } catch (r) {}
-
     update();
   }
 
@@ -467,7 +471,6 @@ class MainController extends GetxController {
 
     listse[listme.indexWhere((i) => i[colmuname] == me[colmuname])][se['i']]
         ['elevate'] = 3.0;
-
     update();
   }
 
@@ -654,7 +657,7 @@ insert into logs(log,logdate)values
 //     update();
 //   }
 
-  removeoffice({officeid}) async {
+  removeoffice({officeid, list}) async {
     List queries = [
       '''
 insert into logs(log,logdate)values
@@ -680,12 +683,16 @@ update cost set cost_office_id=null where cost_office_id=$officeid;
 delete from offices where office_id=$officeid;
 ''',
     ];
-
+    list[0]['visible'] = false;
+    list[2]['visible'] = true;
+    update();
     try {
       for (var q in queries) {
         await DBController()
             .requestpost(type: 'curd', data: {'customquery': '$q'});
       }
+      list[0]['visible'] = true;
+      list[2]['visible'] = false;
       DB.allofficeinfotable = await DBController().getallofficeinfo();
       DB.userinfotable =
           await DBController().getuserinfo(userid: BasicInfo.LogInInfo![0]);

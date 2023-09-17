@@ -28,7 +28,6 @@ class Offices extends StatelessWidget {
   static TextEditingController officenamecontroller = TextEditingController();
   static TextEditingController chatidcontroller = TextEditingController();
   static TextEditingController apitokencontroller = TextEditingController();
-
   static double elevationcard = 0.0;
   static List bodieslistofadd = [
     {
@@ -53,7 +52,7 @@ class Offices extends StatelessWidget {
     }
   ];
   static List<Map> addemployeelist = [];
-  static List<Map> floatactionbutton = [
+  static List<Map> floatactionbuttonlist = [
     {'index': 0, 'elevate': 0.0}
   ];
   static List<Map> listofactionbuttonforadd = [
@@ -114,6 +113,135 @@ class Offices extends StatelessWidget {
           ],
         ),
       );
+    }
+
+    setpreivileges({ctx, index, type = 'add', ee}) {
+      List actionlist = [
+        {
+          'index': 0,
+          'visible': true,
+          'label': type == 'add' ? ['إضافة', 'save'] : ['حفظ', 'save'],
+          'elevate': 0.0
+        },
+        {
+          'index': 1,
+          'visible': true,
+          'label': ['رجوع', 'close'],
+          'elevate': 0.0
+        },
+        {
+          'index': 2,
+          'visible': type == 'add' ? false : true,
+          'label': ['حذف', 'delete'],
+          'elevate': 0.0
+        },
+      ];
+      List actionfun(ee) => [
+            (ee) => mainController.addremoveemployeetooffice(
+                list: addemployeelist, y: ee, type: 'save'),
+            (ee) => Get.back(),
+            (ee) => mainController.addremoveemployeetooffice(
+                list: addemployeelist, y: ee, type: 'edit'),
+          ];
+      return showDialog(
+          context: ctx,
+          builder: (_) {
+            return Directionality(
+              textDirection: BasicInfo.lang(),
+              child: GetBuilder<MainController>(
+                init: mainController,
+                builder: (_) => AlertDialog(
+                  scrollable: true,
+                  title: Text([
+                    'الصلاحيات ضمن المكتب',
+                    'Privileges at office'
+                  ][BasicInfo.indexlang()]),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ...addemployeelist
+                          .where((element) =>
+                              addemployeelist.indexOf(element) == index)
+                          .map((m) => SizedBox(
+                                width: MediaQuery.of(ctx).size.width > 500
+                                    ? 500
+                                    : MediaQuery.of(ctx).size.width,
+                                height: 300,
+                                child: GridView(
+                                    gridDelegate:
+                                        const SliverGridDelegateWithMaxCrossAxisExtent(
+                                            maxCrossAxisExtent: 300,
+                                            mainAxisExtent: 50),
+                                    children: [
+                                      ...m.keys
+                                          .toList()
+                                          .where((element) =>
+                                              element.contains("Po-"))
+                                          .map((e) {
+                                        return Row(
+                                          children: [
+                                            Radio(
+                                                value: m[e]
+                                                    [BasicInfo.indexlang()],
+                                                groupValue: m['position']
+                                                    [BasicInfo.indexlang()],
+                                                onChanged: (x) {
+                                                  mainController
+                                                      .changeradiopriv(
+                                                          x: x,
+                                                          index: Offices
+                                                              .addemployeelist
+                                                              .indexOf(m));
+                                                }),
+                                            Text(m[e][BasicInfo.indexlang()])
+                                          ],
+                                        );
+                                      }),
+                                      ...m.keys
+                                          .toList()
+                                          .where((element) =>
+                                              element.contains("P-"))
+                                          .map((e) {
+                                        return Row(
+                                          children: [
+                                            Checkbox(
+                                                value: m[e][0],
+                                                onChanged: (x) {
+                                                  mainController.chackboxpriv(
+                                                      x: x,
+                                                      index: Offices
+                                                          .addemployeelist
+                                                          .indexOf(m),
+                                                      e: e);
+                                                }),
+                                            Expanded(
+                                                child: Text(m[e][1]
+                                                    [BasicInfo.indexlang()]))
+                                          ],
+                                        );
+                                      }),
+                                    ]),
+                              )),
+                    ],
+                  ),
+                  actions: [
+                    ...actionlist
+                        .where((element) => element['visible'] == true)
+                        .map((r) => IconbuttonMz(
+                            backcolor: ThemeMz.iconbuttonmzbc(),
+                            width: 75,
+                            height: 40,
+                            index: r['index'],
+                            buttonlist: actionlist,
+                            elevate: r['elevate'],
+                            e: ee,
+                            action: actionfun(ee)[actionlist.indexOf(r)],
+                            label: r['label']))
+                  ],
+                ),
+              ),
+            );
+          });
     }
 
     addemployee() {
@@ -184,10 +312,100 @@ class Offices extends StatelessWidget {
       );
     }
 
-    List<Function> listoffunctionforadd(e) => [
-          (e) async => await mainController.addoffice(),
-          (e) => Get.back(),
-        ];
+    initialofdialog({e}) {
+      addemployeelist.clear();
+      if (e == null) {
+        bodieslistofadd[0]['tf'][0]['error'] = null;
+        officenamecontroller.text = '';
+        chatidcontroller.text = '';
+        apitokencontroller.text = '';
+        bodieslistofadd[0]['notifi'] = false;
+        maintitlesdialogMz01[0]['selected'] = true;
+        maintitlesdialogMz01[1]['selected'] = false;
+        DropDownWithSearchMz.visiblemain = false;
+        for (var i in DB.allusersinfotable[0]['users']) {
+          addemployeelist.add({});
+          addemployeelist[DB.allusersinfotable[0]['users'].indexOf(i)].addAll({
+            'user_id': i['user_id'],
+            'name': i['fullname'],
+            'visible': true,
+            'visiblesearch': true,
+            'position': ['موظف', 'employee'],
+            'Po-employee': ['موظف', 'employee'],
+            'Po-supervisor': ['مشرف', 'supervisor'],
+            'P-addtask': [
+              false,
+              ['إضافة مهمة', 'Add task']
+            ],
+            'P-showalltasks': [
+              false,
+              ['مشاهدة جميع المهام', 'show all tasks']
+            ],
+            'P-addremind': [
+              true,
+              ['إضافة تذكير', 'Add remind']
+            ],
+            'P-showallreminds': [
+              true,
+              ['مشاهدة جميع التنبيهات ', 'show all reminds']
+            ],
+            'P-addtodo': [
+              true,
+              ['إضافة إجرائية', 'Add todo']
+            ],
+            'P-showalltodos': [
+              true,
+              ['مشاهدة جميع الإجرائيات ', 'show all todos']
+            ],
+            'P-addping': [
+              true,
+              ['Add ping', 'Add ping']
+            ],
+            'P-showallpings': [
+              true,
+              ['show all pings', 'show all pings']
+            ],
+            'P-addemailtest': [
+              true,
+              ['إضافة تفحص ايميل', 'Add Email test']
+            ],
+            'P-showallemailtests': [
+              true,
+              ['show all emailtests', 'show all emailtests']
+            ],
+            'P-addcost': [
+              true,
+              ['إضافة طلب سلفة', 'Add Cost']
+            ],
+            'P-showallcosts': [
+              false,
+              ['مشاهدة جميع السلف', 'show all costs']
+            ],
+            'P-acceptcosts': [
+              false,
+              ['موافقة على السلفة', 'Accept Cost']
+            ],
+            'P-addhyperlink': [
+              false,
+              ['إضافة رابط خارجي', 'Add HyperLink']
+            ],
+            'P-showallhyperlinks': [
+              false,
+              ['مشاهدة جميع الروابط', 'show all h-links']
+            ],
+          });
+        }
+      } else {
+        bodieslistofadd[0]['tf'][0]['error'] = null;
+        officenamecontroller.text = e['officename'];
+        chatidcontroller.text = e['chatid'];
+        apitokencontroller.text = e['apitoken'];
+        bodieslistofadd[0]['notifi'] = e['notifi'] == '1' ? true : false;
+        maintitlesdialogMz01[0]['selected'] = true;
+        maintitlesdialogMz01[1]['selected'] = false;
+        DropDownWithSearchMz.visiblemain = false;
+      }
+    }
 
     buildeasyeditlist() {
       easyeditlist.clear();
@@ -195,8 +413,7 @@ class Offices extends StatelessWidget {
         easyeditlist.add([]);
         easyeditlist[DB.allofficeinfotable[0]['offices'].indexOf(i)].addAll({
           {
-            'index': DB.allofficeinfotable[0]['offices'].indexOf(i),
-            'actionindex': 0,
+            'index': 0,
             'visible': true,
             'type': 'do-it',
             'icon': Icons.delete_forever,
@@ -209,305 +426,195 @@ class Offices extends StatelessWidget {
       }
     }
 
-    easyeditactionlist(ibmf) => [
-          (ibmf) => mainController.removeoffice(officeid: ibmf['office_id']),
+    List<Function> listoffunctionforadd(e) => [
+          (e) async => await mainController.addoffice(),
+          (e) => Get.back(),
         ];
-    suffixprefix({m}) {
-      return SizedBox();
+    listoffunctionforeasyeditpanel({e, ctx}) => [
+          (e) => showDialog(
+              context: ctx,
+              builder: (_) {
+                List actionlist = [
+                  {
+                    'type': 'do-it',
+                    'visible': true,
+                    'label': ['حذف', 'delete'],
+                    'elevate': 0.0,
+                    'index': 0,
+                  },
+                  {
+                    'type': 'do-it',
+                    'visible': true,
+                    'label': ['رجوع', 'close'],
+                    'elevate': 0.0,
+                    'index': 1,
+                  },
+                  {
+                    'type': 'wait',
+                    'visible': false,
+                  }
+                ];
+                List functionofaction(e) => [
+                      (e) => mainController.removeoffice(
+                          officeid: e['office_id'], list: actionlist),
+                      (e) => Get.back()
+                    ];
+                return GetBuilder<MainController>(
+                  init: mainController,
+                  builder: (_) => AlertDialog(
+                    title: Text([
+                      'هل أنت متأكد من حذف${e['officename']}?',
+                      'sure to delete ${e['officename']}?'
+                    ][BasicInfo.indexlang()]),
+                    actions: [
+                      ...actionlist
+                          .where((element) => element['visible'] == true)
+                          .map((y) {
+                        switch (y['type']) {
+                          case 'do-it':
+                            return IconbuttonMz(
+                                e: e,
+                                elevate: y['elevate'],
+                                action: functionofaction(e)[y['index']],
+                                label: y['label'],
+                                buttonlist: actionlist,
+                                index: y['index'],
+                                height: 35,
+                                width: 60,
+                                backcolor: ThemeMz.iconbuttonmzbc());
+                          case 'wait':
+                            return WaitMz.waitmz0([1, 2, 3, 4], ctx);
+                          default:
+                            return SizedBox();
+                        }
+                      })
+                    ],
+                  ),
+                );
+              })
+        ];
+    GetBuilder<MainController> addactionaswidget({ctx}) {
+      return GetBuilder<MainController>(
+        init: mainController,
+        builder: (_) =>
+            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+          ...listofactionbuttonforadd
+              .where((element) => element['visible'] == true)
+              .map((u) {
+            switch (u['type']) {
+              case 'do-it':
+                return IconbuttonMz(
+                    backcolor: ThemeMz.iconbuttonmzbc(),
+                    height: 40,
+                    width: 75,
+                    index: u['index'],
+                    buttonlist: listofactionbuttonforadd,
+                    elevate: u['elevate'],
+                    e: u,
+                    action: listoffunctionforadd(
+                        u)[listofactionbuttonforadd.indexOf(u)],
+                    label: u['label']);
+              case 'wait':
+                return WaitMz.waitmz0([1, 2, 3, 4, 5, 6, 7, 8], ctx);
+              default:
+                return SizedBox();
+            }
+          })
+        ]),
+      );
     }
 
-    color(me) {
-      return me['notifi'] == '1' ? true : false;
+    mainItem({e, ctx}) {
+      return GestureDetector(
+        onTap: () {
+          Lang.mainerrormsg = null;
+          initialofdialog(e: e);
+          showDialog(
+              context: ctx,
+              builder: (_) {
+                return DialogMz01(
+                    title: ['تعديل', 'edit'],
+                    mainlabels: maintitlesdialogMz01,
+                    bodies: [basics(), addemployee()],
+                    actionlist: addactionaswidget(ctx: ctx));
+              });
+        },
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Text("# ${e['office_id']}_ "),
+                  Expanded(
+                      child: Text(
+                    e['officename'],
+                    style: ThemeMz.titlemediumChanga(),
+                  )),
+                  GetBuilder<MainController>(
+                    init: mainController,
+                    builder: (_) {
+                      return Row(
+                        children: [
+                          ...easyeditlist[DB.allofficeinfotable[0]['offices']
+                                  .indexOf(e)]
+                              .where((b) => b['visible'] == true)
+                              .map((b) => IconbuttonMz(
+                                    e: e,
+                                    action: listoffunctionforeasyeditpanel(
+                                        ctx: ctx, e: e)[b['index']],
+                                    elevate: b['elevate'],
+                                    labelvisible:
+                                        b['elevate'] == 3.0 ? true : false,
+                                    label: b['label'],
+                                    icon: b['icon'],
+                                    buttonlist: easyeditlist[DB
+                                        .allofficeinfotable[0]['offices']
+                                        .indexOf(e)],
+                                    index: b['index'],
+                                    height: 35,
+                                    width: b['elevate'] == 3.0 ? 80 : 40,
+                                    backcolor: b['backcolor'],
+                                  ))
+                        ],
+                      );
+                    },
+                  )
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
     }
 
     return GetBuilder<DBController>(
       init: dbController,
       builder: (_) => PageTamplate01(
-        appbartitle: const ['المكاتب', 'Offices'], //done
-        mainItem: (x) => Text(x['officename']),
-
-        listoffunctionforadd: (e) => listoffunctionforadd(e),
-        prefixotherMainItems: (r) => suffixprefix(m: r),
-        suffixotherMainItems: (r) => suffixprefix(m: r),
-        listofactionbuttonforadd: listofactionbuttonforadd,
-        mainrowcolor: (me) => color(me),
-        floateactionbutton: floatactionbutton,
-        ini: () => buildeasyeditlist(),
-        preparefunctionfuture: () => getemployees0(),
-        preparefunction: () => initial(),
+        appbartitle: const ['المكاتب', 'Offices'],
+        // searchwithdatevisible: false,
+        searchrangelist: const ['officename'],
+        // chooseofficevisible: false,
+        // officechooselist: DB.allofficeinfotable[0]['offices'],
+        // officenameclmname: 'officename',
         table: DB.allofficeinfotable,
         tablename: 'offices',
-        mainItems: ['office_id', 'officename'],
-        searchrangelist: ['officename'],
-        searchwithdatevisible: false,
+        mainItem: (x) => mainItem(e: x, ctx: context),
         startdate: searchbydate[0],
         setstartdate: () => null,
-        enddate: searchbydate[1],
+        enddate: searchbydate[0],
         setenddate: () => null,
-        openitem: (o) => edititemWidget(e: o, ctx: context),
-        easyeditlist: easyeditlist,
-        easyeditaction: (m) => easyeditactionlist(m)[BasicInfo.actionindex],
-        addtitle: const ['إضافة مكتب', 'Add Office'],
-        maintitlesdialogMz01: maintitlesdialogMz01,
-        lisofpagesforadd: [basics(), addemployee()],
+        addactionvisible: true,
+        initialofadd: () => initialofdialog(),
+        initial: () => buildeasyeditlist(),
+        addactiontitle: const ['إضافة مكتب', 'Add Office'],
+        addactionmainlabelsofpages: maintitlesdialogMz01,
+        addactionpages: [basics(), addemployee()],
+        listofactionbuttonforadd: listofactionbuttonforadd,
+        listoffunctionforadd: (e) => listoffunctionforadd(e),
+        floateactionbuttonlist: floatactionbuttonlist,
       ),
     );
-  }
-
-  getemployees0() async {
-    return DB.allusersinfotable = await DBController().getallusersinfo();
-  }
-
-  initial({e}) {
-    addemployeelist.clear();
-    if (e == null) {
-      bodieslistofadd[0]['tf'][0]['error'] = null;
-      officenamecontroller.text = '';
-      chatidcontroller.text = '';
-      apitokencontroller.text = '';
-      bodieslistofadd[0]['notifi'] = false;
-      maintitlesdialogMz01[0]['selected'] = true;
-      maintitlesdialogMz01[1]['selected'] = false;
-      DropDownWithSearchMz.visiblemain = false;
-      for (var i in DB.allusersinfotable[0]['users']) {
-        addemployeelist.add({});
-        addemployeelist[DB.allusersinfotable[0]['users'].indexOf(i)].addAll({
-          'user_id': i['user_id'],
-          'name': i['fullname'],
-          'visible': true,
-          'visiblesearch': true,
-          'position': ['موظف', 'employee'],
-          'Po-employee': ['موظف', 'employee'],
-          'Po-supervisor': ['مشرف', 'supervisor'],
-          'P-addtask': [
-            false,
-            ['إضافة مهمة', 'Add task']
-          ],
-          'P-showalltasks': [
-            false,
-            ['مشاهدة جميع المهام', 'show all tasks']
-          ],
-          'P-addremind': [
-            true,
-            ['إضافة تذكير', 'Add remind']
-          ],
-          'P-showallreminds': [
-            true,
-            ['مشاهدة جميع التنبيهات ', 'show all reminds']
-          ],
-          'P-addtodo': [
-            true,
-            ['إضافة إجرائية', 'Add todo']
-          ],
-          'P-showalltodos': [
-            true,
-            ['مشاهدة جميع الإجرائيات ', 'show all todos']
-          ],
-          'P-addping': [
-            true,
-            ['Add ping', 'Add ping']
-          ],
-          'P-showallpings': [
-            true,
-            ['show all pings', 'show all pings']
-          ],
-          'P-addemailtest': [
-            true,
-            ['إضافة تفحص ايميل', 'Add Email test']
-          ],
-          'P-showallemailtests': [
-            true,
-            ['show all emailtests', 'show all emailtests']
-          ],
-          'P-addcost': [
-            true,
-            ['إضافة طلب سلفة', 'Add Cost']
-          ],
-          'P-showallcosts': [
-            false,
-            ['مشاهدة جميع السلف', 'show all costs']
-          ],
-          'P-acceptcosts': [
-            false,
-            ['موافقة على السلفة', 'Accept Cost']
-          ],
-          'P-addhyperlink': [
-            false,
-            ['إضافة رابط خارجي', 'Add HyperLink']
-          ],
-          'P-showallhyperlinks': [
-            false,
-            ['مشاهدة جميع الروابط', 'show all h-links']
-          ],
-        });
-      }
-    } else {
-      bodieslistofadd[0]['tf'][0]['error'] = null;
-      officenamecontroller.text = e['officename'];
-      chatidcontroller.text = e['chatid'];
-      apitokencontroller.text = e['apitoken'];
-      bodieslistofadd[0]['notifi'] = false;
-      maintitlesdialogMz01[0]['selected'] = true;
-      maintitlesdialogMz01[1]['selected'] = false;
-      DropDownWithSearchMz.visiblemain = false;
-    }
-  }
-
-  setpreivileges({ctx, index, type = 'add', ee}) {
-    List actionlist = [
-      {
-        'index': 0,
-        'visible': true,
-        'label': type == 'add' ? ['إضافة', 'save'] : ['حفظ', 'save'],
-        'elevate': 0.0
-      },
-      {
-        'index': 1,
-        'visible': true,
-        'label': ['رجوع', 'close'],
-        'elevate': 0.0
-      },
-      {
-        'index': 2,
-        'visible': type == 'add' ? false : true,
-        'label': ['حذف', 'delete'],
-        'elevate': 0.0
-      },
-    ];
-    List actionfun(ee) => [
-          (ee) => mainController.addremoveemployeetooffice(
-              list: addemployeelist, y: ee, type: 'save'),
-          (ee) => Get.back(),
-          (ee) => mainController.addremoveemployeetooffice(
-              list: addemployeelist, y: ee, type: 'edit'),
-        ];
-    return showDialog(
-        context: ctx,
-        builder: (_) {
-          return Directionality(
-            textDirection: BasicInfo.lang(),
-            child: GetBuilder<MainController>(
-              init: mainController,
-              builder: (_) => AlertDialog(
-                scrollable: true,
-                title: Text([
-                  'الصلاحيات ضمن المكتب',
-                  'Privileges at office'
-                ][BasicInfo.indexlang()]),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ...addemployeelist
-                        .where((element) =>
-                            addemployeelist.indexOf(element) == index)
-                        .map((m) => SizedBox(
-                              width: MediaQuery.of(ctx).size.width > 500
-                                  ? 500
-                                  : MediaQuery.of(ctx).size.width,
-                              height: 300,
-                              child: GridView(
-                                  gridDelegate:
-                                      const SliverGridDelegateWithMaxCrossAxisExtent(
-                                          maxCrossAxisExtent: 300,
-                                          mainAxisExtent: 50),
-                                  children: [
-                                    ...m.keys
-                                        .toList()
-                                        .where((element) =>
-                                            element.contains("Po-"))
-                                        .map((e) {
-                                      return Row(
-                                        children: [
-                                          Radio(
-                                              value: m[e]
-                                                  [BasicInfo.indexlang()],
-                                              groupValue: m['position']
-                                                  [BasicInfo.indexlang()],
-                                              onChanged: (x) {
-                                                mainController.changeradiopriv(
-                                                    x: x,
-                                                    index: Offices
-                                                        .addemployeelist
-                                                        .indexOf(m));
-                                              }),
-                                          Text(m[e][BasicInfo.indexlang()])
-                                        ],
-                                      );
-                                    }),
-                                    ...m.keys
-                                        .toList()
-                                        .where(
-                                            (element) => element.contains("P-"))
-                                        .map((e) {
-                                      return Row(
-                                        children: [
-                                          Checkbox(
-                                              value: m[e][0],
-                                              onChanged: (x) {
-                                                mainController.chackboxpriv(
-                                                    x: x,
-                                                    index: Offices
-                                                        .addemployeelist
-                                                        .indexOf(m),
-                                                    e: e);
-                                              }),
-                                          Expanded(
-                                              child: Text(m[e][1]
-                                                  [BasicInfo.indexlang()]))
-                                        ],
-                                      );
-                                    }),
-                                  ]),
-                            )),
-                  ],
-                ),
-                actions: [
-                  ...actionlist
-                      .where((element) => element['visible'] == true)
-                      .map((r) => IconbuttonMz(
-                          backcolor: ThemeMz.iconbuttonmzbc(),
-                          width: 75,
-                          height: 40,
-                          index: r['index'],
-                          buttonlist: actionlist,
-                          elevate: r['elevate'],
-                          e: ee,
-                          action: actionfun(ee)[actionlist.indexOf(r)],
-                          label: r['label']))
-                ],
-              ),
-            ),
-          );
-        });
-  }
-
-  edititemWidget({e, ctx}) {
-    return showDialog(
-        context: ctx,
-        builder: (_) {
-          return FutureBuilder(future: Future(() async {
-            try {
-              return DB.allusersinfotable =
-                  await DBController().getallusersinfo();
-            } catch (e) {
-              null;
-            }
-          }), builder: (_, snap) {
-            if (snap.connectionState == ConnectionState.waiting) {
-              return WaitMz.waitmz0([1, 2, 3], ctx);
-            } else if (snap.hasData) {
-              initial(e: e);
-              return DialogMz01(
-                title: ['مكتب', 'Office'],
-                mainlabels: maintitlesdialogMz01,
-                bodies: [SizedBox()],
-                actionlist: SizedBox(),
-              );
-            } else {
-              Future(() => Get.back());
-              return const SizedBox();
-            }
-          });
-        });
   }
 }
