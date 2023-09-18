@@ -2,16 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
 
 class ThemeMz {
-  static ThemeData lightmode() =>
-      ThemeData(colorScheme: const ColorScheme.light());
+  static ThemeData lightmode() => ThemeData(
+        scaffoldBackgroundColor: Colors.white70,
+        cardColor: Colors.white60,
+        drawerTheme: DrawerThemeData(backgroundColor: Colors.white70),
+        appBarTheme: AppBarTheme(backgroundColor: Colors.blue.shade900),
+        colorScheme: const ColorScheme.light(),
+        switchTheme: const SwitchThemeData(
+          thumbColor: MaterialStatePropertyAll(Colors.blue),
+        ),
+        checkboxTheme: const CheckboxThemeData(
+            fillColor: MaterialStatePropertyAll(Colors.blue)),
+        radioTheme: const RadioThemeData(
+            fillColor: MaterialStatePropertyAll(Colors.blue)),
+      );
   static ThemeData darkmode() => ThemeData(
       switchTheme: const SwitchThemeData(
-        trackOutlineColor: MaterialStatePropertyAll(Colors.deepPurple),
+        thumbColor: MaterialStatePropertyAll(Colors.deepPurple),
       ),
       checkboxTheme: const CheckboxThemeData(
-          fillColor: MaterialStatePropertyAll(Colors.deepPurple)),
+          fillColor: MaterialStatePropertyAll(Colors.black)),
       radioTheme: const RadioThemeData(
-          fillColor: MaterialStatePropertyAll(Colors.deepPurple)),
+          fillColor: MaterialStatePropertyAll(Colors.black)),
       colorScheme: const ColorScheme.dark(
         error: Colors.orangeAccent,
       ));

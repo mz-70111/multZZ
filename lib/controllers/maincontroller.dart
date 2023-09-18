@@ -529,7 +529,7 @@ insert into logs(log,logdate)values
 ("${BasicInfo.LogInInfo![1]} add a new office _name: Officename ${Offices.officenamecontroller.text}",
 "${DateTime.now()}");
       ''');
-    if (Offices.officenamecontroller.text.isEmpty) {
+    if (Offices.officenamecontroller.text.trim().isEmpty) {
       Offices.bodieslistofadd[0]['tf'][0]['error'] =
           Lang.errormsgs['emptyname-check'][BasicInfo.indexlang()];
       for (var i in Offices.maintitlesdialogMz01) {
@@ -580,90 +580,110 @@ insert into logs(log,logdate)values
     update();
   }
 
-//   updateoffice({officeid}) async {
-//     DialogMz.errormsg = null;
-//     List queries = [
-//       '''
-// update office set
-// officename='${Office.officenamecontroller.text}',
-// chatid='${Office.officechatidcontroller.text}',
-// notifi=${Office.notifi == true ? 1 : 0} where office_id=$officeid;
-// ''',
-//       '''
-// delete from users_priv_office where upo_office_id=$officeid;
-// '''
-//     ];
-
-//     for (var i
-//         in Office.offmem.where((element) => element['visible'] == false)) {
-//       queries.add('''
-//             insert into users_priv_office (upo_user_id,upo_office_id,position,addtask,addouttask,addremind,addtodo,addping,addemailtest)
-//             values(
-//             ${i['user_id']},
-//             $officeid,
-//             '${i['Position']}',
-//             ${i['P-addtask'] == true ? 1 : 0},
-//             ${i['P-addouttask'] == true ? 1 : 0},
-//             ${i['P-addremind'] == true ? 1 : 0},
-//             ${i['P-addtodo'] == true ? 1 : 0},
-//             ${i['P-addping'] == true ? 1 : 0},
-//             ${i['P-addemailtest'] == true ? 1 : 0}
-//             );
-//             ''');
-//     }
-//     queries.add('''
-// insert into logs(log,logdate)values
-// ("${LogIn.userinfo![0]} edit office info for office_id $officeid _name: Officename ${Office.officenamecontroller.text}",
-// "${DateTime.now()}");
-//       ''');
-//     if (Office.officenamecontroller.text.isEmpty) {
-//       DialogMz.errormsg =
-//           Lang.lang['name-empty'][Lang.langlist.indexOf(Lang.selectlanguage)];
-//       for (var i = 0; i < DialogMz.selectedlist.length; i++) {
-//         DialogMz.selectedlist[i] = false;
-//       }
-//       DialogMz.selectedlist[0] = true;
-//     } else {
-//       DialogMz.wait = true;
-//       update();
-//       try {
-//         l:
-//         for (var q in queries) {
-//           await DBController().requestpost(
-//               url: "${InfoBasic.host}${InfoBasic.curdtable}",
-//               data: {'customquery': '$q'});
-//           {
-//             if (InfoBasic.error != null) {
-//               if (InfoBasic.error!.contains("Duplicate")) {
-//                 DialogMz.errormsg = Lang.lang['duplicate']
-//                     [Lang.langlist.indexOf(Lang.selectlanguage)];
-//                 break l;
-//               } else {
-//                 DialogMz.errormsg = InfoBasic.error;
-//               }
-//             }
-//           }
-//         }
-//         if (InfoBasic.error == null) {
-//           Get.back();
-//         }
-//         DB.allofficeinfotable = await DBController().getallofficeinfotable();
-//       } catch (e) {
-//         DialogMz.errormsg = LogIn.mainloginerrormsg =
-//             "${Lang.lang['server-error'][Lang.langlist.indexOf(Lang.selectlanguage)]}";
-//       }
-//     }
-//     DialogMz.wait = false;
-//     update();
-//   }
-
-  removeoffice({officeid, list}) async {
+  updateoffice({officeid}) async {
+    Lang.mainerrormsg = null;
+    Offices.bodieslistofadd[0]['tf'][0]['error'] = null;
     List queries = [
       '''
+update offices set
+officename='${Offices.officenamecontroller.text.trim()}',
+chatid='${Offices.chatidcontroller.text.trim()}',
+apitoken='${Offices.apitokencontroller.text.trim()}',
+notifi=${Offices.bodieslistofadd[0]['notifi'] == true ? 1 : 0} where office_id=$officeid;
+''',
+      '''
+delete from users_priv_office where upo_office_id=$officeid;
+'''
+    ];
+
+    for (var i in Offices.addemployeelist
+        .where((element) => element['visible'] == false)) {
+      queries.add('''
+           insert into users_priv_office 
+            (upo_user_id,upo_office_id,position,
+            addtask,showalltasks,
+            addping,showallpings,
+            addcost,showallcosts,acceptcosts,
+            addtodo,showalltodos,
+            addremind,showallreminds,
+            addemailtest,showallemailtests,
+            addhyperlink,showallhyperlinks)
+            values(
+            ${i['user_id']},
+            $officeid,
+            '${i['position'][1]}',
+            ${i['P-addtask'][0] == true ? 1 : 0},${i['P-showalltasks'][0] == true ? 1 : 0},
+            ${i['P-addping'][0] == true ? 1 : 0},${i['P-showallpings'][0] == true ? 1 : 0},
+            ${i['P-addcost'][0] == true ? 1 : 0},${i['P-showallcosts'][0] == true ? 1 : 0},${i['P-acceptcosts'][0] == true ? 1 : 0},
+            ${i['P-addtodo'][0] == true ? 1 : 0},${i['P-showalltodos'][0] == true ? 1 : 0},
+            ${i['P-addremind'][0] == true ? 1 : 0},${i['P-showallreminds'][0] == true ? 1 : 0},
+            ${i['P-addemailtest'][0] == true ? 1 : 0},${i['P-showallemailtests'][0] == true ? 1 : 0},
+            ${i['P-addhyperlink'][0] == true ? 1 : 0},${i['P-showallhyperlinks'][0] == true ? 1 : 0}
+            );
+            ''');
+    }
+    queries.add('''
 insert into logs(log,logdate)values
-("${BasicInfo.LogInInfo![1]} delete office _Officename ${DB.allofficeinfotable[0]['offices'][DB.allofficeinfotable[0]['offices'].indexWhere((r) => r['office_id'] == officeid)]['officename']}",
+("${BasicInfo.LogInInfo![0]} edit office info for office_id $officeid _name: Officename ${Offices.officenamecontroller.text}",
 "${DateTime.now()}");
-      ''',
+      ''');
+    if (Offices.officenamecontroller.text.trim().isEmpty) {
+      Offices.bodieslistofadd[0]['tf'][0]['error'] =
+          Lang.errormsgs['emptyname-check'][BasicInfo.indexlang()];
+      for (var i in Offices.maintitlesdialogMz01) {
+        i['selected'] = false;
+      }
+      Offices.maintitlesdialogMz01[0]['selected'] = true;
+    } else {
+      Offices.listofactionbuttonforedit[0]['visible'] = false;
+      Offices.listofactionbuttonforedit[2]['visible'] = true;
+      update();
+      try {
+        l:
+        for (var q in queries) {
+          await DBController()
+              .requestpost(type: 'curd', data: {'customquery': '$q'});
+          {
+            if (Lang.mainerrormsg != null) {
+              if (Lang.mainerrormsg!.contains("Duplicate")) {
+                Lang.mainerrormsg = Offices.bodieslistofadd[0]['tf'][0]
+                        ['error'] =
+                    "${Offices.officenamecontroller.text} ${Lang.errormsgs['duplicate'][BasicInfo.indexlang()]}";
+                for (var i in Offices.maintitlesdialogMz01) {
+                  i['selected'] = false;
+                }
+                Offices.maintitlesdialogMz01[0]['selected'] = true;
+              } else {
+                Lang.mainerrormsg = Lang.mainerrormsg;
+              }
+              break l;
+            }
+          }
+        }
+        if (Lang.mainerrormsg == null) {
+          DB.allofficeinfotable = await DBController().getallofficeinfo();
+          DB.userinfotable =
+              await DBController().getuserinfo(userid: BasicInfo.LogInInfo![0]);
+          DB.allusersinfotable = await DBController().getallusersinfo();
+          dbController.update();
+          Get.back();
+        }
+      } catch (e) {
+        Lang.mainerrormsg =
+            Lang.errormsgs['server-error'][BasicInfo.indexlang()];
+      }
+    }
+    Offices.listofactionbuttonforedit[0]['visible'] = true;
+    Offices.listofactionbuttonforedit[2]['visible'] = false;
+
+    update();
+  }
+
+  removeoffice({officeid, list}) async {
+    String officename = DB.allofficeinfotable[0]['offices'][DB
+        .allofficeinfotable[0]['offices']
+        .indexWhere((r) => r['office_id'] == officeid)]['officename'];
+    List queries = [
       '''
 delete from users_priv_office where upo_office_id=$officeid;
 ''',
@@ -682,6 +702,11 @@ update cost set cost_office_id=null where cost_office_id=$officeid;
       '''
 delete from offices where office_id=$officeid;
 ''',
+      '''
+insert into logs(log,logdate)values
+("${BasicInfo.LogInInfo![1]} delete office _Officename $officename",
+"${DateTime.now()}");
+      ''',
     ];
     list[0]['visible'] = false;
     list[2]['visible'] = true;

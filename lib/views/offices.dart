@@ -72,11 +72,28 @@ class Offices extends StatelessWidget {
     },
     {'index': 0, 'visible': false, 'type': 'wait', 'elevate': 0.0}
   ];
+
+  static List<Map> listofactionbuttonforedit = [
+    {
+      'index': 0,
+      'visible': true,
+      'type': 'do-it',
+      'label': ['حفظ', 'save'],
+      'elevate': 0.0
+    },
+    {
+      'index': 1,
+      'visible': true,
+      'type': 'do-it',
+      'label': ['رجوع', 'close'],
+      'elevate': 0.0
+    },
+    {'index': 0, 'visible': false, 'type': 'wait', 'elevate': 0.0}
+  ];
   static List<DateTime> searchbydate = [
     DateTime.now().add(Duration(days: -30)),
     DateTime.now()
   ];
-
   static List easyeditlist = [];
   @override
   Widget build(BuildContext context) {
@@ -430,6 +447,11 @@ class Offices extends StatelessWidget {
           (e) async => await mainController.addoffice(),
           (e) => Get.back(),
         ];
+    List<Function> listoffunctionforedit(e) => [
+          (e) async =>
+              await mainController.updateoffice(officeid: e['office_id']),
+          (e) => Get.back(),
+        ];
     listoffunctionforeasyeditpanel({e, ctx}) => [
           (e) => showDialog(
               context: ctx,
@@ -511,8 +533,39 @@ class Offices extends StatelessWidget {
                     buttonlist: listofactionbuttonforadd,
                     elevate: u['elevate'],
                     e: u,
-                    action: listoffunctionforadd(
+                    action: listoffunctionforedit(
                         u)[listofactionbuttonforadd.indexOf(u)],
+                    label: u['label']);
+              case 'wait':
+                return WaitMz.waitmz0([1, 2, 3, 4, 5, 6, 7, 8], ctx);
+              default:
+                return SizedBox();
+            }
+          })
+        ]),
+      );
+    }
+
+    GetBuilder<MainController> editactionaswidget({ctx, e}) {
+      return GetBuilder<MainController>(
+        init: mainController,
+        builder: (_) =>
+            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+          ...listofactionbuttonforedit
+              .where((element) => element['visible'] == true)
+              .map((u) {
+            switch (u['type']) {
+              case 'do-it':
+                return IconbuttonMz(
+                    backcolor: ThemeMz.iconbuttonmzbc(),
+                    height: 40,
+                    width: 75,
+                    index: u['index'],
+                    buttonlist: listofactionbuttonforedit,
+                    elevate: u['elevate'],
+                    e: e,
+                    action: listoffunctionforedit(
+                        u)[listofactionbuttonforedit.indexOf(u)],
                     label: u['label']);
               case 'wait':
                 return WaitMz.waitmz0([1, 2, 3, 4, 5, 6, 7, 8], ctx);
@@ -536,7 +589,7 @@ class Offices extends StatelessWidget {
                     title: ['تعديل', 'edit'],
                     mainlabels: maintitlesdialogMz01,
                     bodies: [basics(), addemployee()],
-                    actionlist: addactionaswidget(ctx: ctx));
+                    actionlist: editactionaswidget(ctx: ctx, e: e));
               });
         },
         child: MouseRegion(

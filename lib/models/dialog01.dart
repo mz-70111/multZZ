@@ -62,8 +62,8 @@ class DialogMz01 extends StatelessWidget {
                                       : const BeveledRectangleBorder(),
                                   elevation: mi['selected'] == true ? 6 : 0,
                                   color: BasicInfo.selectedmode == 'Light'
-                                      ? Colors.blueAccent
-                                      : Colors.deepPurple,
+                                      ? Colors.blue.shade800
+                                      : Colors.deepPurple.shade600,
                                   child: Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: Text(

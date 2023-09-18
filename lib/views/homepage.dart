@@ -577,9 +577,13 @@ class HomePage extends StatelessWidget {
               child: SafeArea(
                   child: Scaffold(
                       appBar: AppBar(
-                        title: Text(
-                          "MultiTool _Z",
-                          style: ThemeMz.titlelargCairo(),
+                        title: Directionality(
+                          textDirection: TextDirection.ltr,
+                          child: Text(
+                            "  <all>Ne ",
+                            textAlign: TextAlign.right,
+                            style: ThemeMz.titlelargChanga(),
+                          ),
                         ),
                         centerTitle: true,
                         actions: [appbaractionwidget()],

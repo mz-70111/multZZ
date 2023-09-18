@@ -229,7 +229,7 @@ class LogIn extends StatelessWidget {
                               child: Text(
                                 " by:  مـ عـ ا ذ",
                                 style: TextStyle(
-                                    fontFamily: 'vibes',
+                                    fontFamily: 'Vibes',
                                     fontWeight: FontWeight.w900,
                                     wordSpacing: 2,
                                     fontSize: 20),
