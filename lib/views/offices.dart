@@ -329,7 +329,7 @@ class Offices extends StatelessWidget {
       );
     }
 
-    initialofdialog({e}) {
+    initialofdialog({e}) async {
       addemployeelist.clear();
       if (e == null) {
         bodieslistofadd[0]['tf'][0]['error'] = null;
@@ -413,6 +413,8 @@ class Offices extends StatelessWidget {
           });
         }
       } else {
+        DB.officeinfotable =
+            await dbController.getofficeinfo(officeid: e['office_id']);
         bodieslistofadd[0]['tf'][0]['error'] = null;
         officenamecontroller.text = e['officename'];
         chatidcontroller.text = e['chatid'];
@@ -421,6 +423,8 @@ class Offices extends StatelessWidget {
         maintitlesdialogMz01[0]['selected'] = true;
         maintitlesdialogMz01[1]['selected'] = false;
         DropDownWithSearchMz.visiblemain = false;
+
+        for (var i in DB.officeinfotable) {}
       }
     }
 

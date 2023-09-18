@@ -4,6 +4,7 @@ import 'package:mz_flutter_07/controllers/maincontroller.dart';
 class DB {
   static List versioninfotable = [];
   static List userinfotable = [];
+  static List officeinfotable = [];
   static List allofficeinfotable = [];
   static List allusersinfotable = [];
   static List logstable = [];
