@@ -7,6 +7,7 @@ import 'package:mz_flutter_07/models/dropdowanwithsearch.dart';
 import 'package:mz_flutter_07/models/lang_mode_theme.dart';
 import 'package:mz_flutter_07/models/page_tamplate01.dart';
 import 'package:mz_flutter_07/models/sharedpref.dart';
+import 'package:mz_flutter_07/views/accounts.dart';
 import 'package:mz_flutter_07/views/homepage.dart';
 import 'package:mz_flutter_07/views/login.dart';
 import 'package:mz_flutter_07/views/offices.dart';
@@ -72,12 +73,14 @@ class MainController extends GetxController {
         ], infoqueries: [
           "select * from users where username='${username ?? LogIn.usernamecontroller.text.toLowerCase()}' and password='${MainController().codepassword(word: password ?? LogIn.passwordcontroller.text)}';"
         ]);
+
         if (userinfo![0]['users'].isNotEmpty) {
           List? accountstatus = await DBController().gettableinfo(tablesname: [
             'users_privileges'
           ], infoqueries: [
             "select * from users_privileges where up_user_id=${userinfo[0]['users'][0]['user_id']};"
           ]);
+
           if (accountstatus![0]['users_privileges'][0]['enable'] == '1') {
             if (accountstatus[0]['users_privileges'][0]['mustchgpass'] == '0') {
               await SharedPreMz.setloginfo(login: [
@@ -110,6 +113,7 @@ class MainController extends GetxController {
               [BasicInfo.indexlang()];
         }
       } catch (e) {
+        print(e);
         Lang.mainerrormsg =
             Lang.errormsgs['server-error'][BasicInfo.indexlang()];
       }
@@ -357,9 +361,27 @@ class MainController extends GetxController {
     for (var i in list) {
       i['visible'] = false;
     }
-    for (var i in list.where((element) => element[officenameclmname] == x)) {
-      i['visible'] = true;
+    if (x == ['جميع المكاتب', 'all offices'][BasicInfo.indexlang()]) {
+      for (var i in list) {
+        i['visible'] = true;
+      }
+    } else {
+      List usersatoffice = [];
+      usersatoffice.clear();
+      for (var i in DB.allofficeinfotable[0]['users_priv_office'].where((u) =>
+          u['upo_office_id'] ==
+          DB.allofficeinfotable[0]['offices']
+              .where((uu) => uu['officename'] == x)
+              .toList()[0]['office_id'])) {
+        usersatoffice.add(i[officenameclmname]);
+      }
+      for (var i in list) {
+        if (usersatoffice.contains(i['user_id'])) {
+          i['visible'] = true;
+        }
+      }
     }
+
     try {
       update();
     } catch (e) {}
@@ -416,48 +438,48 @@ class MainController extends GetxController {
     }
   }
 
-  changeradiopriv({x, index}) {
-    Offices.addemployeelist[index]['position'] = x == 'موظف' || x == 'employee'
+  changeradiopriv({x, index, required list}) {
+    list[index]['position'] = x == 'موظف' || x == 'employee'
         ? ['موظف', 'employee']
         : ['مشرف', 'supervisor'];
     if (x == 'مشرف' || x == 'supervisor') {
-      Offices.addemployeelist[index]['P-addtask'][0] = true;
-      Offices.addemployeelist[index]['P-showalltasks'][0] = true;
-      Offices.addemployeelist[index]['P-addtodo'][0] = true;
-      Offices.addemployeelist[index]['P-showalltodos'][0] = true;
-      Offices.addemployeelist[index]['P-addping'][0] = true;
-      Offices.addemployeelist[index]['P-showallpings'][0] = true;
-      Offices.addemployeelist[index]['P-addemailtest'][0] = true;
-      Offices.addemployeelist[index]['P-showallemailtests'][0] = true;
-      Offices.addemployeelist[index]['P-addremind'][0] = true;
-      Offices.addemployeelist[index]['P-showallreminds'][0] = true;
-      Offices.addemployeelist[index]['P-addhyperlink'][0] = true;
-      Offices.addemployeelist[index]['P-showallhyperlinks'][0] = true;
-      Offices.addemployeelist[index]['P-addcost'][0] = true;
-      Offices.addemployeelist[index]['P-acceptcosts'][0] = true;
-      Offices.addemployeelist[index]['P-showallcosts'][0] = true;
+      list[index]['P-addtask'][0] = true;
+      list[index]['P-showalltasks'][0] = true;
+      list[index]['P-addtodo'][0] = true;
+      list[index]['P-showalltodos'][0] = true;
+      list[index]['P-addping'][0] = true;
+      list[index]['P-showallpings'][0] = true;
+      list[index]['P-addemailtest'][0] = true;
+      list[index]['P-showallemailtests'][0] = true;
+      list[index]['P-addremind'][0] = true;
+      list[index]['P-showallreminds'][0] = true;
+      list[index]['P-addhyperlink'][0] = true;
+      list[index]['P-showallhyperlinks'][0] = true;
+      list[index]['P-addcost'][0] = true;
+      list[index]['P-acceptcosts'][0] = true;
+      list[index]['P-showallcosts'][0] = true;
     } else {
-      Offices.addemployeelist[index]['P-addtask'][0] = false;
-      Offices.addemployeelist[index]['P-showalltasks'][0] = false;
-      Offices.addemployeelist[index]['P-addtodo'][0] = true;
-      Offices.addemployeelist[index]['P-showalltodos'][0] = true;
-      Offices.addemployeelist[index]['P-addping'][0] = true;
-      Offices.addemployeelist[index]['P-showallpings'][0] = true;
-      Offices.addemployeelist[index]['P-addemailtest'][0] = true;
-      Offices.addemployeelist[index]['P-showallemailtests'][0] = true;
-      Offices.addemployeelist[index]['P-addremind'][0] = true;
-      Offices.addemployeelist[index]['P-showallreminds'][0] = true;
-      Offices.addemployeelist[index]['P-addhyperlink'][0] = false;
-      Offices.addemployeelist[index]['P-showallhyperlinks'][0] = false;
-      Offices.addemployeelist[index]['P-addcost'][0] = true;
-      Offices.addemployeelist[index]['P-acceptcosts'][0] = false;
-      Offices.addemployeelist[index]['P-showallcosts'][0] = false;
+      list[index]['P-addtask'][0] = false;
+      list[index]['P-showalltasks'][0] = false;
+      list[index]['P-addtodo'][0] = true;
+      list[index]['P-showalltodos'][0] = true;
+      list[index]['P-addping'][0] = true;
+      list[index]['P-showallpings'][0] = true;
+      list[index]['P-addemailtest'][0] = true;
+      list[index]['P-showallemailtests'][0] = true;
+      list[index]['P-addremind'][0] = true;
+      list[index]['P-showallreminds'][0] = true;
+      list[index]['P-addhyperlink'][0] = false;
+      list[index]['P-showallhyperlinks'][0] = false;
+      list[index]['P-addcost'][0] = true;
+      list[index]['P-acceptcosts'][0] = false;
+      list[index]['P-showallcosts'][0] = false;
     }
     update();
   }
 
-  chackboxpriv({x, index, e}) {
-    Offices.addemployeelist[index][e][0] = x;
+  chackboxpriv({x, required list, index, e}) {
+    list[index][e][0] = x;
 
     update();
   }
@@ -484,6 +506,11 @@ class MainController extends GetxController {
       list[0] = dt;
       dbController.update();
     }
+  }
+
+  changeswitchvalue({list, val, x}) {
+    list[val] = x;
+    update();
   }
 
   addoffice() async {
@@ -685,9 +712,6 @@ insert into logs(log,logdate)values
         .indexWhere((r) => r['office_id'] == officeid)]['officename'];
     List queries = [
       '''
-delete from users_priv_office where upo_office_id=$officeid;
-''',
-      '''
 update tasks set task_office_id=null where task_office_id=$officeid;
 ''',
       '''
@@ -700,11 +724,470 @@ update todo set todo_office_id=null where todo_office_id=$officeid;
 update cost set cost_office_id=null where cost_office_id=$officeid;
 ''',
       '''
+delete from users_priv_office where upo_office_id=$officeid;
+''',
+      '''
 delete from offices where office_id=$officeid;
 ''',
       '''
 insert into logs(log,logdate)values
 ("${BasicInfo.LogInInfo![1]} delete office _Officename $officename",
+"${DateTime.now()}");
+      ''',
+    ];
+    list[0]['visible'] = false;
+    list[2]['visible'] = true;
+    update();
+    try {
+      for (var q in queries) {
+        await DBController()
+            .requestpost(type: 'curd', data: {'customquery': '$q'});
+      }
+      list[0]['visible'] = true;
+      list[2]['visible'] = false;
+      DB.allofficeinfotable = await DBController().getallofficeinfo();
+      DB.userinfotable =
+          await DBController().getuserinfo(userid: BasicInfo.LogInInfo![0]);
+      DB.allusersinfotable = await DBController().getallusersinfo();
+      dbController.update();
+      Get.back();
+    } catch (e) {
+      null;
+    }
+
+    update();
+  }
+
+  addaccount() async {
+    Lang.mainerrormsg = null;
+    for (var i in Accounts.bodieslistofadd[0]['tf']) {
+      i['error'] = null;
+    }
+
+    List queries = [
+      '''
+insert into users(username,fullname,password,mobile,email)values
+('${Accounts.usernamecontroller.text.trim()}',
+'${Accounts.fullnamecontroller.text.trim()}',
+'${codepassword(word: Accounts.passwordcontroller.text)}',
+'${Accounts.mobilecontorller.text}',
+'${Accounts.emailcontroller.text}'
+);
+''',
+      '''
+insert into users_privileges(up_user_id,admin,enable,mustchgpass,pbx)values
+(
+  (select max(user_id) from users),
+  ${Accounts.bodieslistofadd[1]['bp'][0]['admin']},
+  ${Accounts.bodieslistofadd[1]['bp'][0]['enable']},
+  ${Accounts.bodieslistofadd[1]['bp'][0]['mustchgpass']},
+  ${Accounts.bodieslistofadd[1]['bp'][0]['pbx']}
+);
+'''
+    ];
+    for (var i in Accounts.addtoofficelist
+        .where((element) => element['visible'] == false)) {
+      queries.add('''
+            insert into users_priv_office 
+            (upo_user_id,upo_office_id,position,
+            addtask,showalltasks,
+            addping,showallpings,
+            addcost,showallcosts,acceptcosts,
+            addtodo,showalltodos,
+            addremind,showallreminds,
+            addemailtest,showallemailtests,
+            addhyperlink,showallhyperlinks)
+            values(
+            (select max(user_id) from users),
+            ${i['office_id']},
+            '${i['position'][1]}',
+            ${i['P-addtask'][0] == true ? 1 : 0},${i['P-showalltasks'][0] == true ? 1 : 0},
+            ${i['P-addping'][0] == true ? 1 : 0},${i['P-showallpings'][0] == true ? 1 : 0},
+            ${i['P-addcost'][0] == true ? 1 : 0},${i['P-showallcosts'][0] == true ? 1 : 0},${i['P-acceptcosts'][0] == true ? 1 : 0},
+            ${i['P-addtodo'][0] == true ? 1 : 0},${i['P-showalltodos'][0] == true ? 1 : 0},
+            ${i['P-addremind'][0] == true ? 1 : 0},${i['P-showallreminds'][0] == true ? 1 : 0},
+            ${i['P-addemailtest'][0] == true ? 1 : 0},${i['P-showallemailtests'][0] == true ? 1 : 0},
+            ${i['P-addhyperlink'][0] == true ? 1 : 0},${i['P-showallhyperlinks'][0] == true ? 1 : 0}
+            );
+            ''');
+    }
+    queries.add('''
+insert into logs(log,logdate)values
+("${BasicInfo.LogInInfo![1]} add a new user _name: username ${Accounts.usernamecontroller.text}",
+"${DateTime.now()}");
+      ''');
+    if (Accounts.usernamecontroller.text.trim().isEmpty) {
+      Accounts.bodieslistofadd[0]['tf'][0]['error'] =
+          Lang.errormsgs['emptyname-check'][BasicInfo.indexlang()];
+      for (var i in Offices.maintitlesdialogMz01) {
+        i['selected'] = false;
+      }
+      Offices.maintitlesdialogMz01[0]['selected'] = true;
+    } else if (Accounts.fullnamecontroller.text.trim().isEmpty) {
+      Accounts.bodieslistofadd[0]['tf'][1]['error'] =
+          Lang.errormsgs['emptyname-check'][BasicInfo.indexlang()];
+      for (var i in Accounts.maintitlesdialogMz01) {
+        i['selected'] = false;
+      }
+      Accounts.maintitlesdialogMz01[0]['selected'] = true;
+    } else if (Accounts.passwordcontroller.text.isEmpty) {
+      Accounts.bodieslistofadd[0]['tf'][2]['error'] =
+          Lang.errormsgs['emptypass-check'][BasicInfo.indexlang()];
+      for (var i in Accounts.maintitlesdialogMz01) {
+        i['selected'] = false;
+      }
+      Accounts.maintitlesdialogMz01[0]['selected'] = true;
+    } else if (Accounts.passwordcontroller.text !=
+        Accounts.confirmpasswordcontroller.text) {
+      Accounts.bodieslistofadd[0]['tf'][3]['error'] =
+          Lang.errormsgs['not-match'][BasicInfo.indexlang()];
+      for (var i in Accounts.maintitlesdialogMz01) {
+        i['selected'] = false;
+      }
+      Accounts.maintitlesdialogMz01[0]['selected'] = true;
+    } else {
+      Accounts.listofactionbuttonforadd[0]['visible'] = false;
+      Accounts.listofactionbuttonforadd[2]['visible'] = true;
+      update();
+      try {
+        l:
+        for (var q in queries) {
+          await DBController()
+              .requestpost(type: 'curd', data: {'customquery': '$q'});
+          {
+            if (Lang.mainerrormsg != null) {
+              if (Lang.mainerrormsg!.contains("Duplicate")) {
+                if (Lang.mainerrormsg!.contains('users.username')) {
+                  Lang.mainerrormsg = Accounts.bodieslistofadd[0]['tf'][0]
+                          ['error'] =
+                      "${Accounts.usernamecontroller.text} ${Lang.errormsgs['duplicate'][BasicInfo.indexlang()]}";
+                } else if (Lang.mainerrormsg!.contains('users.fullname')) {
+                  Lang.mainerrormsg = Accounts.bodieslistofadd[0]['tf'][1]
+                          ['error'] =
+                      "${Accounts.usernamecontroller.text} ${Lang.errormsgs['duplicate'][BasicInfo.indexlang()]}";
+                } else {
+                  Lang.mainerrormsg = Lang.mainerrormsg;
+                }
+
+                for (var i in Accounts.maintitlesdialogMz01) {
+                  i['selected'] = false;
+                }
+                Accounts.maintitlesdialogMz01[0]['selected'] = true;
+              } else {
+                Lang.mainerrormsg = Lang.mainerrormsg;
+              }
+              break l;
+            }
+          }
+        }
+        if (Lang.mainerrormsg == null) {
+          DB.allofficeinfotable = await DBController().getallofficeinfo();
+          DB.userinfotable =
+              await DBController().getuserinfo(userid: BasicInfo.LogInInfo![0]);
+          DB.allusersinfotable = await DBController().getallusersinfo();
+          dbController.update();
+          Get.back();
+        }
+      } catch (e) {
+        Lang.mainerrormsg =
+            Lang.errormsgs['server-error'][BasicInfo.indexlang()];
+      }
+    }
+    Accounts.listofactionbuttonforadd[0]['visible'] = true;
+    Accounts.listofactionbuttonforadd[2]['visible'] = false;
+    update();
+  }
+
+  disableenableaccount({userid, list, listvisible, val}) async {
+    String status = DB.allusersinfotable[0]['users_privileges']
+        .where((u) => u['up_user_id'] == userid)
+        .toList()[0]['enable'];
+    String username = DB.allusersinfotable[0]['users']
+        .where((u) => u['user_id'] == userid)
+        .toList()[0]['username'];
+    List queries = [
+      status == '1'
+          ? '''
+update users_privileges set enable=0 where up_user_id=$userid;
+'''
+          : '''
+update users_privileges set enable=1 where up_user_id=$userid;
+''',
+      '''
+insert into logs(log,logdate)values
+("${BasicInfo.LogInInfo![1]} ${status == '1' ? "disable account _username $username" : "enable account _username $username"}",
+"${DateTime.now()}");
+'''
+    ];
+    list[val] = false;
+    listvisible[val] = true;
+    update();
+    try {
+      for (var q in queries) {
+        await DBController()
+            .requestpost(type: 'curd', data: {'customquery': '$q'});
+      }
+      DB.allofficeinfotable = await DBController().getallofficeinfo();
+      DB.userinfotable =
+          await DBController().getuserinfo(userid: BasicInfo.LogInInfo![0]);
+      DB.allusersinfotable = await DBController().getallusersinfo();
+    } catch (e) {}
+    list[val] = true;
+    listvisible[val] = false;
+    dbController.update();
+    update();
+  }
+
+  hideshowpass({list, e}) {
+    list[list.indexOf(e)]['obscuretext'] =
+        list[list.indexOf(e)]['obscuretext'] == true ? false : true;
+    list[list.indexOf(e)]['icon'] =
+        list[list.indexOf(e)]['icon'] == Icons.visibility
+            ? Icons.visibility_off
+            : Icons.visibility;
+    update();
+  }
+
+  resetpassword(
+      {userid, newpassword, confirmpassword, actionlist, tflist}) async {
+    String username = DB.allusersinfotable[0]['users'][DB.allusersinfotable[0]
+            ['users']
+        .indexWhere((r) => r['user_id'] == userid)]['user_id'];
+    List queries = [
+      '''
+update users set password=$newpassword where user_id=$userid;
+''',
+      '''
+insert into logs(log,logdate)values
+("${BasicInfo.LogInInfo![1]} reset password for account _username $username",
+"${DateTime.now()}");
+      ''',
+    ];
+    if (newpassword.text.isEmpty) {
+      tflist[0]['error'] =
+          Lang.errormsgs['emptypass-check'][BasicInfo.indexlang()];
+    } else if (newpassword.text != confirmpassword.text) {
+      tflist[1]['error'] = Lang.errormsgs['not-match'][BasicInfo.indexlang()];
+    } else {
+      actionlist[0]['visible'] = false;
+      actionlist[2]['visible'] = true;
+      update();
+      try {
+        for (var q in queries) {
+          await DBController()
+              .requestpost(type: 'curd', data: {'customquery': '$q'});
+        }
+        actionlist[0]['visible'] = true;
+        actionlist[2]['visible'] = false;
+        DB.allofficeinfotable = await DBController().getallofficeinfo();
+        DB.userinfotable =
+            await DBController().getuserinfo(userid: BasicInfo.LogInInfo![0]);
+        DB.allusersinfotable = await DBController().getallusersinfo();
+        dbController.update();
+        Get.back();
+      } catch (e) {
+        null;
+      }
+    }
+
+    update();
+  }
+
+  updateaccount({userid}) async {
+    Lang.mainerrormsg = null;
+    for (var i in Accounts.bodieslistofadd[0]['tf']) {
+      i['error'] = null;
+    }
+
+    List queries = [
+      '''
+${Accounts.passwordcontroller.text.isNotEmpty ? '''
+update users
+set username='${Accounts.usernamecontroller.text.trim()}',
+fullname='${Accounts.fullnamecontroller.text.trim()}',
+password='${codepassword(word: Accounts.passwordcontroller.text)}',
+mobile='${Accounts.mobilecontorller.text}',
+email='${Accounts.emailcontroller.text}'
+where user_id=$userid;
+''' : '''
+update users
+set username='${Accounts.usernamecontroller.text.trim()}',
+fullname='${Accounts.fullnamecontroller.text.trim()}',
+mobile='${Accounts.mobilecontorller.text}',
+email='${Accounts.emailcontroller.text}'
+where user_id=$userid;
+'''}
+
+''',
+      '''
+update users_privileges
+set up_user_id=$userid,
+admin=${Accounts.bodieslistofadd[1]['bp'][0]['admin']},
+enable=${Accounts.bodieslistofadd[1]['bp'][0]['enable']},
+mustchgpass=${Accounts.bodieslistofadd[1]['bp'][0]['mustchgpass']},
+pbx=${Accounts.bodieslistofadd[1]['bp'][0]['pbx']}
+where up_user_id=$userid;  
+''',
+      '''
+delete from users_priv_office where upo_user_id=$userid;
+'''
+    ];
+    for (var i in Accounts.addtoofficelist
+        .where((element) => element['visible'] == false)) {
+      queries.add('''
+            insert into users_priv_office 
+            (upo_user_id,upo_office_id,position,
+            addtask,showalltasks,
+            addping,showallpings,
+            addcost,showallcosts,acceptcosts,
+            addtodo,showalltodos,
+            addremind,showallreminds,
+            addemailtest,showallemailtests,
+            addhyperlink,showallhyperlinks)
+            values(
+            $userid,
+            ${i['office_id']},
+            '${i['position'][1]}',
+            ${i['P-addtask'][0] == true ? 1 : 0},${i['P-showalltasks'][0] == true ? 1 : 0},
+            ${i['P-addping'][0] == true ? 1 : 0},${i['P-showallpings'][0] == true ? 1 : 0},
+            ${i['P-addcost'][0] == true ? 1 : 0},${i['P-showallcosts'][0] == true ? 1 : 0},${i['P-acceptcosts'][0] == true ? 1 : 0},
+            ${i['P-addtodo'][0] == true ? 1 : 0},${i['P-showalltodos'][0] == true ? 1 : 0},
+            ${i['P-addremind'][0] == true ? 1 : 0},${i['P-showallreminds'][0] == true ? 1 : 0},
+            ${i['P-addemailtest'][0] == true ? 1 : 0},${i['P-showallemailtests'][0] == true ? 1 : 0},
+            ${i['P-addhyperlink'][0] == true ? 1 : 0},${i['P-showallhyperlinks'][0] == true ? 1 : 0}
+            );
+            ''');
+    }
+    queries.add('''
+insert into logs(log,logdate)values
+("${BasicInfo.LogInInfo![1]} update  userinfo _name: username ${Accounts.usernamecontroller.text}",
+"${DateTime.now()}");
+      ''');
+    if (Accounts.usernamecontroller.text.trim().isEmpty) {
+      Accounts.bodieslistofadd[0]['tf'][0]['error'] =
+          Lang.errormsgs['emptyname-check'][BasicInfo.indexlang()];
+      for (var i in Offices.maintitlesdialogMz01) {
+        i['selected'] = false;
+      }
+      Offices.maintitlesdialogMz01[0]['selected'] = true;
+    } else if (Accounts.fullnamecontroller.text.trim().isEmpty) {
+      Accounts.bodieslistofadd[0]['tf'][1]['error'] =
+          Lang.errormsgs['emptyname-check'][BasicInfo.indexlang()];
+      for (var i in Accounts.maintitlesdialogMz01) {
+        i['selected'] = false;
+      }
+      Accounts.maintitlesdialogMz01[0]['selected'] = true;
+    } else if (Accounts.passwordcontroller.text !=
+        Accounts.confirmpasswordcontroller.text) {
+      Accounts.bodieslistofadd[0]['tf'][3]['error'] =
+          Lang.errormsgs['not-match'][BasicInfo.indexlang()];
+      for (var i in Accounts.maintitlesdialogMz01) {
+        i['selected'] = false;
+      }
+      Accounts.maintitlesdialogMz01[0]['selected'] = true;
+    } else {
+      Accounts.listofactionbuttonforedit[0]['visible'] = false;
+      Accounts.listofactionbuttonforedit[2]['visible'] = true;
+      update();
+      try {
+        l:
+        for (var q in queries) {
+          await DBController()
+              .requestpost(type: 'curd', data: {'customquery': '$q'});
+          {
+            if (Lang.mainerrormsg != null) {
+              if (Lang.mainerrormsg!.contains("Duplicate")) {
+                if (Lang.mainerrormsg!.contains('users.username')) {
+                  Lang.mainerrormsg = Accounts.bodieslistofadd[0]['tf'][0]
+                          ['error'] =
+                      "${Accounts.usernamecontroller.text} ${Lang.errormsgs['duplicate'][BasicInfo.indexlang()]}";
+                } else if (Lang.mainerrormsg!.contains('users.fullname')) {
+                  Lang.mainerrormsg = Accounts.bodieslistofadd[0]['tf'][1]
+                          ['error'] =
+                      "${Accounts.usernamecontroller.text} ${Lang.errormsgs['duplicate'][BasicInfo.indexlang()]}";
+                } else {
+                  Lang.mainerrormsg = Lang.mainerrormsg;
+                }
+
+                for (var i in Accounts.maintitlesdialogMz01) {
+                  i['selected'] = false;
+                }
+                Accounts.maintitlesdialogMz01[0]['selected'] = true;
+              } else {
+                Lang.mainerrormsg = Lang.mainerrormsg;
+              }
+              break l;
+            }
+          }
+        }
+        if (Lang.mainerrormsg == null) {
+          DB.allofficeinfotable = await DBController().getallofficeinfo();
+          DB.userinfotable =
+              await DBController().getuserinfo(userid: BasicInfo.LogInInfo![0]);
+          DB.allusersinfotable = await DBController().getallusersinfo();
+          dbController.update();
+          Get.back();
+        }
+      } catch (e) {
+        Lang.mainerrormsg =
+            Lang.errormsgs['server-error'][BasicInfo.indexlang()];
+      }
+    }
+    Accounts.listofactionbuttonforedit[0]['visible'] = true;
+    Accounts.listofactionbuttonforedit[2]['visible'] = false;
+    update();
+  }
+
+  removeaccount({userid, list}) async {
+    String username = DB.allusersinfotable[0]['users'][DB.allusersinfotable[0]
+            ['users']
+        .indexWhere((r) => r['user_id'] == userid)]['user_id'];
+    List queries = [
+      '''
+update tasks set createby_id=null where createby_id=$userid;
+''',
+      '''
+update tasks set editby_id=null where editby_id=$userid;
+''',
+      '''
+update users_tasks set ut_user_id=null where ut_user_id=$userid;
+''',
+      '''
+update remind set createby_id=null where createby_id=$userid;
+''',
+      '''
+update remind set editby_id=null where editby_id=$userid;
+''',
+      '''
+update todo set createby_id=null where createby_id=$userid;
+''',
+      '''
+update todo set editby_id=null where editby_id=$userid;
+''',
+      '''
+update cost set cost_user_id=null where cost_user_id=$userid;
+''',
+      '''
+update comments set uc_user_id=null where uc_user_id=$userid;
+''',
+      '''
+update chat set sender_id=null where sender_id=$userid;
+''',
+      '''
+update chat set reciever_id=null where reciever_id=$userid;
+''',
+      '''
+delete from users_privileges where up_user_id=$userid;
+''',
+      '''
+delete from users_priv_office where upo_user_id=$userid;
+''',
+      '''
+delete from users where user_id=$userid;
+''',
+      '''
+insert into logs(log,logdate)values
+("${BasicInfo.LogInInfo![1]} delete account _username $username",
 "${DateTime.now()}");
       ''',
     ];

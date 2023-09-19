@@ -11,6 +11,7 @@ import 'package:mz_flutter_07/views/costs.dart';
 import 'package:mz_flutter_07/views/homepage.dart';
 import 'package:mz_flutter_07/views/login.dart';
 import 'package:mz_flutter_07/views/offices.dart';
+import 'package:mz_flutter_07/views/remind.dart';
 import 'package:mz_flutter_07/views/repare.dart';
 
 main() => runApp(const MzMyApp());
@@ -36,6 +37,7 @@ class MzMyApp extends StatelessWidget {
             GetPage(name: '/home', page: () => const HomePage()),
             GetPage(name: '/home/offices', page: () => const Offices()),
             GetPage(name: '/home/accounts', page: () => const Accounts()),
+            GetPage(name: '/home/remind', page: () => const Remind()),
             GetPage(name: '/home/costs', page: () => const Costs())
           ],
           home: const RepairPage(),

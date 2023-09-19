@@ -139,7 +139,7 @@ class LogIn extends StatelessWidget {
                       index: e['elevateindex'],
                       elevate: e['elevate'],
                       height: 50,
-                      width: 150);
+                      width: e['elevateindex'] == 0 ? 100 : 200);
 
                 case 'wait':
                   return WaitMz.waitmz0([1, 2, 3, 4, 5, 6, 7], context);

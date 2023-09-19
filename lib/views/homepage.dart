@@ -155,11 +155,18 @@ class HomePage extends StatelessWidget {
     },
     {
       'index': 2,
+      'label': ['التذكير', 'Reminds'],
+      'icon': Icons.remember_me,
+      'visible': true,
+      'action': () => Get.toNamed('/home/remind'),
+      'color': Colors.transparent,
+      'iconsize': 40.0
+    },
+    {
+      'index': 3,
       'label': ['النفقات', 'Costs'],
       'icon': Icons.money_rounded,
-      'visible': DB.userinfotable[0]['users_privileges'][0]['admin'] == '1'
-          ? true
-          : false,
+      'visible': true,
       'action': () => Get.toNamed('/home/costs'),
       'color': Colors.transparent,
       'iconsize': 40.0

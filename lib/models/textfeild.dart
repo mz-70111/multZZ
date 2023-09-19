@@ -2,23 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
 
 class TextFieldMz extends StatelessWidget {
-  const TextFieldMz({
-    super.key,
-    this.maxlines = 1,
-    this.controller,
-    this.obscureText = false,
-    this.readOnly = false,
-    this.error,
-    required this.label,
-    this.action,
-    this.icon,
-    required this.onchange,
-    required this.td,
-  });
+  const TextFieldMz(
+      {super.key,
+      this.maxlines = 1,
+      this.controller,
+      this.obscureText = false,
+      this.readOnly = false,
+      this.error,
+      required this.label,
+      this.action,
+      this.icon,
+      required this.onchange,
+      required this.td,
+      this.hint});
   final int maxlines;
   final TextEditingController? controller;
   final bool obscureText, readOnly;
-  final String? error;
+  final String? error, hint;
   final List<String> label;
   final Function? onchange;
   // ignore: prefer_typing_uninitialized_variables
@@ -42,6 +42,7 @@ class TextFieldMz extends StatelessWidget {
             textAlign: TextAlign.center,
             onChanged: (x) => onchange!(x),
             decoration: InputDecoration(
+              hintText: hint,
               border: const OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(5))),
               errorText: error,

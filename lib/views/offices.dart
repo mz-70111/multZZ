@@ -206,6 +206,8 @@ class Offices extends StatelessWidget {
                                                   mainController
                                                       .changeradiopriv(
                                                           x: x,
+                                                          list: Offices
+                                                              .addemployeelist,
                                                           index: Offices
                                                               .addemployeelist
                                                               .indexOf(m));
@@ -226,6 +228,8 @@ class Offices extends StatelessWidget {
                                                 onChanged: (x) {
                                                   mainController.chackboxpriv(
                                                       x: x,
+                                                      list: Offices
+                                                          .addemployeelist,
                                                       index: Offices
                                                           .addemployeelist
                                                           .indexOf(m),
@@ -331,15 +335,15 @@ class Offices extends StatelessWidget {
 
     initialofdialog({e}) async {
       addemployeelist.clear();
+      maintitlesdialogMz01[0]['selected'] = true;
+      maintitlesdialogMz01[1]['selected'] = false;
+      DropDownWithSearchMz.visiblemain = false;
       if (e == null) {
         bodieslistofadd[0]['tf'][0]['error'] = null;
         officenamecontroller.text = '';
         chatidcontroller.text = '';
         apitokencontroller.text = '';
         bodieslistofadd[0]['notifi'] = false;
-        maintitlesdialogMz01[0]['selected'] = true;
-        maintitlesdialogMz01[1]['selected'] = false;
-        DropDownWithSearchMz.visiblemain = false;
         for (var i in DB.allusersinfotable[0]['users']) {
           addemployeelist.add({});
           addemployeelist[DB.allusersinfotable[0]['users'].indexOf(i)].addAll({
@@ -413,18 +417,172 @@ class Offices extends StatelessWidget {
           });
         }
       } else {
-        DB.officeinfotable =
-            await dbController.getofficeinfo(officeid: e['office_id']);
         bodieslistofadd[0]['tf'][0]['error'] = null;
         officenamecontroller.text = e['officename'];
         chatidcontroller.text = e['chatid'];
         apitokencontroller.text = e['apitoken'];
         bodieslistofadd[0]['notifi'] = e['notifi'] == '1' ? true : false;
-        maintitlesdialogMz01[0]['selected'] = true;
-        maintitlesdialogMz01[1]['selected'] = false;
-        DropDownWithSearchMz.visiblemain = false;
 
-        for (var i in DB.officeinfotable) {}
+        for (var i in DB.allofficeinfotable[0]['users_priv_office']
+            .where((t) => t['upo_office_id'] == e['office_id'])) {
+          addemployeelist.add({});
+          addemployeelist[DB.allofficeinfotable[0]['users_priv_office']
+                  .where((t) => t['upo_office_id'] == e['office_id'])
+                  .toList()
+                  .indexOf(i)]
+              .addAll({
+            'user_id': i['upo_user_id'],
+            'name': DB.allusersinfotable[0]['users']
+                .where((u) => u['user_id'] == i['upo_user_id'])
+                .toList()[0]['fullname'],
+            'visible': false,
+            'visiblesearch': true,
+            'position': i['position'] == 'employee'
+                ? ['موظف', 'employee']
+                : ['مشرف', 'supervisor'],
+            'Po-employee': ['موظف', 'employee'],
+            'Po-supervisor': ['مشرف', 'supervisor'],
+            'P-addtask': [
+              i['addtask'] == '1' ? true : false,
+              ['إضافة مهمة', 'Add task']
+            ],
+            'P-showalltasks': [
+              i['showalltasks'] == '1' ? true : false,
+              ['مشاهدة جميع المهام', 'show all tasks']
+            ],
+            'P-addremind': [
+              i['addremind'] == '1' ? true : false,
+              ['إضافة تذكير', 'Add remind']
+            ],
+            'P-showallreminds': [
+              i['showallreminds'] == '1' ? true : false,
+              ['مشاهدة جميع التنبيهات ', 'show all reminds']
+            ],
+            'P-addtodo': [
+              i['addtodo'] == '1' ? true : false,
+              ['إضافة إجرائية', 'Add todo']
+            ],
+            'P-showalltodos': [
+              i['showalltodos'] == '1' ? true : false,
+              ['مشاهدة جميع الإجرائيات ', 'show all todos']
+            ],
+            'P-addping': [
+              i['addping'] == '1' ? true : false,
+              ['Add ping', 'Add ping']
+            ],
+            'P-showallpings': [
+              i['showallpings'] == '1' ? true : false,
+              ['show all pings', 'show all pings']
+            ],
+            'P-addemailtest': [
+              i['addemailtest'] == '1' ? true : false,
+              ['إضافة تفحص ايميل', 'Add Email test']
+            ],
+            'P-showallemailtests': [
+              i['showallemailtests'] == '1' ? true : false,
+              ['show all emailtests', 'show all emailtests']
+            ],
+            'P-addcost': [
+              i['addcost'] == '1' ? true : false,
+              ['إضافة طلب سلفة', 'Add Cost']
+            ],
+            'P-showallcosts': [
+              i['showallcosts'] == '1' ? true : false,
+              ['مشاهدة جميع السلف', 'show all costs']
+            ],
+            'P-acceptcosts': [
+              i['acceptcosts'] == '1' ? true : false,
+              ['موافقة على السلفة', 'Accept Cost']
+            ],
+            'P-addhyperlink': [
+              i['addhyperlink'] == '1' ? true : false,
+              ['إضافة رابط خارجي', 'Add HyperLink']
+            ],
+            'P-showallhyperlinks': [
+              i['showallhyperlinks'] == '1' ? true : false,
+              ['مشاهدة جميع الروابط', 'show all h-links']
+            ],
+          });
+        }
+        List usersin = [];
+        usersin.clear();
+        for (var j in addemployeelist) {
+          usersin.add(j['user_id']);
+        }
+
+        for (var i in DB.allusersinfotable[0]['users']
+            .where((uu) => !usersin.contains(uu['user_id']))) {
+          addemployeelist.add({});
+          addemployeelist[addemployeelist.length - 1].addAll({
+            'user_id': i['user_id'],
+            'name': i['fullname'],
+            'visible': true,
+            'visiblesearch': true,
+            'position': ['موظف', 'employee'],
+            'Po-employee': ['موظف', 'employee'],
+            'Po-supervisor': ['مشرف', 'supervisor'],
+            'P-addtask': [
+              false,
+              ['إضافة مهمة', 'Add task']
+            ],
+            'P-showalltasks': [
+              false,
+              ['مشاهدة جميع المهام', 'show all tasks']
+            ],
+            'P-addremind': [
+              true,
+              ['إضافة تذكير', 'Add remind']
+            ],
+            'P-showallreminds': [
+              true,
+              ['مشاهدة جميع التنبيهات ', 'show all reminds']
+            ],
+            'P-addtodo': [
+              true,
+              ['إضافة إجرائية', 'Add todo']
+            ],
+            'P-showalltodos': [
+              true,
+              ['مشاهدة جميع الإجرائيات ', 'show all todos']
+            ],
+            'P-addping': [
+              true,
+              ['Add ping', 'Add ping']
+            ],
+            'P-showallpings': [
+              true,
+              ['show all pings', 'show all pings']
+            ],
+            'P-addemailtest': [
+              true,
+              ['إضافة تفحص ايميل', 'Add Email test']
+            ],
+            'P-showallemailtests': [
+              true,
+              ['show all emailtests', 'show all emailtests']
+            ],
+            'P-addcost': [
+              true,
+              ['إضافة طلب سلفة', 'Add Cost']
+            ],
+            'P-showallcosts': [
+              false,
+              ['مشاهدة جميع السلف', 'show all costs']
+            ],
+            'P-acceptcosts': [
+              false,
+              ['موافقة على السلفة', 'Accept Cost']
+            ],
+            'P-addhyperlink': [
+              false,
+              ['إضافة رابط خارجي', 'Add HyperLink']
+            ],
+            'P-showallhyperlinks': [
+              false,
+              ['مشاهدة جميع الروابط', 'show all h-links']
+            ],
+          });
+        }
       }
     }
 
@@ -519,36 +677,6 @@ class Offices extends StatelessWidget {
                 );
               })
         ];
-    GetBuilder<MainController> addactionaswidget({ctx}) {
-      return GetBuilder<MainController>(
-        init: mainController,
-        builder: (_) =>
-            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-          ...listofactionbuttonforadd
-              .where((element) => element['visible'] == true)
-              .map((u) {
-            switch (u['type']) {
-              case 'do-it':
-                return IconbuttonMz(
-                    backcolor: ThemeMz.iconbuttonmzbc(),
-                    height: 40,
-                    width: 75,
-                    index: u['index'],
-                    buttonlist: listofactionbuttonforadd,
-                    elevate: u['elevate'],
-                    e: u,
-                    action: listoffunctionforedit(
-                        u)[listofactionbuttonforadd.indexOf(u)],
-                    label: u['label']);
-              case 'wait':
-                return WaitMz.waitmz0([1, 2, 3, 4, 5, 6, 7, 8], ctx);
-              default:
-                return SizedBox();
-            }
-          })
-        ]),
-      );
-    }
 
     GetBuilder<MainController> editactionaswidget({ctx, e}) {
       return GetBuilder<MainController>(
@@ -655,6 +783,7 @@ class Offices extends StatelessWidget {
         // chooseofficevisible: false,
         // officechooselist: DB.allofficeinfotable[0]['offices'],
         // officenameclmname: 'officename',
+        conditionofview: (e) => true,
         table: DB.allofficeinfotable,
         tablename: 'offices',
         mainItem: (x) => mainItem(e: x, ctx: context),
