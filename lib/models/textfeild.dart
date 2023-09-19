@@ -14,13 +14,15 @@ class TextFieldMz extends StatelessWidget {
       this.icon,
       required this.onchange,
       required this.td,
-      this.hint});
+      this.hint,
+      this.lines = 1});
   final int maxlines;
   final TextEditingController? controller;
   final bool obscureText, readOnly;
   final String? error, hint;
   final List<String> label;
   final Function? onchange;
+  final int lines;
   // ignore: prefer_typing_uninitialized_variables
   final action;
   final IconData? icon;
@@ -34,8 +36,8 @@ class TextFieldMz extends StatelessWidget {
             ? MediaQuery.of(context).size.width
             : 500,
         child: TextField(
+            maxLines: lines,
             textDirection: td,
-            maxLines: maxlines,
             controller: controller,
             obscureText: obscureText,
             readOnly: readOnly,

@@ -21,7 +21,7 @@ class Remind extends StatelessWidget {
       'selected': true,
     },
     {
-      'name': ['تفاصيل', 'Details'],
+      'name': ['خيارات التذكير', 'Remind Options'],
       'selected': false,
     }
   ];
@@ -35,13 +35,13 @@ class Remind extends StatelessWidget {
         {
           'label': ['اسم التذكير', 'Remind name'],
           'controller': remindnamecontroller,
-          'td': TextDirection.ltr,
           'error': null
         },
         {
-          'label': ['خيارات التذكير', 'Remind Options'],
+          'label': ['التفاصيل', 'Details'],
           'controller': remindoptioncontroller,
-          'error': null
+          'error': null,
+          'lines': 5
         },
       ]
     },
@@ -107,11 +107,11 @@ class Remind extends StatelessWidget {
     basics() {
       List offices = [];
       offices.clear();
-      // for (var i in DB.userinfotable[0]['users_priv_office']) {
-      //   offices.add(DB.allofficeinfotable[0]['offices']
-      //       .where((o) => o['office_id'] == i['upo_office_id'])
-      //       .toList()[0]['officename']);
-      // }
+      for (var i in DB.userinfotable[0]['users_priv_office']) {
+        offices.add(DB.allofficeinfotable[0]['offices']
+            .where((o) => o['office_id'] == i['upo_office_id'])
+            .toList()[0]['officename']);
+      }
       return GetBuilder<MainController>(
         init: mainController,
         builder: (_) => Column(
@@ -124,7 +124,8 @@ class Remind extends StatelessWidget {
                   child: DropdownButton(
                       value: offices[bodieslistofadd[0]['selectedofficeindex']],
                       items: offices
-                          .map((e) => DropdownMenuItem(child: Text(e)))
+                          .map(
+                              (e) => DropdownMenuItem(value: e, child: Text(e)))
                           .toList(),
                       onChanged: (x) {}),
                 )
@@ -133,12 +134,8 @@ class Remind extends StatelessWidget {
             ...bodieslistofadd[0]['tf'].map((w) => TextFieldMz(
                 label: w['label'],
                 error: w['error'],
-                obscureText: w['obscuretext'] ?? false,
-                icon: w['icon'],
+                lines: w['lines'] ?? 1,
                 onchange: (x) => null,
-                hint: w['hint'],
-                action: () => mainController.hideshowpass(
-                    list: bodieslistofadd[0]['tf'], e: w),
                 controller: w['controller'],
                 td: w['td'] ?? BasicInfo.lang())),
           ],
@@ -153,13 +150,45 @@ class Remind extends StatelessWidget {
           children: [
             Row(
               children: [
-                // Radio(
-                //     value: bodieslistofadd[1]['details'][0]['type'][1]['auto'],
-                //     groupValue: bodieslistofadd[1]['details'][0]['type'][0]
-                //         ['group'],
-                //     onChanged: (x) {})
+                Row(
+                  children: [
+                    Radio(
+                        value: bodieslistofadd[1]['details'][0]['type']['auto']
+                            [BasicInfo.indexlang()],
+                        groupValue: bodieslistofadd[1]['details'][0]['type']
+                            ['group'][BasicInfo.indexlang()],
+                        onChanged: (x) {}),
+                    Text(bodieslistofadd[1]['details'][0]['type']['auto']
+                        [BasicInfo.indexlang()])
+                  ],
+                ),
+                Row(
+                  children: [
+                    Radio(
+                        value: bodieslistofadd[1]['details'][0]['type']
+                            ['manual'][BasicInfo.indexlang()],
+                        groupValue: bodieslistofadd[1]['details'][0]['type']
+                            ['group'][BasicInfo.indexlang()],
+                        onChanged: (x) {}),
+                    Text(bodieslistofadd[1]['details'][0]['type']['manual']
+                        [BasicInfo.indexlang()])
+                  ],
+                ),
               ],
             ),
+            Visibility(
+                visible: bodieslistofadd[1]['details'][0]['type']['group']
+                                [BasicInfo.indexlang()] ==
+                            'تلقائي' ||
+                        bodieslistofadd[1]['details'][0]['type']['group']
+                                [BasicInfo.indexlang()] ==
+                            'auto'
+                    ? true
+                    : false,
+                child: TextFieldMz(
+                    label: ['مصدر الشهادة', 'Certificate src'],
+                    onchange: (x) => null,
+                    td: TextDirection.ltr))
           ],
         ),
       );
@@ -827,31 +856,31 @@ class Remind extends StatelessWidget {
     //   );
     // }
 
-    conditionofview(x) {
-      List officesthatuserinit = [], users = [];
-      for (var i in DB.allofficeinfotable[0]['users_priv_office']
-          .where((u) => u['upo_user_id'] == BasicInfo.LogInInfo![0])) {
-        if (i['showalltasks'] == '1') {
-          officesthatuserinit.clear();
-          users.clear();
-          for (var i in DB.allofficeinfotable[0]['users_priv_office'].where(
-              (o) =>
-                  BasicInfo.LogInInfo![0] == o['upo_user_id'] &&
-                  o['showalltasks'] == '1')) {
-            officesthatuserinit.add(i['upo_office_id']);
-          }
-          for (var i in DB.allusersinfotable[0]['users_priv_office']
-              .where((t) => officesthatuserinit.contains(t['upo_office_id']))) {
-            if (!users.contains(i['upo_user_id'])) {
-              users.add(i['upo_user_id']);
-            }
-          }
-          if (users.contains(x['user_id'])) return true;
-        } else {
-          if (x['user_id'] == BasicInfo.LogInInfo![0]) return true;
-        }
-      }
-    }
+    // conditionofview(x) {
+    //   List officesthatuserinit = [], users = [];
+    //   for (var i in DB.allofficeinfotable[0]['users_priv_office']
+    //       .where((u) => u['upo_user_id'] == BasicInfo.LogInInfo![0])) {
+    //     if (i['showalltasks'] == '1') {
+    //       officesthatuserinit.clear();
+    //       users.clear();
+    //       for (var i in DB.allofficeinfotable[0]['users_priv_office'].where(
+    //           (o) =>
+    //               BasicInfo.LogInInfo![0] == o['upo_user_id'] &&
+    //               o['showalltasks'] == '1')) {
+    //         officesthatuserinit.add(i['upo_office_id']);
+    //       }
+    //       for (var i in DB.allusersinfotable[0]['users_priv_office']
+    //           .where((t) => officesthatuserinit.contains(t['upo_office_id']))) {
+    //         if (!users.contains(i['upo_user_id'])) {
+    //           users.add(i['upo_user_id']);
+    //         }
+    //       }
+    //       if (users.contains(x['user_id'])) return true;
+    //     } else {
+    //       if (x['user_id'] == BasicInfo.LogInInfo![0]) return true;
+    //     }
+    //   }
+    // }
 
     return GetBuilder<DBController>(
       init: dbController,
@@ -871,8 +900,8 @@ class Remind extends StatelessWidget {
         enddate: searchbydate[0],
         setenddate: () => null,
         addactionvisible: true,
-        initialofadd: () {},
-        initial: () {},
+        initialofadd: () => SizedBox(),
+        initial: () => SizedBox(),
         addactiontitle: const ['إضافة تذكير', 'Add Remind'],
         addactionmainlabelsofpages: maintitlesdialogMz01,
         addactionpages: [
@@ -880,7 +909,7 @@ class Remind extends StatelessWidget {
           remindoptions(),
         ],
         listofactionbuttonforadd: listofactionbuttonforadd,
-        listoffunctionforadd: (e) {},
+        listoffunctionforadd: (e) => listoffunctionforadd(e),
         floateactionbuttonlist: floatactionbuttonlist,
       ),
     );
