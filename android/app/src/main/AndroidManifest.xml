@@ -1,6 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:label="mz_flutter_07"
+        android:label="a11 in 1"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -197,12 +197,11 @@ class PageTamplate01 extends StatelessWidget {
                         child: SingleChildScrollView(
                             child: Column(
                           children: [
-                            ...table![0][tablename]
-                                .where((element) =>
-                                    conditionofview(element) == true &&
-                                    element['visible'] == true &&
-                                    element['visiblesearch'] == true)
-                                .map((me) => mainItem(me))
+                            ...table![0][tablename].where((element) {
+                              return conditionofview(element) == true &&
+                                  element['visible'] == true &&
+                                  element['visiblesearch'] == true;
+                            }).map((me) => mainItem(me))
                           ],
                         )),
                       );

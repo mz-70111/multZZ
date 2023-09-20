@@ -774,6 +774,8 @@ class Offices extends StatelessWidget {
       );
     }
 
+    condition(x) => true;
+
     return GetBuilder<DBController>(
       init: dbController,
       builder: (_) => PageTamplate01(
@@ -783,7 +785,7 @@ class Offices extends StatelessWidget {
         // chooseofficevisible: false,
         // officechooselist: DB.allofficeinfotable[0]['offices'],
         // officenameclmname: 'officename',
-        conditionofview: (e) => true,
+        conditionofview: (x) => condition(x),
         table: DB.allofficeinfotable,
         tablename: 'offices',
         mainItem: (x) => mainItem(e: x, ctx: context),
