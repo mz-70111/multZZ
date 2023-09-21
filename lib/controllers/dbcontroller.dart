@@ -125,6 +125,12 @@ class DBController extends GetxController {
     ]);
   }
 
+  getallremindinfo() async {
+    return await gettableinfo(
+        tablesname: ['remind', 'reminddates'],
+        infoqueries: ['select * from remind;', 'select * from reminddates;']);
+  }
+
   changpass({userid, password}) async {
     await DBController().requestpost(type: "curd", data: {
       'customquery':

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:mz_flutter_07/controllers/dbcontroller.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:mz_flutter_07/models/database.dart';
@@ -11,7 +12,9 @@ import 'package:mz_flutter_07/views/accounts.dart';
 import 'package:mz_flutter_07/views/homepage.dart';
 import 'package:mz_flutter_07/views/login.dart';
 import 'package:mz_flutter_07/views/offices.dart';
+import 'package:mz_flutter_07/views/remind.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart' as df;
 
 class MainController extends GetxController {
   codepassword({required String word}) {
@@ -300,11 +303,6 @@ class MainController extends GetxController {
     update();
   }
 
-  switchbuttonnotifioffice(x) {
-    Offices.bodieslistofadd[0]['notifi'] = x;
-    update();
-  }
-
   showdropwithsearchmz(list) {
     for (var i in list) {
       i['visiblesearch'] = true;
@@ -312,6 +310,11 @@ class MainController extends GetxController {
     DropDownWithSearchMz.searchcontroller.text = '';
     DropDownWithSearchMz.visiblemain =
         DropDownWithSearchMz.visiblemain == true ? false : true;
+    update();
+  }
+
+  dropdaownchhositem({list, val, x}) {
+    list[val] = x;
     update();
   }
 
@@ -356,30 +359,76 @@ class MainController extends GetxController {
     update();
   }
 
+  adddaytoalert({ctx, list}) async {
+    var d = await showDatePicker(
+        context: ctx,
+        initialDate: DateTime.now(),
+        firstDate: DateTime.now(),
+        lastDate: DateTime.parse("2024-01-01"));
+    if (d != null) {
+      if (!list.contains(df.DateFormat("yyyy-MM-dd").format(d))) {
+        list.add(df.DateFormat("yyyy-MM-dd").format(d));
+      }
+    }
+
+    update();
+  }
+
+  checkifcontentint({x, list, index, error, defaultv}) {
+    bool st = false;
+    try {
+      int.parse(x);
+      st = true;
+    } catch (e) {
+      st = false;
+    }
+    if (list[index]['controller'].text.isEmpty) {
+      list[index]['controller'].text = defaultv;
+    } else if (st == false) {
+      list[index]['error'] = [
+        'أدخل قيمة عددية صحيحة',
+        'enter vaild integer value'
+      ][BasicInfo.indexlang()];
+    } else {
+      list[index]['error'] = null;
+    }
+    update();
+  }
+
+  removedayforalerts({list, x}) {
+    list.removeAt(list.indexOf(x));
+    update();
+  }
+
   chooseoffice({list, officenameclmname, x}) {
     PageTamplate01.selectedoffice = x;
     for (var i in list) {
       i['visible'] = false;
     }
-    if (x == ['جميع المكاتب', 'all offices'][BasicInfo.indexlang()]) {
+    if (x == "all") {
       for (var i in list) {
         i['visible'] = true;
       }
     } else {
-      List usersatoffice = [];
-      usersatoffice.clear();
-      for (var i in DB.allofficeinfotable[0]['users_priv_office'].where((u) =>
-          u['upo_office_id'] ==
-          DB.allofficeinfotable[0]['offices']
-              .where((uu) => uu['officename'] == x)
-              .toList()[0]['office_id'])) {
-        usersatoffice.add(i[officenameclmname]);
+      List elementatoffice = [];
+      elementatoffice.clear();
+      for (var j in list.where((o) => o['officename'] == x)) {
+        elementatoffice.add(j[officenameclmname]);
       }
-      for (var i in list) {
-        if (usersatoffice.contains(i['user_id'])) {
+      print(elementatoffice);
+      for (var i in DB.allofficeinfotable[0]['offices']
+          .where((o) => o['officename'] == x)) {
+        if (elementatoffice.contains(i['office_id'])) {
           i['visible'] = true;
         }
       }
+      //   usersatoffice.add(i[officenameclmname]);
+      // }
+      // for (var i in list) {
+      //   if (usersatoffice.contains(i['user_id'])) {
+      //     i['visible'] = true;
+      //   }
+      // }
     }
 
     try {
@@ -480,7 +529,11 @@ class MainController extends GetxController {
 
   chackboxpriv({x, required list, index, e}) {
     list[index][e][0] = x;
+    update();
+  }
 
+  changeradio({list, val, x}) {
+    list[val][BasicInfo.indexlang()] = x;
     update();
   }
 
@@ -755,6 +808,130 @@ insert into logs(log,logdate)values
       null;
     }
 
+    update();
+  }
+
+  addremind({inerlist, val, dateslist, officeslistandindex}) async {
+    inerlist[0]['error'] = null;
+    inerlist[1]['error'] = null;
+    inerlist[2]['error'] = null;
+    DateTime? reminddate;
+    Lang.mainerrormsg = null;
+    Remind.bodieslistofadd[0]['tf'][0]['error'] = null;
+    List queries = [
+      '''
+insert into remind(
+remindname,
+reminddetails,
+remind_office_id,
+notifi,
+type,certsrc,sendalertbefor,repeate,reminddate,createby_id,createdate)values
+('${Remind.remindnamecontroller.text.trim()}',
+'${Remind.reminddetailscontroller.text.trim()}',
+'${DB.allofficeinfotable[0]['offices'].where((element) => element['officename'] == officeslistandindex).toList()[0]['office_id']}',
+"${Remind.bodieslistofadd[0]['notifi'] == true ? '1' : '0'}",
+'${Remind.bodieslistofadd[1]['details'][0]['type']['group'][1]}',
+'${Remind.bodieslistofadd[1]['details'][0]['type']['group'][1] == 'auto' ? inerlist[0]['controller'].text : 'null'}',
+'${inerlist[1]['controller'].text}',
+'${inerlist[2]['controller'].text}',
+${reminddate != null ? df.DateFormat("yyyy-MM-dd").format(reminddate) : 'null'},
+${BasicInfo.LogInInfo![0]},
+'${df.DateFormat("yyyy-MM-dd HH:mm").format(DateTime.now())}'
+);
+''',
+    ];
+    if (Remind.bodieslistofadd[1]['details'][0]['type']['group'][1] != 'auto') {
+      for (var i in dateslist) {
+        queries.add('''
+insert into reminddates(remind_d_id,rdate)values
+ ((select max(remind_id) from remind),
+ '$i'
+);
+''');
+      }
+    }
+    queries.add('''
+insert into logs(log,logdate)values
+("${BasicInfo.LogInInfo![1]} add a new Remind _name: remindname ${Remind.remindnamecontroller.text}",
+"${DateTime.now()}");
+      ''');
+    if (Remind.remindnamecontroller.text.trim().isEmpty) {
+      Remind.bodieslistofadd[0]['tf'][0]['error'] =
+          Lang.errormsgs['emptyname-check'][BasicInfo.indexlang()];
+      for (var i in Remind.maintitlesdialogMz01) {
+        i['selected'] = false;
+      }
+      Remind.maintitlesdialogMz01[0]['selected'] = true;
+    } else if ((Remind.bodieslistofadd[1]['details'][0]['type']['group']
+                    [BasicInfo.indexlang()] ==
+                'auto' ||
+            Remind.bodieslistofadd[1]['details'][0]['type']['group']
+                    [BasicInfo.indexlang()] ==
+                'تلقائي') &&
+        inerlist[0]['controller'].text.isEmpty) {
+      inerlist[0]['error'] =
+          Lang.errormsgs['emptycert-check'][BasicInfo.indexlang()];
+      for (var i in Remind.maintitlesdialogMz01) {
+        i['selected'] = false;
+      }
+      Remind.maintitlesdialogMz01[1]['selected'] = true;
+    } else if ((Remind.bodieslistofadd[1]['details'][0]['type']['group']
+                    [BasicInfo.indexlang()] ==
+                'manual' ||
+            Remind.bodieslistofadd[1]['details'][0]['type']['group']
+                    [BasicInfo.indexlang()] ==
+                'يدوي') &&
+        dateslist.isEmpty) {
+      Lang.mainerrormsg =
+          Lang.errormsgs['emptydays-check'][BasicInfo.indexlang()];
+
+      for (var i in Remind.maintitlesdialogMz01) {
+        i['selected'] = false;
+      }
+      Remind.maintitlesdialogMz01[1]['selected'] = true;
+    } else if (inerlist[1]['error'] != null || inerlist[1]['error'] != null) {
+      Lang.mainerrormsg = inerlist[1]['error'];
+    } else {
+      Remind.listofactionbuttonforadd[0]['visible'] = false;
+      Remind.listofactionbuttonforadd[2]['visible'] = true;
+      update();
+      try {
+        l:
+        for (var q in queries) {
+          await DBController()
+              .requestpost(type: 'curd', data: {'customquery': '$q'});
+          {
+            if (Lang.mainerrormsg != null) {
+              if (Lang.mainerrormsg!.contains("Duplicate")) {
+                Lang.mainerrormsg = Remind.bodieslistofadd[0]['tf'][0]
+                        ['error'] =
+                    "${Remind.remindnamecontroller.text} ${Lang.errormsgs['duplicate'][BasicInfo.indexlang()]}";
+                for (var i in Remind.maintitlesdialogMz01) {
+                  i['selected'] = false;
+                }
+                Remind.maintitlesdialogMz01[0]['selected'] = true;
+              } else {
+                Lang.mainerrormsg = Lang.mainerrormsg;
+              }
+              break l;
+            }
+          }
+        }
+        if (Lang.mainerrormsg == null) {
+          DB.allofficeinfotable = await DBController().getallofficeinfo();
+          DB.userinfotable =
+              await DBController().getuserinfo(userid: BasicInfo.LogInInfo![0]);
+          DB.allusersinfotable = await DBController().getallusersinfo();
+          dbController.update();
+          Get.back();
+        }
+      } catch (e) {
+        Lang.mainerrormsg =
+            Lang.errormsgs['server-error'][BasicInfo.indexlang()];
+      }
+    }
+    Remind.listofactionbuttonforadd[0]['visible'] = true;
+    Remind.listofactionbuttonforadd[2]['visible'] = false;
     update();
   }
 

@@ -6,6 +6,7 @@ class DB {
   static List userinfotable = [];
 
   static List allofficeinfotable = [];
+  static List allremindinfotable = [];
   static List allusersinfotable = [];
   static List logstable = [];
   static String? error;
@@ -138,23 +139,39 @@ create table if not exists remind
 remind_id int(11) unique primary key auto_increment,
 remindname varchar(255) unique,
 reminddetails varchar(255),
+sendalertbefor int(11),
+repeate int(11),
+notifi tinyint(1) default 1,
+certsrc varchar(255),
+remind_office_id int(11),
+type varchar(20),
+foreign key (remind_office_id) references offices(office_id),
+reminddate TIMESTAMP NULL DEFAULT NULL,
 createby_id int(11),
 foreign key (createby_id) references users(user_id),
 createdate TIMESTAMP NULL DEFAULT NULL,
 editby_id int(11),
 foreign key (editby_id) references users(user_id),
-editdate TIMESTAMP NULL DEFAULT NULL,
-remind_office_id int(11),
-foreign key (remind_office_id) references offices(office_id),
-notifi tinyint(1) default 1,
-pause tinyint(1) default 0,
-pausedate TIMESTAMP NULL DEFAULT NULL,
-reminddate TIMESTAMP NULL DEFAULT NULL,
-type varchar(20),
-manytimestype tinyint(1),
-status tinyint(1) default 0
+editdate TIMESTAMP NULL DEFAULT NULL
 );
 ''',
+    '''
+create table if not exists reminddates
+(
+reminddates_id int(11) unique primary key auto_increment,
+rdate TIMESTAMP NULL DEFAULT NULL,
+remind_d_id int(11),
+foreign key (remind_d_id) references remind(remind_id)
+);
+    ''',
+    '''
+create table if not exists notification
+(
+notifi_id int(11) unique primary key auto_increment,
+notifi varchar(255),
+notifireaded tinyint(1)
+);
+    ''',
     '''
 create table if not exists comments
 (

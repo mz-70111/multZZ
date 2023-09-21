@@ -113,8 +113,8 @@ class Offices extends StatelessWidget {
               children: [
                 Switch(
                     value: bodieslistofadd[0]['notifi'],
-                    onChanged: (x) =>
-                        mainController.switchbuttonnotifioffice(x)),
+                    onChanged: (x) => mainController.changeswitchvalue(
+                        list: bodieslistofadd[0], val: 'notifi', x: x)),
                 Text("${bodieslistofadd[0]['notifi'] == true ? [
                     'تفعيل',
                     'enable'

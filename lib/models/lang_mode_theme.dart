@@ -56,6 +56,14 @@ class Lang {
       'لا يمكن ان يكون حقل كلمة المرور فارغا',
       'password empty!!'
     ],
+    'emptycert-check': [
+      'لا يمكن ان يكون حقل  مصدر الشهادة فارغا',
+      'Cert url empty!!'
+    ],
+    'emptydays-check': [
+      'قم بإضافة يوم واحد على الأقل',
+      'add one day at least !!'
+    ],
     'account-disable': ['حسابك غير مفعل', 'your account disabled'],
     'wrong-uesernameorpassword': [
       'اسم المستخدم او كلمة المرور غير صحيحة',

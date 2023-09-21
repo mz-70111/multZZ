@@ -57,21 +57,21 @@ class PageTamplate01 extends StatelessWidget {
       conditionofview;
   final bool searchwithdatevisible, chooseofficevisible;
 
-  static String? selectedoffice;
+  static String selectedoffice = 'all';
   static TextEditingController searchcontroller = TextEditingController();
   @override
   Widget build(BuildContext context) {
     //create list of sort by office if user who login and in tow office at least
     List officeslist = [];
     officeslist.clear();
-    officeslist.add(['جميع المكاتب', 'all offices'][BasicInfo.indexlang()]);
+    officeslist.add('all');
     for (var i in DB.userinfotable[0]['users_priv_office']) {
       if (DB.userinfotable[0]['users_priv_office'].isNotEmpty) {
         officeslist.add(DB.allofficeinfotable[0]['offices'][DB
                 .allofficeinfotable[0]['offices']
                 .indexWhere((of) => of['office_id'] == i['upo_office_id'])]
             ['officename']);
-        selectedoffice = selectedoffice ?? officeslist[0];
+        selectedoffice = 'all';
       }
     }
     //check if user login by correct username and password
@@ -117,7 +117,7 @@ class PageTamplate01 extends StatelessWidget {
                       td: BasicInfo.lang()),
                   //choose by office
                   Visibility(
-                      visible: chooseofficevisible,
+                      visible: chooseofficevisible && officeslist.length > 2,
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: SizedBox(
