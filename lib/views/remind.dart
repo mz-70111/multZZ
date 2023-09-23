@@ -115,7 +115,7 @@ class Remind extends StatelessWidget {
         TextEditingController(text: '60');
     TextEditingController remindbeforcontroller =
         TextEditingController(text: '10');
-    List daysofalert = [];
+    List<DateTime> daysofalert = [];
     List tf = [
       {
         'label': ['مصدر الشهادة', 'Certificate src'],
@@ -268,7 +268,7 @@ class Remind extends StatelessWidget {
                           ][BasicInfo.indexlang()]} +")),
                       ...daysofalert.map((d) => Row(
                             children: [
-                              Text(d),
+                              Text(df.DateFormat("yyyy-MM-dd").format(d)),
                               IconButton(
                                   onPressed: () =>
                                       mainController.removedayforalerts(
@@ -324,62 +324,66 @@ class Remind extends StatelessWidget {
 
         bodieslistofadd[1]['details'][0]['type']['group'] =
             e['type'] == 'auto' ? ['تلقائي', 'auto'] : ['يدوي', 'manual'];
+        if (e['type'] != 'auto') {
+          certsrccontroller.text = '';
+          for (var i in DB.allremindinfotable[0]['reminddates']
+              .where((r) => r['remind_d_id'] == e['remind_id'])
+              .toList()) {
+            daysofalert.add(DateTime.parse(i['rdate']));
+          }
+        }
       }
     }
 
-    // buildeasyeditlist() {
-    //   easyeditlist.clear();
-    //   for (var i in DB.allusersinfotable[0]['users']) {
-    //     easyeditlist.add([]);
-    //     easyeditlist[DB.allusersinfotable[0]['users'].indexOf(i)].addAll({
-    //       {
-    //         'index': 0,
-    //         'visible0':
-    //             BasicInfo.LogInInfo![0] == i['user_id'] || i['user_id'] == '1'
-    //                 ? false
-    //                 : true,
-    //         'visible': true,
-    //         'type': 'do-it',
-    //         'icon': Icons.delete_forever,
-    //         'label': ['حذف', 'delete'],
-    //         'elevate': 0.0,
-    //         'backcolor': Colors.transparent,
-    //         'length': 80.0
-    //       },
-    //       {
-    //         'index': 1,
-    //         'visible0':
-    //             BasicInfo.LogInInfo![0] == i['user_id'] || i['user_id'] == '1'
-    //                 ? false
-    //                 : true,
-    //         'visible': true,
-    //         'type': 'do-it',
-    //         'icon': Icons.account_box,
-    //         'label': DB.allusersinfotable[0]['users_privileges']
-    //                     .where((y) => y['up_user_id'] == i['user_id'])
-    //                     .toList()[0]['enable'] ==
-    //                 '1'
-    //             ? ['تعطيل الحساب', 'disable account']
-    //             : ['تفعيل الحساب', 'enable account'],
-    //         'elevate': 0.0,
-    //         'backcolor': Colors.transparent,
-    //         'length': 150.0
-    //       },
-    //       {
-    //         'index': 2,
-    //         'visible0': true,
-    //         'visible': true,
-    //         'type': 'do-it',
-    //         'icon': Icons.password,
-    //         'label': ['إعادة تعيين كلمة المرور', 'reset password'],
-    //         'elevate': 0.0,
-    //         'backcolor': Colors.transparent,
-    //         'length': 190.0
-    //       },
-    //       {'visible0': true, 'visible': false, 'type': 'wait'},
-    //     });
-    //   }
-    // }
+    buildeasyeditlist() {
+      easyeditlist.clear();
+      for (var i in DB.allremindinfotable[0]['remind']) {
+        easyeditlist.add([]);
+        easyeditlist[DB.allremindinfotable[0]['remind'].indexOf(i)].addAll({
+          {
+            'index': 0,
+            'visible0': true,
+            'visible': true,
+            'type': 'do-it',
+            'icon': Icons.delete_forever,
+            'label': ['حذف', 'delete'],
+            'elevate': 0.0,
+            'backcolor': Colors.transparent,
+            'length': 80.0
+          },
+          {
+            'index': 1,
+            'visible0': true,
+            'visible': true,
+            'type': 'do-it',
+            'icon': i['notifi'] == '1'
+                ? Icons.notifications
+                : Icons.notifications_off,
+            'label': DB.allremindinfotable[0]['remind']
+                        .where((y) => y['remind_id'] == i['remind_id'])
+                        .toList()[0]['notifi'] ==
+                    '1'
+                ? ['تعطيل الاشعارات', 'disable notifi']
+                : ['تفعيل الاشعارات', 'enable notifi'],
+            'elevate': 0.0,
+            'backcolor': Colors.transparent,
+            'length': 150.0
+          },
+          {
+            'index': 2,
+            'visible0': true,
+            'visible': true,
+            'type': 'do-it',
+            'icon': Icons.edit,
+            'label': ['تعديل', 'edit'],
+            'elevate': 0.0,
+            'backcolor': Colors.transparent,
+            'length': 80.0
+          },
+          {'visible0': true, 'visible': false, 'type': 'wait'},
+        });
+      }
+    }
 
     List<Function> listoffunctionforadd(e) => [
           (e) async => await mainController.addremind(
@@ -390,7 +394,14 @@ class Remind extends StatelessWidget {
           (e) => Get.back(),
         ];
     List<Function> listoffunctionforedit(e) => [
-          (e) async => await mainController.updateaccount(userid: e['user_id']),
+          (e) async => await mainController.updateremind(
+                remindid: e['remind_id'],
+                dateslist: daysofalert,
+                officeslistandindex:
+                    offices[bodieslistofadd[0]['selectedofficeindex']]
+                        ['office'],
+                inerlist: tf,
+              ),
           (e) => Get.back(),
         ];
     listoffunctionforeasyeditpanel({e, ctx}) => [
@@ -418,8 +429,8 @@ class Remind extends StatelessWidget {
                   }
                 ];
                 List functionofaction(e) => [
-                      (e) => mainController.removeaccount(
-                          userid: e['user_id'], list: actionlist),
+                      (e) => mainController.removeremind(
+                          remindid: e['remind_id'], list: actionlist),
                       (e) => Get.back()
                     ];
                 return GetBuilder<MainController>(
@@ -429,8 +440,8 @@ class Remind extends StatelessWidget {
                     child: AlertDialog(
                       scrollable: true,
                       title: Text([
-                        'هل أنت متأكد من حذف${e['username']}?',
-                        'sure to delete ${e['username']}?'
+                        'هل أنت متأكد من حذف${e['remindname']}?',
+                        'sure to delete ${e['remindname']}?'
                       ][BasicInfo.indexlang()]),
                       actions: [
                         ...actionlist
@@ -459,224 +470,231 @@ class Remind extends StatelessWidget {
                   ),
                 );
               }),
-          (e) => mainController.disableenableaccount(
-              userid: e['user_id'],
-              list: easyeditlist[DB.allusersinfotable[0]['users']
-                  .indexWhere((u) => u['user_id'] == e['user_id'])][1],
-              listvisible: easyeditlist[DB.allusersinfotable[0]['users']
-                  .indexWhere((u) => u['user_id'] == e['user_id'])][3],
+          (e) => mainController.disableenablenotifiremind(
+              remindid: e['remind_id'],
+              list: easyeditlist[DB.allremindinfotable[0]['remind']
+                  .indexWhere((u) => u['remind_id'] == e['remind_id'])][1],
+              listvisible: easyeditlist[DB.allremindinfotable[0]['remind']
+                  .indexWhere((u) => u['remind_id'] == e['remind_id'])][3],
               val: 'visible'),
-          (e) => showDialog(
-              context: ctx,
-              builder: (_) {
-                TextEditingController newpass = TextEditingController();
-                TextEditingController confnewpass = TextEditingController();
-
-                List tf = [
-                  {
-                    'label': ['كلمة المرور الجديدة', 'new passowrd'],
-                    'obscuretext': true,
-                    'error': null,
-                    'icon': Icons.visibility,
-                    'controller': newpass
-                  },
-                  {
-                    'label': ['تأكيد كلمة المرور', 'Confirm passowrd'],
-                    'obscuretext': true,
-                    'error': null,
-                    'icon': Icons.visibility,
-                    'controller': confnewpass
-                  }
-                ];
-
-                List actionlist = [
-                  {
-                    'type': 'do-it',
-                    'visible': true,
-                    'label': ['حفظ', 'save'],
-                    'elevate': 0.0,
-                    'index': 0,
-                  },
-                  {
-                    'type': 'do-it',
-                    'visible': true,
-                    'label': ['رجوع', 'close'],
-                    'elevate': 0.0,
-                    'index': 1,
-                  },
-                  {
-                    'type': 'wait',
-                    'visible': false,
-                  }
-                ];
-                List functionofaction(e) => [
-                      (e) => mainController.resetpassword(
-                          userid: e['user_id'],
-                          actionlist: actionlist,
-                          tflist: tf,
-                          newpassword: newpass,
-                          confirmpassword: confnewpass),
-                      (e) => Get.back()
-                    ];
-                return GetBuilder<MainController>(
-                  init: mainController,
-                  builder: (_) => Directionality(
-                    textDirection: BasicInfo.lang(),
-                    child: AlertDialog(
-                      scrollable: true,
-                      content: Column(children: [
-                        ...tf.map((t) => TextFieldMz(
-                            controller: t['controller'],
-                            label: t['label'],
-                            icon: t['icon'],
-                            error: t['error'],
-                            obscureText: t['obscuretext'],
-                            onchange: (x) => null,
-                            action: () =>
-                                mainController.hideshowpass(list: tf, e: t),
-                            td: TextDirection.ltr))
-                      ]),
-                      actions: [
-                        ...actionlist
-                            .where((element) => element['visible'] == true)
-                            .map((y) {
-                          switch (y['type']) {
-                            case 'do-it':
-                              return IconbuttonMz(
-                                  e: e,
-                                  elevate: y['elevate'],
-                                  action: functionofaction(e)[y['index']],
-                                  label: y['label'],
-                                  buttonlist: actionlist,
-                                  index: y['index'],
-                                  height: 35,
-                                  width: 60,
-                                  backcolor: ThemeMz.iconbuttonmzbc());
-                            case 'wait':
-                              return WaitMz.waitmz0([1, 2, 3, 4], ctx);
-                            default:
-                              return SizedBox();
-                          }
-                        })
-                      ],
-                    ),
-                  ),
-                );
-              }),
+          (e) {
+            Lang.mainerrormsg = null;
+            initialofdialog(e: e);
+            showDialog(
+                context: context,
+                builder: (_) => DialogMz01(
+                    title: ['تعديل', 'edit'],
+                    mainlabels: maintitlesdialogMz01,
+                    bodies: [basics(), remindoptions()],
+                    actionlist: GetBuilder<MainController>(
+                      init: mainController,
+                      builder: (_) => Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            ...listofactionbuttonforedit
+                                .where((element) => element['visible'] == true)
+                                .map((u) {
+                              switch (u['type']) {
+                                case 'do-it':
+                                  return IconbuttonMz(
+                                      backcolor: ThemeMz.iconbuttonmzbc(),
+                                      height: 40,
+                                      width: 75,
+                                      index: u['index'],
+                                      buttonlist: listofactionbuttonforedit,
+                                      elevate: u['elevate'],
+                                      e: e,
+                                      action: listoffunctionforedit(u)[
+                                          listofactionbuttonforedit.indexOf(u)],
+                                      label: u['label']);
+                                case 'wait':
+                                  return WaitMz.waitmz0(
+                                      [1, 2, 3, 4, 5, 6, 7, 8], ctx);
+                                default:
+                                  return SizedBox();
+                              }
+                            })
+                          ]),
+                    )));
+          }
         ];
-
-    GetBuilder<MainController> editactionaswidget({ctx, e}) {
-      return GetBuilder<MainController>(
-        init: mainController,
-        builder: (_) =>
-            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-          ...listofactionbuttonforedit
-              .where((element) => element['visible'] == true)
-              .map((u) {
-            switch (u['type']) {
-              case 'do-it':
-                return IconbuttonMz(
-                    backcolor: ThemeMz.iconbuttonmzbc(),
-                    height: 40,
-                    width: 75,
-                    index: u['index'],
-                    buttonlist: listofactionbuttonforedit,
-                    elevate: u['elevate'],
-                    e: e,
-                    action: listoffunctionforedit(
-                        u)[listofactionbuttonforedit.indexOf(u)],
-                    label: u['label']);
-              case 'wait':
-                return WaitMz.waitmz0([1, 2, 3, 4, 5, 6, 7, 8], ctx);
-              default:
-                return SizedBox();
-            }
-          })
-        ]),
-      );
-    }
 
     mainItem({e, ctx}) {
       return Padding(
           padding: const EdgeInsets.all(8.0),
-          child: ExpansionTile(
-              title: Row(children: [
-            Text("# ${e['remind_id']}_ "),
-            Expanded(
-                child: Text(
-              e['remindname'],
-              style: ThemeMz.titlemediumChanga(),
-            )),
-          ])
-              // GetBuilder<MainController>(
-              //   init: mainController,
-              //   builder: (_) {
-              //     return Row(
-              //       mainAxisAlignment: MainAxisAlignment.end,
-              //       children: [
-              //         ...easyeditlist[
-              //                 DB.allusersinfotable[0]['users'].indexOf(e)]
-              //             .where((b) =>
-              //                 b['visible'] == true && b['visible0'] == true)
-              //             .map((b) {
-              //           switch (b['type']) {
-              //             case 'do-it':
-              //               return IconbuttonMz(
-              //                 e: e,
-              //                 action: listoffunctionforeasyeditpanel(
-              //                     ctx: ctx, e: e)[b['index']],
-              //                 elevate: b['elevate'],
-              //                 labelvisible:
-              //                     b['elevate'] == 3.0 ? true : false,
-              //                 label: b['label'],
-              //                 icon: b['icon'],
-              //                 buttonlist: easyeditlist[DB.allusersinfotable[0]
-              //                         ['users']
-              //                     .indexOf(e)],
-              //                 index: b['index'],
-              //                 height: 35,
-              //                 width: b['elevate'] == 3.0 ? b['length'] : 40,
-              //                 backcolor: b['backcolor'],
-              //               );
-              //             case 'wait':
-              //               return WaitMz.waitmz0([1, 2, 3, 4], context);
-              //             default:
-              //               return SizedBox();
-              //           }
-              //         })
-              //       ],
-              //     );
-              //   },
-              // )
-
-              ));
+          child: Card(
+            child: ExpansionTile(
+              title: Column(
+                children: [
+                  Row(children: [
+                    Container(
+                      width: 10,
+                      height: 50,
+                      color: mainController.calcexpiredateasint(e: e) == null
+                          ? Colors.grey
+                          : mainController.calcexpiredateasint(e: e) <= 0
+                              ? Colors.red
+                              : mainController.calcreminddateasint(e: e) <= 0
+                                  ? Colors.deepOrangeAccent
+                                  : Colors.green,
+                    ),
+                    Text("# ${e['remind_id']}_ "),
+                    Expanded(
+                        child: Text(
+                      e['remindname'],
+                      style: ThemeMz.titlemediumChanga(),
+                    )),
+                  ]),
+                  GetBuilder<MainController>(
+                    init: mainController,
+                    builder: (_) {
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ...easyeditlist[
+                                  DB.allremindinfotable[0]['remind'].indexOf(e)]
+                              .where((b) =>
+                                  b['visible'] == true && b['visible0'] == true)
+                              .map((b) {
+                            switch (b['type']) {
+                              case 'do-it':
+                                return IconbuttonMz(
+                                  e: e,
+                                  action: listoffunctionforeasyeditpanel(
+                                      ctx: ctx, e: e)[b['index']],
+                                  elevate: b['elevate'],
+                                  labelvisible:
+                                      b['elevate'] == 3.0 ? true : false,
+                                  label: b['label'],
+                                  icon: b['icon'],
+                                  buttonlist: easyeditlist[DB
+                                      .allremindinfotable[0]['remind']
+                                      .indexOf(e)],
+                                  index: b['index'],
+                                  height: 35,
+                                  width: b['elevate'] == 3.0 ? b['length'] : 40,
+                                  backcolor: b['backcolor'],
+                                );
+                              case 'wait':
+                                return WaitMz.waitmz0([1, 2, 3, 4], context);
+                              default:
+                                return SizedBox();
+                            }
+                          })
+                        ],
+                      );
+                    },
+                  )
+                ],
+              ),
+              children: [
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(e['remind_office_id'] != null
+                          ? DB.allofficeinfotable[0]['offices']
+                              .where((u) =>
+                                  u['office_id'] == e['remind_office_id'])
+                              .toList()[0]['officename']
+                          : "مكتب محذوف"),
+                    ),
+                  ],
+                ),
+                Visibility(
+                  visible: e['reminddetails'] == '' ? false : true,
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SelectableText(e['reminddetails']),
+                      ),
+                    ],
+                  ),
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                          "${['الاشعارات', 'Notifi'][BasicInfo.indexlang()]}"
+                          " ${e['notifi'] == '1' ? [
+                              'مفعلة',
+                              'enabled'
+                            ][BasicInfo.indexlang()] : [
+                              'ملغاة',
+                              'disabled'
+                            ][BasicInfo.indexlang()]}"),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(e['reminddate'] == null
+                          ? "لم يتم تحديد مدة الانتهاء"
+                          : "تاريخ الانتهاء ${df.DateFormat("yyyy-MM-dd").format(DateTime.parse(e['reminddate']))}"),
+                    ),
+                  ],
+                ),
+                Visibility(
+                  visible: e['reminddate'] == null ? false : true,
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text("${[
+                          'المدة المتبقية للتنبيه',
+                          'Duration to alert'
+                        ][BasicInfo.indexlang()]}"
+                            " ${mainController.calcreminddate(e: e)}"),
+                      ),
+                    ],
+                  ),
+                ),
+                Visibility(
+                  visible: e['reminddate'] == null ? false : true,
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text("${[
+                          'المدة المتبقية لانتهاء المدة',
+                          'Duration to Expire'
+                        ][BasicInfo.indexlang()]}"
+                            " ${mainController.calcexpiredate(e: e)}"),
+                      ),
+                    ],
+                  ),
+                ),
+                Row(
+                  children: [
+                    Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text("${[
+                          'تم إنشاءها بواسطة',
+                          'created by'
+                        ][BasicInfo.indexlang()]} ${e['createby_id'] != null ? DB.allusersinfotable[0]['users'].where((u) => u['user_id'] == e['createby_id']).toList()[0]['fullname'] : "حساب محذوف"}")),
+                  ],
+                ),
+                Divider(),
+              ],
+            ),
+          ));
     }
 
     conditionofview(x) {
-      // List officesthatuserinit = [], users = [];
-      // for (var i in DB.allofficeinfotable[0]['users_priv_office']
-      //     .where((u) => u['upo_user_id'] == BasicInfo.LogInInfo![0])) {
-      //   if (i['showallreminds'] == '1') {
-      //     officesthatuserinit.clear();
-      //     users.clear();
-      //     for (var i in DB.allofficeinfotable[0]['users_priv_office'].where(
-      //         (o) =>
-      //             BasicInfo.LogInInfo![0] == o['upo_user_id'] &&
-      //             o['showallreminds'] == '1')) {
-      //       officesthatuserinit.add(i['upo_office_id']);
-      //     }
-      //     for (var i in DB.allusersinfotable[0]['users_priv_office']
-      //         .where((t) => officesthatuserinit.contains(t['upo_office_id']))) {
-      //       if (!users.contains(i['upo_user_id'])) {
-      //         users.add(i['upo_user_id']);
-      //       }
-      //     }
-      //     if (users.contains(x['user_id'])) return true;
-      //   } else {
-      //     if (x['user_id'] == BasicInfo.LogInInfo![0]) return true;
-      //   }
-      // }
-      return true;
+      if (x['createby_id'] == BasicInfo.LogInInfo![0]) {
+        return true;
+      } else if (DB.allofficeinfotable[0]['users_priv_office']
+              .where((o) => o['upo_office_id'] == x['remind_office_id'])
+              .toList()[0]['showallreminds'] ==
+          '1') {
+        return true;
+      } else {
+        return false;
+      }
     }
 
     bool addactionvisible() {
@@ -707,7 +725,8 @@ class Remind extends StatelessWidget {
         searchrangelist: const ['remindname', 'reminddetails'],
         chooseofficevisible: true,
         officechooselist: DB.allremindinfotable[0]['remind'],
-        officenameclmname: 'remind_office_id',
+        officenameclm: 'remind_office_id',
+        itemnameclm: 'remind_id',
         conditionofview: (x) => conditionofview(x),
         table: DB.allremindinfotable,
         tablename: 'remind',
@@ -718,7 +737,7 @@ class Remind extends StatelessWidget {
         setenddate: () => null,
         addactionvisible: addactionvisible(),
         initialofadd: () => initialofdialog(),
-        initial: () => SizedBox(),
+        initial: () => buildeasyeditlist(),
         addactiontitle: const ['إضافة تذكير', 'Add Remind'],
         addactionmainlabelsofpages: maintitlesdialogMz01,
         addactionpages: [

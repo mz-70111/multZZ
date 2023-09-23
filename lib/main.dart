@@ -14,7 +14,9 @@ import 'package:mz_flutter_07/views/offices.dart';
 import 'package:mz_flutter_07/views/remind.dart';
 import 'package:mz_flutter_07/views/repare.dart';
 
-main() => runApp(const MzMyApp());
+main() {
+  runApp(const MzMyApp());
+}
 
 class MzMyApp extends StatelessWidget {
   const MzMyApp({super.key});

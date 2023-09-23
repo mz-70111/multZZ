@@ -135,41 +135,41 @@ class HomePage extends StatelessWidget {
       'index': 0,
       'label': ['المكاتب', 'Offices'],
       'icon': Icons.work,
+      'action': () => Get.toNamed('/home/offices'),
+      'color': Colors.transparent,
+      'iconsize': 40.0,
       'visible': DB.userinfotable[0]['users_privileges'][0]['admin'] == '1'
           ? true
           : false,
-      'action': () => Get.toNamed('/home/offices'),
-      'color': Colors.transparent,
-      'iconsize': 40.0
     },
     {
       'index': 1,
       'label': ['الحسابات', 'Accounts'],
       'icon': Icons.person_2,
+      'action': () => Get.toNamed('/home/accounts'),
+      'color': Colors.transparent,
+      'iconsize': 40.0,
       'visible': DB.userinfotable[0]['users_privileges'][0]['admin'] == '1'
           ? true
           : false,
-      'action': () => Get.toNamed('/home/accounts'),
-      'color': Colors.transparent,
-      'iconsize': 40.0
     },
     {
       'index': 2,
       'label': ['التذكير', 'Reminds'],
       'icon': Icons.remember_me,
-      'visible': true,
       'action': () => Get.toNamed('/home/remind'),
       'color': Colors.transparent,
-      'iconsize': 40.0
+      'iconsize': 40.0,
+      'visible': true
     },
     {
       'index': 3,
       'label': ['النفقات', 'Costs'],
       'icon': Icons.money_rounded,
-      'visible': true,
       'action': () => Get.toNamed('/home/costs'),
       'color': Colors.transparent,
-      'iconsize': 40.0
+      'iconsize': 40.0,
+      'visible': true
     },
   ];
   @override
@@ -178,75 +178,83 @@ class HomePage extends StatelessWidget {
     maincard({e}) {
       return GetBuilder<MainController>(
         init: mainController,
-        builder: (_) => GestureDetector(
-          onTap: e['action'],
-          child: MouseRegion(
-            onHover: (x) => mainController.onhover(
-                list: maincardslist, index: e['index'], iconsize: 1, color: 1),
-            onExit: (x) => mainController.onexit(
-                list: maincardslist, index: e['index'], iconsize: 1, color: 1),
-            cursor: SystemMouseCursors.click,
-            child: Stack(
-              children: [
-                Card(
-                  child: Container(
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: BasicInfo.selectedlang == 'Ar'
-                              ? Radius.elliptical(500, 500)
-                              : Radius.circular(0),
-                          bottomRight: BasicInfo.selectedlang == 'En'
-                              ? Radius.elliptical(500, 500)
-                              : Radius.circular(0),
-                        ),
-                        gradient: LinearGradient(
-                            colors: BasicInfo.selectedmode == 'Light'
-                                ? BasicInfo.selectedlang == 'Ar'
-                                    ? [e['color'], Colors.transparent]
-                                    : [
-                                        Colors.transparent,
-                                        e['color'],
-                                      ]
-                                : BasicInfo.selectedlang == 'En'
-                                    ? [
-                                        Colors.transparent,
-                                        e['color'],
-                                      ]
-                                    : [e['color'], Colors.transparent])),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Icon(
-                    e['icon'],
-                    size: e['iconsize'],
-                    color: ThemeMz.iconbuttonmzbc(),
-                    shadows: [
-                      BoxShadow(
-                          spreadRadius: 0.6,
-                          blurRadius: 0.9,
-                          offset: const Offset(1, 2),
-                          color: Colors.black)
-                    ],
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  left: BasicInfo.selectedlang == 'Ar' ? 0 : null,
-                  right: BasicInfo.selectedlang == 'Ar' ? null : 0,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      e['label'][BasicInfo.indexlang()],
-                      textAlign: TextAlign.end,
-                      style: ThemeMz.titlelargCairo(),
+        builder: (_) {
+          return GestureDetector(
+            onTap: e['action'],
+            child: MouseRegion(
+              onHover: (x) => mainController.onhover(
+                  list: maincardslist,
+                  index: e['index'],
+                  iconsize: 1,
+                  color: 1),
+              onExit: (x) => mainController.onexit(
+                  list: maincardslist,
+                  index: e['index'],
+                  iconsize: 1,
+                  color: 1),
+              cursor: SystemMouseCursors.click,
+              child: Stack(
+                children: [
+                  Card(
+                    child: Container(
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: BasicInfo.selectedlang == 'Ar'
+                                ? Radius.elliptical(500, 500)
+                                : Radius.circular(0),
+                            bottomRight: BasicInfo.selectedlang == 'En'
+                                ? Radius.elliptical(500, 500)
+                                : Radius.circular(0),
+                          ),
+                          gradient: LinearGradient(
+                              colors: BasicInfo.selectedmode == 'Light'
+                                  ? BasicInfo.selectedlang == 'Ar'
+                                      ? [e['color'], Colors.transparent]
+                                      : [
+                                          Colors.transparent,
+                                          e['color'],
+                                        ]
+                                  : BasicInfo.selectedlang == 'En'
+                                      ? [
+                                          Colors.transparent,
+                                          e['color'],
+                                        ]
+                                      : [e['color'], Colors.transparent])),
                     ),
                   ),
-                ),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Icon(
+                      e['icon'],
+                      size: e['iconsize'],
+                      color: ThemeMz.iconbuttonmzbc(),
+                      shadows: [
+                        BoxShadow(
+                            spreadRadius: 0.6,
+                            blurRadius: 0.9,
+                            offset: const Offset(1, 2),
+                            color: Colors.black)
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    left: BasicInfo.selectedlang == 'Ar' ? 0 : null,
+                    right: BasicInfo.selectedlang == 'Ar' ? null : 0,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        e['label'][BasicInfo.indexlang()],
+                        textAlign: TextAlign.end,
+                        style: ThemeMz.titlelargCairo(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       );
     }
 
@@ -577,6 +585,16 @@ class HomePage extends StatelessWidget {
     }
 
     if (BasicInfo.LogInInfo != null) {
+      List maincardlistvisibilty = [
+        DB.userinfotable[0]['users_privileges'][0]['admin'] == '1'
+            ? true
+            : false,
+        DB.userinfotable[0]['users_privileges'][0]['admin'] == '1'
+            ? true
+            : false,
+        true,
+        true
+      ];
       return GetBuilder<ThemeController>(
           init: themeController,
           builder: (_) => Directionality(
@@ -587,7 +605,7 @@ class HomePage extends StatelessWidget {
                         title: Directionality(
                           textDirection: TextDirection.ltr,
                           child: Text(
-                            "  <all>Ne ",
+                            "  a11 in 1 ",
                             textAlign: TextAlign.right,
                             style: ThemeMz.titlelargChanga(),
                           ),
@@ -606,52 +624,59 @@ class HomePage extends StatelessWidget {
                               Expanded(child: drawerwidget()),
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: GetBuilder<ThemeController>(
-                                  init: themeController,
-                                  builder: (_) => Row(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Text(
-                                          [
-                                            'اختيار اللغة',
-                                            'selected language'
-                                          ][BasicInfo.indexlang()],
-                                          style: const TextStyle(
-                                              fontFamily: 'Cairo'),
-                                        ),
+                                child: Row(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        [
+                                          'اختيار اللغة',
+                                          'selected language'
+                                        ][BasicInfo.indexlang()],
+                                        style: const TextStyle(
+                                            fontFamily: 'Cairo'),
                                       ),
-                                      DropdownButton(
-                                          value: selectedLang,
-                                          items: langs
-                                              .map((e) => DropdownMenuItem(
-                                                  value: e[1],
-                                                  child: Text("${e[1]}")))
-                                              .toList(),
-                                          onChanged: (x) =>
-                                              themeController.changelang(x)),
-                                    ],
-                                  ),
+                                    ),
+                                    DropdownButton(
+                                        value: selectedLang,
+                                        items: langs
+                                            .map((e) => DropdownMenuItem(
+                                                value: e[1],
+                                                child: Text("${e[1]}")))
+                                            .toList(),
+                                        onChanged: (x) =>
+                                            themeController.changelang(x)),
+                                  ],
                                 ),
                               )
                             ],
                           ),
                         ),
                       ),
-                      body: GridView(
-                          gridDelegate:
-                              SliverGridDelegateWithMaxCrossAxisExtent(
-                                  maxCrossAxisExtent: 300, mainAxisExtent: 150),
-                          children: [
-                            ...maincardslist
-                                .where((element) => element['visible'] == true)
-                                .map((e) {
-                              return Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: maincard(e: e),
-                              );
-                            })
-                          ])))));
+                      body: GetBuilder<DBController>(
+                        init: dbController,
+                        builder: (_) {
+                          for (var i in maincardslist) {
+                            i['visible'] =
+                                maincardlistvisibilty[maincardslist.indexOf(i)];
+                          }
+                          return GridView(
+                              gridDelegate:
+                                  SliverGridDelegateWithMaxCrossAxisExtent(
+                                      maxCrossAxisExtent: 300,
+                                      mainAxisExtent: 150),
+                              children: [
+                                ...maincardslist.where((element) {
+                                  return element['visible'] == true;
+                                }).map((e) {
+                                  return Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: maincard(e: e),
+                                  );
+                                })
+                              ]);
+                        },
+                      )))));
     } else {
       Future(() => Get.offAllNamed('/'));
       return const SizedBox();

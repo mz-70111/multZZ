@@ -4,6 +4,7 @@ import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:http/http.dart' as http;
 import 'package:mz_flutter_07/models/database.dart';
 import 'package:mz_flutter_07/models/lang_mode_theme.dart';
+import 'package:mz_flutter_07/views/login.dart';
 import 'package:mz_flutter_07/views/repare.dart';
 
 class DBController extends GetxController {

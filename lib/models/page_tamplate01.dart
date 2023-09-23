@@ -23,7 +23,8 @@ class PageTamplate01 extends StatelessWidget {
       required this.tablename, //table name like 'offices'
       this.chooseofficevisible = false,
       this.officechooselist, //offices list for choose
-      this.officenameclmname, //column name of office name for choose
+      this.officenameclm, //column name of office name for choose
+      this.itemnameclm,
       this.startdate,
       this.enddate,
       required this.setstartdate,
@@ -39,7 +40,7 @@ class PageTamplate01 extends StatelessWidget {
       required this.listofactionbuttonforadd, //list of buttom for add action
       required this.initial,
       required this.conditionofview});
-  final String? tablename, officenameclmname;
+  final String? tablename, officenameclm, itemnameclm;
   final List? table, officechooselist;
   final List<String> appbartitle, searchrangelist, addactiontitle;
   final List<Widget> addactionpages;
@@ -83,9 +84,10 @@ class PageTamplate01 extends StatelessWidget {
       searchcontroller.text = '';
       if (chooseofficevisible == true) {
         mainController.chooseoffice(
-            list: officechooselist,
-            x: selectedoffice,
-            officenameclmname: officenameclmname);
+          list: officechooselist,
+          x: selectedoffice,
+          officenameclm: officenameclm,
+        );
       }
       initial();
       return SafeArea(
@@ -146,10 +148,10 @@ class PageTamplate01 extends StatelessWidget {
                                           .toList(),
                                       onChanged: (x) {
                                         mainController.chooseoffice(
-                                            x: x,
-                                            list: officechooselist,
-                                            officenameclmname:
-                                                officenameclmname);
+                                          x: x,
+                                          list: officechooselist,
+                                          officenameclm: officenameclm,
+                                        );
                                       }),
                                 ),
                               ],

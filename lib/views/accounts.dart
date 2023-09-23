@@ -59,7 +59,8 @@ class Accounts extends StatelessWidget {
           'icon': Icons.visibility,
           'obscuretext': true,
           'hint': null,
-          'error': null
+          'error': null,
+          'type': 'pass'
         },
         {
           'label': ['تأكيد كلمة المرور', 'Confirm password'],
@@ -68,7 +69,8 @@ class Accounts extends StatelessWidget {
           'icon': Icons.visibility,
           'obscuretext': true,
           'hint': null,
-          'error': null
+          'error': null,
+          'type': 'pass'
         },
         {
           'label': ['هاتف', 'mobile'],
@@ -148,7 +150,7 @@ class Accounts extends StatelessWidget {
                 icon: w['icon'],
                 onchange: (x) => null,
                 hint: w['hint'],
-                action: w['hint'] != null
+                action: w['type'] == 'pass'
                     ? () => mainController.hideshowpass(
                         list: bodieslistofadd[0]['tf'], e: w)
                     : null,
@@ -1077,32 +1079,6 @@ class Accounts extends StatelessWidget {
           ),
         ),
       );
-    }
-
-    conditionofview(x) {
-      List officesthatuserinit = [], users = [];
-      for (var i in DB.allofficeinfotable[0]['users_priv_office']
-          .where((u) => u['upo_user_id'] == BasicInfo.LogInInfo![0])) {
-        if (i['showalltasks'] == '1') {
-          officesthatuserinit.clear();
-          users.clear();
-          for (var i in DB.allofficeinfotable[0]['users_priv_office'].where(
-              (o) =>
-                  BasicInfo.LogInInfo![0] == o['upo_user_id'] &&
-                  o['showalltasks'] == '1')) {
-            officesthatuserinit.add(i['upo_office_id']);
-          }
-          for (var i in DB.allusersinfotable[0]['users_priv_office']
-              .where((t) => officesthatuserinit.contains(t['upo_office_id']))) {
-            if (!users.contains(i['upo_user_id'])) {
-              users.add(i['upo_user_id']);
-            }
-          }
-          if (users.contains(x['user_id'])) return true;
-        } else {
-          if (x['user_id'] == BasicInfo.LogInInfo![0]) return true;
-        }
-      }
     }
 
     return GetBuilder<DBController>(

@@ -152,7 +152,8 @@ foreign key (createby_id) references users(user_id),
 createdate TIMESTAMP NULL DEFAULT NULL,
 editby_id int(11),
 foreign key (editby_id) references users(user_id),
-editdate TIMESTAMP NULL DEFAULT NULL
+editdate TIMESTAMP NULL DEFAULT NULL,
+lastsend TIMESTAMP NULL DEFAULT NULL
 );
 ''',
     '''
@@ -164,6 +165,11 @@ remind_d_id int(11),
 foreign key (remind_d_id) references remind(remind_id)
 );
     ''',
+    '''
+    create table if not exists dailysend
+(
+  dailysend remind tinyint(1) default 0
+)''',
     '''
 create table if not exists notification
 (

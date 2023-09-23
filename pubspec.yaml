@@ -41,6 +41,7 @@ dependencies:
   shared_preferences: ^2.2.1
   intl: ^0.18.1
   url_launcher: ^6.1.14
+  teledart: ^0.6.1
 
 dev_dependencies:
   flutter_test:

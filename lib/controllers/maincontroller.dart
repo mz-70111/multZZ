@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_connect/http/src/utils/utils.dart';
@@ -15,6 +17,14 @@ import 'package:mz_flutter_07/views/offices.dart';
 import 'package:mz_flutter_07/views/remind.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart' as df;
+import 'package:teledart/teledart.dart';
+import 'package:teledart/telegram.dart';
+import 'dart:io' show Platform;
+// import 'dart:io' as io;
+
+import 'package:teledart/teledart.dart';
+import 'package:teledart/telegram.dart';
+import 'package:teledart/model.dart';
 
 class MainController extends GetxController {
   codepassword({required String word}) {
@@ -359,7 +369,7 @@ class MainController extends GetxController {
     update();
   }
 
-  adddaytoalert({ctx, list}) async {
+  adddaytoalert({ctx, required List<DateTime> list}) async {
     var d = await showDatePicker(
         context: ctx,
         initialDate: DateTime.now(),
@@ -367,7 +377,7 @@ class MainController extends GetxController {
         lastDate: DateTime.parse("2024-01-01"));
     if (d != null) {
       if (!list.contains(df.DateFormat("yyyy-MM-dd").format(d))) {
-        list.add(df.DateFormat("yyyy-MM-dd").format(d));
+        list.add(d);
       }
     }
 
@@ -400,7 +410,7 @@ class MainController extends GetxController {
     update();
   }
 
-  chooseoffice({list, officenameclmname, x}) {
+  chooseoffice({list, officenameclm, x}) {
     PageTamplate01.selectedoffice = x;
     for (var i in list) {
       i['visible'] = false;
@@ -412,23 +422,19 @@ class MainController extends GetxController {
     } else {
       List elementatoffice = [];
       elementatoffice.clear();
-      for (var j in list.where((o) => o['officename'] == x)) {
-        elementatoffice.add(j[officenameclmname]);
+      for (var j in list.where((u) =>
+          u[officenameclm] ==
+          DB.allofficeinfotable[0]['offices']
+              .where((element) => element['officename'] == x)
+              .toList()[0]['office_id'])) {
+        elementatoffice.add(j[officenameclm]);
       }
-      print(elementatoffice);
-      for (var i in DB.allofficeinfotable[0]['offices']
-          .where((o) => o['officename'] == x)) {
-        if (elementatoffice.contains(i['office_id'])) {
+
+      for (var i in list) {
+        if (elementatoffice.contains(i[officenameclm])) {
           i['visible'] = true;
         }
       }
-      //   usersatoffice.add(i[officenameclmname]);
-      // }
-      // for (var i in list) {
-      //   if (usersatoffice.contains(i['user_id'])) {
-      //     i['visible'] = true;
-      //   }
-      // }
     }
 
     try {
@@ -811,50 +817,18 @@ insert into logs(log,logdate)values
     update();
   }
 
-  addremind({inerlist, val, dateslist, officeslistandindex}) async {
+  addremind(
+      {inerlist,
+      required List<DateTime> dateslist,
+      officeslistandindex}) async {
     inerlist[0]['error'] = null;
     inerlist[1]['error'] = null;
     inerlist[2]['error'] = null;
     DateTime? reminddate;
     Lang.mainerrormsg = null;
     Remind.bodieslistofadd[0]['tf'][0]['error'] = null;
-    List queries = [
-      '''
-insert into remind(
-remindname,
-reminddetails,
-remind_office_id,
-notifi,
-type,certsrc,sendalertbefor,repeate,reminddate,createby_id,createdate)values
-('${Remind.remindnamecontroller.text.trim()}',
-'${Remind.reminddetailscontroller.text.trim()}',
-'${DB.allofficeinfotable[0]['offices'].where((element) => element['officename'] == officeslistandindex).toList()[0]['office_id']}',
-"${Remind.bodieslistofadd[0]['notifi'] == true ? '1' : '0'}",
-'${Remind.bodieslistofadd[1]['details'][0]['type']['group'][1]}',
-'${Remind.bodieslistofadd[1]['details'][0]['type']['group'][1] == 'auto' ? inerlist[0]['controller'].text : 'null'}',
-'${inerlist[1]['controller'].text}',
-'${inerlist[2]['controller'].text}',
-${reminddate != null ? df.DateFormat("yyyy-MM-dd").format(reminddate) : 'null'},
-${BasicInfo.LogInInfo![0]},
-'${df.DateFormat("yyyy-MM-dd HH:mm").format(DateTime.now())}'
-);
-''',
-    ];
-    if (Remind.bodieslistofadd[1]['details'][0]['type']['group'][1] != 'auto') {
-      for (var i in dateslist) {
-        queries.add('''
-insert into reminddates(remind_d_id,rdate)values
- ((select max(remind_id) from remind),
- '$i'
-);
-''');
-      }
-    }
-    queries.add('''
-insert into logs(log,logdate)values
-("${BasicInfo.LogInInfo![1]} add a new Remind _name: remindname ${Remind.remindnamecontroller.text}",
-"${DateTime.now()}");
-      ''');
+    List queries = [];
+
     if (Remind.remindnamecontroller.text.trim().isEmpty) {
       Remind.bodieslistofadd[0]['tf'][0]['error'] =
           Lang.errormsgs['emptyname-check'][BasicInfo.indexlang()];
@@ -865,8 +839,7 @@ insert into logs(log,logdate)values
     } else if ((Remind.bodieslistofadd[1]['details'][0]['type']['group']
                     [BasicInfo.indexlang()] ==
                 'auto' ||
-            Remind.bodieslistofadd[1]['details'][0]['type']['group']
-                    [BasicInfo.indexlang()] ==
+            Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] ==
                 'تلقائي') &&
         inerlist[0]['controller'].text.isEmpty) {
       inerlist[0]['error'] =
@@ -877,6 +850,15 @@ insert into logs(log,logdate)values
       Remind.maintitlesdialogMz01[1]['selected'] = true;
     } else if ((Remind.bodieslistofadd[1]['details'][0]['type']['group']
                     [BasicInfo.indexlang()] ==
+                'auto' ||
+            Remind.bodieslistofadd[1]['details'][0]['type']['group']
+                    [BasicInfo.indexlang()] ==
+                'تلقائي') &&
+        !inerlist[0]['controller'].text.toString().startsWith("https://")) {
+      inerlist[0]['controller'].text =
+          'https://${inerlist[0]['controller'].text}';
+    } else if ((Remind.bodieslistofadd[1]['details'][0]['type']['group']
+                    [BasicInfo.indexlang()] ==
                 'manual' ||
             Remind.bodieslistofadd[1]['details'][0]['type']['group']
                     [BasicInfo.indexlang()] ==
@@ -884,17 +866,91 @@ insert into logs(log,logdate)values
         dateslist.isEmpty) {
       Lang.mainerrormsg =
           Lang.errormsgs['emptydays-check'][BasicInfo.indexlang()];
-
       for (var i in Remind.maintitlesdialogMz01) {
         i['selected'] = false;
       }
       Remind.maintitlesdialogMz01[1]['selected'] = true;
-    } else if (inerlist[1]['error'] != null || inerlist[1]['error'] != null) {
+    } else if (inerlist[1]['error'] != null) {
       Lang.mainerrormsg = inerlist[1]['error'];
     } else {
       Remind.listofactionbuttonforadd[0]['visible'] = false;
       Remind.listofactionbuttonforadd[2]['visible'] = true;
       update();
+
+      if (Remind.bodieslistofadd[1]['details'][0]['type']['group']
+                  [BasicInfo.indexlang()] ==
+              'auto' ||
+          Remind.bodieslistofadd[1]['details'][0]['type']['group']
+                  [BasicInfo.indexlang()] ==
+              'تلقائي') {
+        reminddate = await setreminddate(
+            type: 'auto', host: inerlist[0]['controller'].text);
+      } else {
+        reminddate = await setreminddate(type: 'manual', dateslist: dateslist);
+      }
+
+      queries.add(reminddate == null
+          ? '''
+insert into remind(
+remindname,
+reminddetails,
+remind_office_id,
+notifi,
+type,certsrc,sendalertbefor,repeate,reminddate,createby_id,createdate)values
+('${Remind.remindnamecontroller.text.trim()}',
+'${Remind.reminddetailscontroller.text.trim()}',
+'${DB.allofficeinfotable[0]['offices'].where((element) => element['officename'] == officeslistandindex).toList()[0]['office_id']}',
+"${Remind.bodieslistofadd[0]['notifi'] == true ? '1' : '0'}",
+'${Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'auto' || Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'تلقائي' ? 'auto' : 'manual'}',
+'${Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'auto' || Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'تلقائي' ? inerlist[0]['controller'].text : 'null'}',
+'${inerlist[1]['controller'].text}',
+'${inerlist[2]['controller'].text}',
+null,
+${BasicInfo.LogInInfo![0]},
+'${(DateTime.now())}'
+);
+'''
+          : '''
+insert into remind(
+remindname,
+reminddetails,
+remind_office_id,
+notifi,
+type,certsrc,sendalertbefor,repeate,reminddate,createby_id,createdate)values
+('${Remind.remindnamecontroller.text.trim()}',
+'${Remind.reminddetailscontroller.text.trim()}',
+'${DB.allofficeinfotable[0]['offices'].where((element) => element['officename'] == officeslistandindex).toList()[0]['office_id']}',
+"${Remind.bodieslistofadd[0]['notifi'] == true ? '1' : '0'}",
+'${Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'auto' || Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'تلقائي' ? 'auto' : 'manual'}',
+'${Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'auto' || Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'تلقائي' ? inerlist[0]['controller'].text : 'null'}',
+'${inerlist[1]['controller'].text}',
+'${inerlist[2]['controller'].text}',
+'$reminddate',
+${BasicInfo.LogInInfo![0]},
+'${(DateTime.now())}'
+);
+''');
+      if (Remind.bodieslistofadd[1]['details'][0]['type']['group']
+                  [BasicInfo.indexlang()] ==
+              'manual' ||
+          Remind.bodieslistofadd[1]['details'][0]['type']['group']
+                  [BasicInfo.indexlang()] ==
+              'يدوي') {
+        dateslist.sort((a, b) => a.toString().compareTo(b.toString()));
+        for (var i in dateslist) {
+          queries.add('''
+insert into reminddates(remind_d_id,rdate)values
+ ((select max(remind_id) from remind),
+ '$i'
+);
+''');
+        }
+      }
+      queries.add('''
+insert into logs(log,logdate)values
+("${BasicInfo.LogInInfo![1]} add a new Remind _name: remindname ${Remind.remindnamecontroller.text}",
+"${DateTime.now()}");
+      ''');
       try {
         l:
         for (var q in queries) {
@@ -918,10 +974,9 @@ insert into logs(log,logdate)values
           }
         }
         if (Lang.mainerrormsg == null) {
-          DB.allofficeinfotable = await DBController().getallofficeinfo();
-          DB.userinfotable =
-              await DBController().getuserinfo(userid: BasicInfo.LogInInfo![0]);
+          DB.allremindinfotable = await DBController().getallremindinfo();
           DB.allusersinfotable = await DBController().getallusersinfo();
+          DB.allofficeinfotable = await DBController().getallofficeinfo();
           dbController.update();
           Get.back();
         }
@@ -932,6 +987,247 @@ insert into logs(log,logdate)values
     }
     Remind.listofactionbuttonforadd[0]['visible'] = true;
     Remind.listofactionbuttonforadd[2]['visible'] = false;
+    update();
+  }
+
+  updateremind(
+      {inerlist,
+      remindid,
+      required List<DateTime> dateslist,
+      officeslistandindex}) async {
+    inerlist[0]['error'] = null;
+    inerlist[1]['error'] = null;
+    inerlist[2]['error'] = null;
+    DateTime? reminddate;
+    Lang.mainerrormsg = null;
+    Remind.bodieslistofadd[0]['tf'][0]['error'] = null;
+    List queries = [];
+
+    if (Remind.remindnamecontroller.text.trim().isEmpty) {
+      Remind.bodieslistofadd[0]['tf'][0]['error'] =
+          Lang.errormsgs['emptyname-check'][BasicInfo.indexlang()];
+      for (var i in Remind.maintitlesdialogMz01) {
+        i['selected'] = false;
+      }
+      Remind.maintitlesdialogMz01[0]['selected'] = true;
+    } else if ((Remind.bodieslistofadd[1]['details'][0]['type']['group']
+                    [BasicInfo.indexlang()] ==
+                'auto' ||
+            Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] ==
+                'تلقائي') &&
+        inerlist[0]['controller'].text.isEmpty) {
+      inerlist[0]['error'] =
+          Lang.errormsgs['emptycert-check'][BasicInfo.indexlang()];
+      for (var i in Remind.maintitlesdialogMz01) {
+        i['selected'] = false;
+      }
+      Remind.maintitlesdialogMz01[1]['selected'] = true;
+    } else if ((Remind.bodieslistofadd[1]['details'][0]['type']['group']
+                    [BasicInfo.indexlang()] ==
+                'auto' ||
+            Remind.bodieslistofadd[1]['details'][0]['type']['group']
+                    [BasicInfo.indexlang()] ==
+                'تلقائي') &&
+        !inerlist[0]['controller'].text.toString().startsWith("https://")) {
+      inerlist[0]['controller'].text =
+          'https://${inerlist[0]['controller'].text}';
+    } else if ((Remind.bodieslistofadd[1]['details'][0]['type']['group']
+                    [BasicInfo.indexlang()] ==
+                'manual' ||
+            Remind.bodieslistofadd[1]['details'][0]['type']['group']
+                    [BasicInfo.indexlang()] ==
+                'يدوي') &&
+        dateslist.isEmpty) {
+      Lang.mainerrormsg =
+          Lang.errormsgs['emptydays-check'][BasicInfo.indexlang()];
+      for (var i in Remind.maintitlesdialogMz01) {
+        i['selected'] = false;
+      }
+      Remind.maintitlesdialogMz01[1]['selected'] = true;
+    } else if (inerlist[1]['error'] != null) {
+      Lang.mainerrormsg = inerlist[1]['error'];
+    } else {
+      Remind.listofactionbuttonforedit[0]['visible'] = false;
+      Remind.listofactionbuttonforedit[2]['visible'] = true;
+      update();
+
+      if (Remind.bodieslistofadd[1]['details'][0]['type']['group']
+                  [BasicInfo.indexlang()] ==
+              'auto' ||
+          Remind.bodieslistofadd[1]['details'][0]['type']['group']
+                  [BasicInfo.indexlang()] ==
+              'تلقائي') {
+        reminddate = await setreminddate(
+            type: 'auto', host: inerlist[0]['controller'].text);
+      } else {
+        reminddate = await setreminddate(type: 'manual', dateslist: dateslist);
+      }
+
+      queries.add(reminddate == null
+          ? '''
+update remind set
+remindname='${Remind.remindnamecontroller.text.trim()}',
+reminddetails='${Remind.reminddetailscontroller.text.trim()}',
+remind_office_id='${DB.allofficeinfotable[0]['offices'].where((element) => element['officename'] == officeslistandindex).toList()[0]['office_id']}',
+notifi="${Remind.bodieslistofadd[0]['notifi'] == true ? '1' : '0'}",
+type='${Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'auto' || Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'تلقائي' ? 'auto' : 'manual'}',
+certsrc='${Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'auto' || Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'تلقائي' ? inerlist[0]['controller'].text : 'null'}',
+sendalertbefor='${inerlist[1]['controller'].text}',
+repeate='${inerlist[2]['controller'].text}',
+reminddate=null,
+editby_id=${BasicInfo.LogInInfo![0]},
+editdate='${(DateTime.now())}'
+where remind_id=$remindid;
+'''
+          : '''
+update remind set
+remindname='${Remind.remindnamecontroller.text.trim()}',
+reminddetails='${Remind.reminddetailscontroller.text.trim()}',
+remind_office_id='${DB.allofficeinfotable[0]['offices'].where((element) => element['officename'] == officeslistandindex).toList()[0]['office_id']}',
+notifi="${Remind.bodieslistofadd[0]['notifi'] == true ? '1' : '0'}",
+type='${Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'auto' || Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'تلقائي' ? 'auto' : 'manual'}',
+certsrc='${Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'auto' || Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'تلقائي' ? inerlist[0]['controller'].text : 'null'}',
+sendalertbefor='${inerlist[1]['controller'].text}',
+repeate='${inerlist[2]['controller'].text}',
+reminddate='$reminddate',
+editby_id=${BasicInfo.LogInInfo![0]},
+editdate='${(DateTime.now())}'
+where remind_id=$remindid;
+''');
+      queries.add('''
+delete from reminddates where remind_d_id=$remindid;
+''');
+      if (Remind.bodieslistofadd[1]['details'][0]['type']['group']
+                  [BasicInfo.indexlang()] ==
+              'manual' ||
+          Remind.bodieslistofadd[1]['details'][0]['type']['group']
+                  [BasicInfo.indexlang()] ==
+              'يدوي') {
+        dateslist.sort((a, b) => a.toString().compareTo(b.toString()));
+        for (var i in dateslist) {
+          queries.add('''
+insert into reminddates(remind_d_id,rdate)values
+ ($remindid,
+ '$i'
+);
+''');
+        }
+      }
+      queries.add('''
+insert into logs(log,logdate)values
+("${BasicInfo.LogInInfo![1]} add a new Remind _name: remindname ${Remind.remindnamecontroller.text}",
+"${DateTime.now()}");
+      ''');
+      try {
+        l:
+        for (var q in queries) {
+          await DBController()
+              .requestpost(type: 'curd', data: {'customquery': '$q'});
+          {
+            if (Lang.mainerrormsg != null) {
+              if (Lang.mainerrormsg!.contains("Duplicate")) {
+                Lang.mainerrormsg = Remind.bodieslistofadd[0]['tf'][0]
+                        ['error'] =
+                    "${Remind.remindnamecontroller.text} ${Lang.errormsgs['duplicate'][BasicInfo.indexlang()]}";
+                for (var i in Remind.maintitlesdialogMz01) {
+                  i['selected'] = false;
+                }
+                Remind.maintitlesdialogMz01[0]['selected'] = true;
+              } else {
+                Lang.mainerrormsg = Lang.mainerrormsg;
+              }
+              break l;
+            }
+          }
+        }
+        if (Lang.mainerrormsg == null) {
+          DB.allremindinfotable = await DBController().getallremindinfo();
+          DB.allusersinfotable = await DBController().getallusersinfo();
+          DB.allofficeinfotable = await DBController().getallofficeinfo();
+          dbController.update();
+          Get.back();
+        }
+      } catch (e) {
+        Lang.mainerrormsg =
+            Lang.errormsgs['server-error'][BasicInfo.indexlang()];
+      }
+    }
+    Remind.listofactionbuttonforedit[0]['visible'] = true;
+    Remind.listofactionbuttonforedit[2]['visible'] = false;
+    update();
+  }
+
+  disableenablenotifiremind({remindid, list, listvisible, val}) async {
+    String status = DB.allremindinfotable[0]['remind']
+        .where((u) => u['remind_id'] == remindid)
+        .toList()[0]['notifi'];
+    String remindname = DB.allremindinfotable[0]['remind']
+        .where((u) => u['remind_id'] == remindid)
+        .toList()[0]['remindname'];
+    List queries = [
+      status == '1'
+          ? '''
+update remind set notifi=0 where remind_id=$remindid;
+'''
+          : '''
+update remind set notifi=1 where remind_id=$remindid;
+''',
+      '''
+insert into logs(log,logdate)values
+("${BasicInfo.LogInInfo![1]} ${status == '1' ? "disable notifi of remind remindname $remindname" : "enable notifi of remind remindname $remindname"}",
+"${DateTime.now()}");
+'''
+    ];
+    list[val] = false;
+    listvisible[val] = true;
+    update();
+    try {
+      for (var q in queries) {
+        await DBController()
+            .requestpost(type: 'curd', data: {'customquery': '$q'});
+      }
+      DB.allremindinfotable = await DBController().getallremindinfo();
+    } catch (e) {}
+    list[val] = true;
+    listvisible[val] = false;
+    dbController.update();
+    update();
+  }
+
+  removeremind({remindid, list}) async {
+    String remindname = DB.allremindinfotable[0]['remind'][DB
+        .allremindinfotable[0]['remind']
+        .indexWhere((r) => r['remind_id'] == remindid)]['remindname'];
+    List queries = [
+      '''
+delete from reminddates where remind_d_id=$remindid;
+''',
+      '''
+delete from remind where remind_id=$remindid;
+''',
+      '''
+insert into logs(log,logdate)values
+("${BasicInfo.LogInInfo![1]} delete remind _remindname $remindname",
+"${DateTime.now()}");
+      ''',
+    ];
+    list[0]['visible'] = false;
+    list[2]['visible'] = true;
+    update();
+    try {
+      for (var q in queries) {
+        await DBController()
+            .requestpost(type: 'curd', data: {'customquery': '$q'});
+      }
+      list[0]['visible'] = true;
+      list[2]['visible'] = false;
+      DB.allremindinfotable = await DBController().getallremindinfo();
+      dbController.update();
+      Get.back();
+    } catch (e) {
+      null;
+    }
+
     update();
   }
 
@@ -1318,7 +1614,7 @@ insert into logs(log,logdate)values
   removeaccount({userid, list}) async {
     String username = DB.allusersinfotable[0]['users'][DB.allusersinfotable[0]
             ['users']
-        .indexWhere((r) => r['user_id'] == userid)]['user_id'];
+        .indexWhere((r) => r['user_id'] == userid)]['username'];
     List queries = [
       '''
 update tasks set createby_id=null where createby_id=$userid;
@@ -1389,5 +1685,131 @@ insert into logs(log,logdate)values
     }
 
     update();
+  }
+
+  getCert({required String host}) async {
+    await Process.run('Powershell.exe', [
+      '''
+    Set-ItemProperty -Path "HKCU:\\Control Panel\\International" -Name sShortDate -Value "yyyy/MM/dd";
+    '''
+    ]);
+
+    var getExpiredate = await Process.run('Powershell.exe', [
+      '''
+# Ignore SSL Warning
+[Net.ServicePointManager]::ServerCertificateValidationCallback = { \$true }
+# Create Web Http request to URI
+\$webRequest = [Net.HttpWebRequest]::Create("$host")
+# Retrieve the Information for URI
+\$webRequest.GetResponse() | Out-NULL
+# Get SSL Certificate Expiration Date
+\$webRequest.ServicePoint.Certificate.GetExpirationDateString()
+'''
+    ]);
+    DateTime? result;
+    String? r;
+    try {
+      r = getExpiredate.stdout;
+      r = r!.substring(0, r.indexOf(' '));
+      r = r.replaceAll('/', '-');
+      result = DateTime.parse(r);
+    } catch (r) {
+      return null;
+    }
+    return result;
+  }
+
+  setreminddate({type, host, dateslist}) async {
+    DateTime? reminddate;
+    if (type == 'auto') {
+      reminddate = await getCert(host: host);
+
+      // print(reminddate);
+    } else {
+      l:
+      for (var i in dateslist) {
+        if (i.difference(DateTime.now()).inDays >= 0) {
+          reminddate = i;
+          break l;
+        }
+      }
+      // print(dateslist);
+      // print(reminddate);
+    }
+
+    return reminddate;
+  }
+
+  calcreminddateasint({e}) {
+    int? result;
+    if (e['reminddate'] == null) {
+      result = null;
+    } else {
+      result = (DateTime.parse(e['reminddate']).difference(DateTime.now()
+              .add(Duration(days: int.parse(e['sendalertbefor'])))))
+          .inDays;
+    }
+    return result;
+  }
+
+  calcexpiredateasint({e}) {
+    int? result;
+    if (e['reminddate'] == null) {
+      result = null;
+    } else {
+      result =
+          (DateTime.parse(e['reminddate']).difference(DateTime.now())).inDays;
+    }
+    return result;
+  }
+
+  calcreminddate({e}) {
+    String? result;
+    if (e['reminddate'] == null) {
+      result = ['غير محدد', 'not defined'][BasicInfo.indexlang()];
+    } else {
+      int days = (DateTime.parse(e['reminddate']).difference(DateTime.now()
+              .add(Duration(days: int.parse(e['sendalertbefor'])))))
+          .inDays;
+      if (days > 0) {
+        result = ['$days يوم', '$days days'][BasicInfo.indexlang()];
+      } else if (days == 0) {
+        int hours = 24 +
+            ((DateTime.parse(e['reminddate']).difference(DateTime.now()
+                    .add(Duration(days: int.parse(e['sendalertbefor'])))))
+                .inHours);
+        result = ['$hours ساعة', '$hours hour'][BasicInfo.indexlang()];
+      } else {
+        result = [
+          'منتهية منذ $days يوم',
+          'expire from $days days'
+        ][BasicInfo.indexlang()];
+      }
+    }
+    return result;
+  }
+
+  calcexpiredate({e}) {
+    String? result;
+    if (e['reminddate'] == null) {
+      result = ['غير محدد', 'not defined'][BasicInfo.indexlang()];
+    } else {
+      int days =
+          (DateTime.parse(e['reminddate']).difference(DateTime.now())).inDays;
+      if (days > 0) {
+        result = ['$days يوم', '$days days'][BasicInfo.indexlang()];
+      } else if (days == 0) {
+        int hours = 24 +
+            ((DateTime.parse(e['reminddate']).difference(DateTime.now()))
+                .inHours);
+        result = ['$hours ساعة', '$hours hour'][BasicInfo.indexlang()];
+      } else {
+        result = [
+          'منتهية منذ $days يوم',
+          'expire from $days days'
+        ][BasicInfo.indexlang()];
+      }
+    }
+    return result;
   }
 }
