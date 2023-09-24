@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:http/http.dart' as http;
@@ -6,15 +8,129 @@ import 'package:mz_flutter_07/models/database.dart';
 import 'package:mz_flutter_07/models/lang_mode_theme.dart';
 import 'package:mz_flutter_07/views/login.dart';
 import 'package:mz_flutter_07/views/repare.dart';
+import 'package:teledart/teledart.dart';
+import 'package:teledart/telegram.dart';
+import 'package:teledart/util.dart';
 
 class DBController extends GetxController {
   @override
   void onInit() async {
     super.onInit();
+
     try {
       await DB().createtables();
     } catch (e) {}
+
+    autosendreminddaily();
+    sendalertremind();
     update();
+  }
+
+  autosendreminddaily() async {
+    Stream stream = Stream.periodic(Duration(seconds: 120), (x) => x++);
+
+    DB.allremindinfotable = await getallremindinfo();
+    for (var i in DB.allremindinfotable[0]['remind']) {
+      List dateslist = [];
+      if (i['type'] != 'auto') {
+        dateslist.addAll(DB.allremindinfotable[0]['reminddates']
+            .where((d) => d['remind_d_id'] == i['remind_id'])
+            .toList()
+            .map((t) => DateTime.parse(t['rdate']))
+            .toList());
+      }
+      mainController.setreminddate(
+          type: i['type'], host: i['certsrc'], dateslist: dateslist);
+    }
+    stream.listen((event) async {
+      if (DateTime.now().hour == 13) {
+        if (DB.allremindinfotable[0]['dailysend'][0]['dailysend_remind'] ==
+            '0') {
+          for (var j in DB.allofficeinfotable[0]['offices']) {
+            if (j['notifi'] == '1') {
+              String notifiall = '';
+              notifiall = '';
+              for (var i in DB.allremindinfotable[0]['remind']
+                  .where((n) => n['remind_office_id'] == j['office_id'])) {
+                notifiall += '''
+${i['remindname']}
+${i['reminddetails']}
+المدة المتبقية لانتهاء المدة المحددة ${mainController.calcexpiredate(e: i)}
+------------------------
+''';
+              }
+
+              try {
+                String? username =
+                    (await Telegram(j['apitoken']).getMe()).username;
+                if (username != null) {
+                  await TeleDart(j['apitoken'], Event(''))
+                      .sendMessage(j['chatid'], notifiall);
+                }
+              } catch (y) {
+                print(y);
+              }
+            }
+          }
+          try {
+            await requestpost(type: 'curd', data: {
+              'customquery': 'update dailysend set dailysend_remind=1;'
+            });
+            DB.allremindinfotable = await getallremindinfo();
+          } catch (o) {}
+        }
+      } else {
+        try {
+          await requestpost(type: 'curd', data: {
+            'customquery': 'update dailysend set dailysend_remind=0;'
+          });
+        } catch (t) {}
+      }
+    });
+  }
+
+  sendalertremind() async {
+    DB.allofficeinfotable = await getallofficeinfo();
+    DB.allremindinfotable = await getallremindinfo();
+    for (var k in DB.allremindinfotable[0]['remind']) {
+      int? y = mainController.calcreminddateasint(e: k);
+      if (y != null) {
+        if (y <= int.parse(k['sendalertbefor'])) {
+          Stream stream = Stream.periodic(
+              Duration(seconds: int.parse(k['repeate'])), (x) => x++);
+          stream.listen((event) async {
+            DB.allofficeinfotable = await getallofficeinfo();
+            DB.allremindinfotable = await getallremindinfo();
+            if (k['notifi'] == '1' &&
+                DB.allofficeinfotable[0]['offices']
+                        .where((o) => o['office_id'] == k['remind_office_id'])
+                        .toList()[0]['notifi'] ==
+                    '1') {
+              String token = DB.allofficeinfotable[0]['offices']
+                  .where((o) => o['office_id'] == k['remind_office_id'])
+                  .toList()[0]['apitoken'];
+              String chat = DB.allofficeinfotable[0]['offices']
+                  .where((o) => o['office_id'] == k['remind_office_id'])
+                  .toList()[0]['chatid'];
+              String alertmsg;
+              alertmsg = '';
+              alertmsg = '''
+${k['remindname']}
+${k['reminddetails']}
+المدة المتبقية لانتهاء المدة المحددة ${mainController.calcexpiredate(e: k)}
+${DateTime.now()}
+''';
+              try {
+                String? username = (await Telegram(token).getMe()).username;
+                if (username != null) {
+                  await TeleDart(token, Event('')).sendMessage(chat, alertmsg);
+                }
+              } catch (y) {}
+            }
+          });
+        }
+      }
+    }
   }
 
   requestpost({type, data}) async {
@@ -127,9 +243,15 @@ class DBController extends GetxController {
   }
 
   getallremindinfo() async {
-    return await gettableinfo(
-        tablesname: ['remind', 'reminddates'],
-        infoqueries: ['select * from remind;', 'select * from reminddates;']);
+    return await gettableinfo(tablesname: [
+      'remind',
+      'reminddates',
+      'dailysend'
+    ], infoqueries: [
+      'select * from remind;',
+      'select * from reminddates;',
+      'select * from dailysend;'
+    ]);
   }
 
   changpass({userid, password}) async {

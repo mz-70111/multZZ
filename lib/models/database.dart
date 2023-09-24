@@ -168,7 +168,8 @@ foreign key (remind_d_id) references remind(remind_id)
     '''
     create table if not exists dailysend
 (
-  dailysend remind tinyint(1) default 0
+  d_id int(11) unique primary key,
+  dailysend_remind tinyint(1) default 0
 )''',
     '''
 create table if not exists notification
@@ -235,6 +236,9 @@ insert into users(user_id,username,fullname,password)values(1,'admin','Admin','$
 ''',
     '''
 insert into users_privileges(up_id,up_user_id,admin)values(1,1,1);
+''',
+    '''
+insert into dailysend(d_id,dailysend_remind)values(1,0);
 '''
   ];
   createtables() async {

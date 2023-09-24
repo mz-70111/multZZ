@@ -1141,9 +1141,10 @@ insert into logs(log,logdate)values
           }
         }
         if (Lang.mainerrormsg == null) {
-          DB.allremindinfotable = await DBController().getallremindinfo();
+          
           DB.allusersinfotable = await DBController().getallusersinfo();
           DB.allofficeinfotable = await DBController().getallofficeinfo();
+          DB.allremindinfotable = await DBController().getallremindinfo();
           dbController.update();
           Get.back();
         }
@@ -1186,11 +1187,17 @@ insert into logs(log,logdate)values
         await DBController()
             .requestpost(type: 'curd', data: {'customquery': '$q'});
       }
-      DB.allremindinfotable = await DBController().getallremindinfo();
-    } catch (e) {}
+  DB.allusersinfotable = await DBController().getallusersinfo();
+          DB.allofficeinfotable = await DBController().getallofficeinfo();
+          DB.allremindinfotable = await DBController().getallremindinfo();
+      dbController.update();
+     
+    } catch (e) {
+      print(e);
+    }
     list[val] = true;
     listvisible[val] = false;
-    dbController.update();
+
     update();
   }
 
@@ -1745,9 +1752,11 @@ insert into logs(log,logdate)values
     if (e['reminddate'] == null) {
       result = null;
     } else {
-      result = (DateTime.parse(e['reminddate']).difference(DateTime.now()
-              .add(Duration(days: int.parse(e['sendalertbefor'])))))
-          .inDays;
+      try {
+        result = (DateTime.parse(e['reminddate']).difference(DateTime.now()
+                .add(Duration(days: int.parse(e['sendalertbefor'])))))
+            .inDays;
+      } catch (e) {}
     }
     return result;
   }

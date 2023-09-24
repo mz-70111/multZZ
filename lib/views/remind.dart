@@ -320,8 +320,7 @@ class Remind extends StatelessWidget {
         remindbeforcontroller.text = e['sendalertbefor'];
         remindrepeateeverycontroller.text = e['repeate'];
         certsrccontroller.text = e['certsrc'];
-        bodieslistofadd[0]['notif'] = e['notifi'] == '1' ? true : false;
-
+        bodieslistofadd[0]['notifi'] = e['notifi'] == '1' ? true : false;
         bodieslistofadd[1]['details'][0]['type']['group'] =
             e['type'] == 'auto' ? ['تلقائي', 'auto'] : ['يدوي', 'manual'];
         if (e['type'] != 'auto') {
@@ -470,13 +469,15 @@ class Remind extends StatelessWidget {
                   ),
                 );
               }),
-          (e) => mainController.disableenablenotifiremind(
-              remindid: e['remind_id'],
-              list: easyeditlist[DB.allremindinfotable[0]['remind']
-                  .indexWhere((u) => u['remind_id'] == e['remind_id'])][1],
-              listvisible: easyeditlist[DB.allremindinfotable[0]['remind']
-                  .indexWhere((u) => u['remind_id'] == e['remind_id'])][3],
-              val: 'visible'),
+          (e) {
+            return mainController.disableenablenotifiremind(
+                remindid: e['remind_id'],
+                list: easyeditlist[DB.allremindinfotable[0]['remind']
+                    .indexWhere((u) => u['remind_id'] == e['remind_id'])][1],
+                listvisible: easyeditlist[DB.allremindinfotable[0]['remind']
+                    .indexWhere((u) => u['remind_id'] == e['remind_id'])][3],
+                val: 'visible');
+          },
           (e) {
             Lang.mainerrormsg = null;
             initialofdialog(e: e);
@@ -675,8 +676,21 @@ class Remind extends StatelessWidget {
                         child: Text("${[
                           'تم إنشاءها بواسطة',
                           'created by'
-                        ][BasicInfo.indexlang()]} ${e['createby_id'] != null ? DB.allusersinfotable[0]['users'].where((u) => u['user_id'] == e['createby_id']).toList()[0]['fullname'] : "حساب محذوف"}")),
+                        ][BasicInfo.indexlang()]} ${e['createby_id'] != null ? DB.allusersinfotable[0]['users'].where((u) => u['user_id'] == e['createby_id']).toList()[0]['fullname'] : "حساب محذوف"} _${e['createdate']}")),
                   ],
+                ),
+                Visibility(
+                  visible: e['editdate'] != null ? true : false,
+                  child: Row(
+                    children: [
+                      Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text("${[
+                            'تم تعديلها آخر مرة بواسطة',
+                            'last edit by'
+                          ][BasicInfo.indexlang()]} ${e['editby_id'] != null ? DB.allusersinfotable[0]['users'].where((u) => u['user_id'] == e['editby_id']).toList()[0]['fullname'] : "حساب محذوف"} _${e['editdate']}")),
+                    ],
+                  ),
                 ),
                 Divider(),
               ],
