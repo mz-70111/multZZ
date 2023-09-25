@@ -740,30 +740,34 @@ class Offices extends StatelessWidget {
                   GetBuilder<MainController>(
                     init: mainController,
                     builder: (_) {
-                      return Row(
-                        children: [
-                          ...easyeditlist[DB.allofficeinfotable[0]['offices']
-                                  .indexOf(e)]
-                              .where((b) => b['visible'] == true)
-                              .map((b) => IconbuttonMz(
-                                    e: e,
-                                    action: listoffunctionforeasyeditpanel(
-                                        ctx: ctx, e: e)[b['index']],
-                                    elevate: b['elevate'],
-                                    labelvisible:
-                                        b['elevate'] == 3.0 ? true : false,
-                                    label: b['label'],
-                                    icon: b['icon'],
-                                    buttonlist: easyeditlist[DB
-                                        .allofficeinfotable[0]['offices']
-                                        .indexOf(e)],
-                                    index: b['index'],
-                                    height: 35,
-                                    width: b['elevate'] == 3.0 ? 80 : 40,
-                                    backcolor: b['backcolor'],
-                                  ))
-                        ],
-                      );
+                      try {
+                        return Row(
+                          children: [
+                            ...easyeditlist[DB.allofficeinfotable[0]['offices']
+                                    .indexOf(e)]
+                                .where((b) => b['visible'] == true)
+                                .map((b) => IconbuttonMz(
+                                      e: e,
+                                      action: listoffunctionforeasyeditpanel(
+                                          ctx: ctx, e: e)[b['index']],
+                                      elevate: b['elevate'],
+                                      labelvisible:
+                                          b['elevate'] == 3.0 ? true : false,
+                                      label: b['label'],
+                                      icon: b['icon'],
+                                      buttonlist: easyeditlist[DB
+                                          .allofficeinfotable[0]['offices']
+                                          .indexOf(e)],
+                                      index: b['index'],
+                                      height: 35,
+                                      width: b['elevate'] == 3.0 ? 80 : 40,
+                                      backcolor: b['backcolor'],
+                                    ))
+                          ],
+                        );
+                      } catch (u) {
+                        return SizedBox();
+                      }
                     },
                   )
                 ],

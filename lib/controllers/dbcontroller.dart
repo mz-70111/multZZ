@@ -10,7 +10,7 @@ import 'package:mz_flutter_07/views/login.dart';
 import 'package:mz_flutter_07/views/repare.dart';
 import 'package:teledart/teledart.dart';
 import 'package:teledart/telegram.dart';
-import 'package:teledart/util.dart';
+import 'package:intl/intl.dart' as df;
 
 class DBController extends GetxController {
   @override
@@ -22,15 +22,15 @@ class DBController extends GetxController {
     } catch (e) {}
 
     autosendreminddaily();
-    sendalertremind();
     update();
   }
 
   autosendreminddaily() async {
-    Stream stream = Stream.periodic(Duration(seconds: 120), (x) => x++);
-
+    Stream stream = Stream.periodic(Duration(seconds: 10), (x) => x++);
     DB.allremindinfotable = await getallremindinfo();
-    for (var i in DB.allremindinfotable[0]['remind']) {
+    DB.allofficeinfotable = await getallofficeinfo();
+    for (var i in DB.allremindinfotable[0]['remind']
+        .where((u) => u['reminddate'] != null)) {
       List dateslist = [];
       if (i['type'] != 'auto') {
         dateslist.addAll(DB.allremindinfotable[0]['reminddates']
@@ -41,25 +41,29 @@ class DBController extends GetxController {
       }
       mainController.setreminddate(
           type: i['type'], host: i['certsrc'], dateslist: dateslist);
+      sendalertremind(k: i);
     }
     stream.listen((event) async {
-      if (DateTime.now().hour == 13) {
+      if (DateTime.now().hour == 14) {
         if (DB.allremindinfotable[0]['dailysend'][0]['dailysend_remind'] ==
             '0') {
           for (var j in DB.allofficeinfotable[0]['offices']) {
             if (j['notifi'] == '1') {
               String notifiall = '';
               notifiall = '';
+              notifiall = 'المهام المجدولة للتذكير';
               for (var i in DB.allremindinfotable[0]['remind']
                   .where((n) => n['remind_office_id'] == j['office_id'])) {
-                notifiall += '''
+                notifiall += '''\n
 ${i['remindname']}
 ${i['reminddetails']}
+نوع تحديد تاريخ الانتهاء ${i['type']},
+${i['certsrc'] != null ? "مصدر الشهادة :${i['certsrc']}" : null}
 المدة المتبقية لانتهاء المدة المحددة ${mainController.calcexpiredate(e: i)}
 ------------------------
 ''';
               }
-
+              print(notifiall);
               try {
                 String? username =
                     (await Telegram(j['apitoken']).getMe()).username;
@@ -89,18 +93,21 @@ ${i['reminddetails']}
     });
   }
 
-  sendalertremind() async {
-    DB.allofficeinfotable = await getallofficeinfo();
-    DB.allremindinfotable = await getallremindinfo();
-    for (var k in DB.allremindinfotable[0]['remind']) {
-      int? y = mainController.calcreminddateasint(e: k);
-      if (y != null) {
-        if (y <= int.parse(k['sendalertbefor'])) {
-          Stream stream = Stream.periodic(
-              Duration(seconds: int.parse(k['repeate'])), (x) => x++);
-          stream.listen((event) async {
-            DB.allofficeinfotable = await getallofficeinfo();
-            DB.allremindinfotable = await getallremindinfo();
+  sendalertremind({k}) async {
+    DateTime? lastsend =
+        k['lastsend'] != null ? DateTime.parse(k['lastsend']) : null;
+    int? y = mainController.calcreminddateasint(e: k);
+    if (y != null) {
+      if (y <= int.parse(k['sendalertbefor'])) {
+        Stream stream = Stream.periodic(
+            Duration(minutes: int.parse(k['repeate'])), (x) => x++);
+        stream.listen((event) async {
+          if (k['remind_office_id'] != null) {
+            k['notifi'] = DB.allremindinfotable[0]['remind']
+                .where((r) => r['remind_id'] == k['remind_id'])
+                .toList()[0]['notifi'];
+            k['lastsend'] = lastsend;
+
             if (k['notifi'] == '1' &&
                 DB.allofficeinfotable[0]['offices']
                         .where((o) => o['office_id'] == k['remind_office_id'])
@@ -120,15 +127,49 @@ ${k['reminddetails']}
 المدة المتبقية لانتهاء المدة المحددة ${mainController.calcexpiredate(e: k)}
 ${DateTime.now()}
 ''';
-              try {
-                String? username = (await Telegram(token).getMe()).username;
-                if (username != null) {
-                  await TeleDart(token, Event('')).sendMessage(chat, alertmsg);
-                }
-              } catch (y) {}
+              if (lastsend == null) {
+                try {
+                  await requestpost(type: 'select', data: {
+                    'customquery':
+                        'update remind set lastsend="${DateTime.now()}" where remind_id=${k['remind_id']};'
+                  });
+
+                  var t = await requestpost(type: 'select', data: {
+                    'customquery':
+                        'select lastsend from remind where remind_id=${k['remind_id']};'
+                  });
+                  if (t != null) {
+                    lastsend = DateTime.parse(t[0][0]);
+                  }
+                } catch (i) {}
+              }
+              print(DateTime.now().difference(lastsend!).inMinutes + 1 >=
+                  int.parse(k['repeate']));
+              if (lastsend != null &&
+                  DateTime.now().difference(lastsend!).inMinutes + 1 >=
+                      int.parse(k['repeate'])) {
+                try {
+                  String? username = (await Telegram(token).getMe()).username;
+                  if (username != null) {
+                    await TeleDart(token, Event(''))
+                        .sendMessage(chat, alertmsg);
+                    await requestpost(type: 'curd', data: {
+                      'customquery':
+                          'update remind set lastsend="${DateTime.now()}" where remind_id=${k['remind_id']};'
+                    });
+                    var t = await requestpost(type: 'select', data: {
+                      'customquery':
+                          'select lastsend from remind where remind_id=${k['remind_id']};'
+                    });
+                    if (t != null) {
+                      lastsend = DateTime.parse(t[0][0]);
+                    }
+                  }
+                } catch (y) {}
+              }
             }
-          });
-        }
+          }
+        });
       }
     }
   }

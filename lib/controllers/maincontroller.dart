@@ -987,6 +987,11 @@ insert into logs(log,logdate)values
     }
     Remind.listofactionbuttonforadd[0]['visible'] = true;
     Remind.listofactionbuttonforadd[2]['visible'] = false;
+    var t;
+    for (var l in DB.allremindinfotable[0]['remind']) {
+      t = l;
+    }
+    dbController.sendalertremind(k: t);
     update();
   }
 
@@ -1141,7 +1146,6 @@ insert into logs(log,logdate)values
           }
         }
         if (Lang.mainerrormsg == null) {
-          
           DB.allusersinfotable = await DBController().getallusersinfo();
           DB.allofficeinfotable = await DBController().getallofficeinfo();
           DB.allremindinfotable = await DBController().getallremindinfo();
@@ -1155,6 +1159,11 @@ insert into logs(log,logdate)values
     }
     Remind.listofactionbuttonforedit[0]['visible'] = true;
     Remind.listofactionbuttonforedit[2]['visible'] = false;
+    var t;
+    for (var l in DB.allremindinfotable[0]['remind']) {
+      t = l;
+    }
+    dbController.sendalertremind(k: t);
     update();
   }
 
@@ -1187,17 +1196,20 @@ insert into logs(log,logdate)values
         await DBController()
             .requestpost(type: 'curd', data: {'customquery': '$q'});
       }
-  DB.allusersinfotable = await DBController().getallusersinfo();
-          DB.allofficeinfotable = await DBController().getallofficeinfo();
-          DB.allremindinfotable = await DBController().getallremindinfo();
+      DB.allusersinfotable = await DBController().getallusersinfo();
+      DB.allofficeinfotable = await DBController().getallofficeinfo();
+      DB.allremindinfotable = await DBController().getallremindinfo();
       dbController.update();
-     
     } catch (e) {
       print(e);
     }
     list[val] = true;
     listvisible[val] = false;
-
+ var t;
+    for (var l in DB.allremindinfotable[0]['remind']) {
+      t = l;
+    }
+    dbController.sendalertremind(k: t);
     update();
   }
 
@@ -1234,7 +1246,7 @@ insert into logs(log,logdate)values
     } catch (e) {
       null;
     }
-
+  
     update();
   }
 
