@@ -39,7 +39,8 @@ class PageTamplate01 extends StatelessWidget {
       required this.listoffunctionforadd, //list of function for button for add action
       required this.listofactionbuttonforadd, //list of buttom for add action
       required this.initial,
-      required this.conditionofview});
+      required this.conditionofview,
+      this.accountssearch});
   final String? tablename, officenameclm, itemnameclm;
   final List? table, officechooselist;
   final List<String> appbartitle, searchrangelist, addactiontitle;
@@ -57,8 +58,9 @@ class PageTamplate01 extends StatelessWidget {
       listoffunctionforadd,
       conditionofview;
   final bool searchwithdatevisible, chooseofficevisible;
-
+  final String? accountssearch;
   static String selectedoffice = 'all';
+  static String choosenoffice = 'all';
   static TextEditingController searchcontroller = TextEditingController();
   @override
   Widget build(BuildContext context) {
@@ -72,53 +74,40 @@ class PageTamplate01 extends StatelessWidget {
                 .allofficeinfotable[0]['offices']
                 .indexWhere((of) => of['office_id'] == i['upo_office_id'])]
             ['officename']);
-        selectedoffice = 'all';
       }
     }
     //check if user login by correct username and password
     if (BasicInfo.LogInInfo != null) {
-      //set visible options for begin
-      for (var i in table![0][tablename]) {
-        i['visiblesearch'] = true;
-      }
-      searchcontroller.text = '';
-      if (chooseofficevisible == true) {
-        mainController.chooseoffice(
-          list: officechooselist,
-          x: selectedoffice,
-          officenameclm: officenameclm,
-        );
-      }
       initial();
       return SafeArea(
           child: Directionality(
         textDirection: BasicInfo.lang(),
-        child: GetBuilder<MainController>(
-          init: mainController,
-          builder: (_) => Scaffold(
-            appBar: AppBar(
-              centerTitle: true,
-              title: Text(
-                appbartitle[BasicInfo.indexlang()], //app bar title
-                style: ThemeMz.titlelargCairo(),
-              ),
+        child: Scaffold(
+          appBar: AppBar(
+            centerTitle: true,
+            title: Text(
+              appbartitle[BasicInfo.indexlang()], //app bar title
+              style: ThemeMz.titlelargCairo(),
             ),
-            body: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  //search
-                  TextFieldMz(
-                      controller: searchcontroller,
-                      label: const ['بحث', 'search'],
-                      onchange: (x) => mainController.search(
-                          range: searchrangelist,
-                          word: x,
-                          list: table![0][tablename]),
-                      td: BasicInfo.lang()),
-                  //choose by office
-                  Visibility(
+          ),
+          body: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                //search
+                TextFieldMz(
+                    controller: searchcontroller,
+                    label: const ['بحث', 'search'],
+                    onchange: (x) => mainController.search(
+                        range: searchrangelist,
+                        word: x,
+                        list: table![0][tablename]),
+                    td: BasicInfo.lang()),
+                //choose by office
+                GetBuilder<MainController>(
+                  init: mainController,
+                  builder: (_) => Visibility(
                       visible: chooseofficevisible && officeslist.length > 2,
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -148,6 +137,7 @@ class PageTamplate01 extends StatelessWidget {
                                           .toList(),
                                       onChanged: (x) {
                                         mainController.chooseoffice(
+                                          accounts: accountssearch,
                                           x: x,
                                           list: officechooselist,
                                           officenameclm: officenameclm,
@@ -159,80 +149,80 @@ class PageTamplate01 extends StatelessWidget {
                           ),
                         ),
                       )),
-                  //search by date range
-                  Visibility(
-                    visible: searchwithdatevisible,
-                    child: SizedBox(
-                      width: MediaQuery.of(context).size.width < 500
-                          ? MediaQuery.of(context).size.width
-                          : 500,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Row(children: [
-                            Text(['من', 'from'][BasicInfo.indexlang()]),
+                ),
+                //search by date range
+                Visibility(
+                  visible: searchwithdatevisible,
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width < 500
+                        ? MediaQuery.of(context).size.width
+                        : 500,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Row(children: [
+                          Text(['من', 'from'][BasicInfo.indexlang()]),
+                          TextButton(
+                            onPressed: () => setstartdate(),
+                            style: Theme.of(context).textButtonTheme.style,
+                            child: Text(
+                                df.DateFormat("yyyy-MM-dd").format(startdate!)),
+                          ),
+                        ]),
+                        Row(
+                          children: [
+                            Text(['إلى', 'to'][BasicInfo.indexlang()]),
                             TextButton(
-                              onPressed: () => setstartdate(),
-                              style: Theme.of(context).textButtonTheme.style,
-                              child: Text(df.DateFormat("yyyy-MM-dd")
-                                  .format(startdate!)),
-                            ),
-                          ]),
-                          Row(
-                            children: [
-                              Text(['إلى', 'to'][BasicInfo.indexlang()]),
-                              TextButton(
-                                  onPressed: () => setenddate(),
-                                  child: Text(df.DateFormat("yyyy-MM-dd")
-                                      .format(enddate!)))
-                            ],
-                          )
-                        ],
-                      ),
+                                onPressed: () => setenddate(),
+                                child: Text(df.DateFormat("yyyy-MM-dd")
+                                    .format(enddate!)))
+                          ],
+                        )
+                      ],
                     ),
                   ),
-                  const Divider(),
-                  GetBuilder<MainController>(
-                    init: mainController,
-                    builder: (_) {
-                      return Expanded(
-                        child: SingleChildScrollView(
-                            child: Column(
-                          children: [
-                            ...table![0][tablename].where((element) {
-                              return conditionofview(element) == true &&
-                                  element['visible'] == true &&
-                                  element['visiblesearch'] == true;
-                            }).map((me) => mainItem(me))
-                          ],
-                        )),
-                      );
-                    },
-                  ),
-                  SizedBox(
-                    height: AppBar().preferredSize.height,
-                  )
-                ],
-              ),
-            ),
-            floatingActionButton: Visibility(
-              visible: addactionvisible,
-              child: GetBuilder<MainController>(
-                init: mainController,
-                builder: (_) => Row(
-                  children: [
-                    ...floateactionbuttonlist.map((f) => IconbuttonMz(
-                        backcolor: ThemeMz.iconbuttonmzbc(),
-                        width: 150,
-                        height: 50,
-                        buttonlist: floateactionbuttonlist,
-                        elevate: f['elevate'],
-                        e: f,
-                        index: f['index'],
-                        action: (e) => adddialogasWidget(ctx: context),
-                        label: addactiontitle))
-                  ],
                 ),
+                const Divider(),
+                GetBuilder<MainController>(
+                  init: mainController,
+                  builder: (_) {
+                    return Expanded(
+                      child: SingleChildScrollView(
+                          child: Column(
+                        children: [
+                          ...table![0][tablename].where((element) {
+                            return conditionofview(element) == true &&
+                                element['visible'] == true &&
+                                element['visiblesearch'] == true;
+                          }).map((me) => mainItem(me))
+                        ],
+                      )),
+                    );
+                  },
+                ),
+                SizedBox(
+                  height: AppBar().preferredSize.height,
+                )
+              ],
+            ),
+          ),
+          floatingActionButton: Visibility(
+            visible: addactionvisible,
+            child: GetBuilder<MainController>(
+              init: mainController,
+              builder: (_) => Row(
+                children: [
+                  ...floateactionbuttonlist.map((f) => IconbuttonMz(
+                      backcolor: ThemeMz.iconbuttonmzbc(),
+                      width: 150,
+                      height: 50,
+                      buttonlist: floateactionbuttonlist,
+                      elevate: f['elevate'],
+                      e: f,
+                      index: f['index'],
+                      action: (e) => adddialogasWidget(ctx: context),
+                      label: addactiontitle))
+                ],
               ),
             ),
           ),

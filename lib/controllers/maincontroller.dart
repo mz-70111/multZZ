@@ -11,6 +11,7 @@ import 'package:mz_flutter_07/models/lang_mode_theme.dart';
 import 'package:mz_flutter_07/models/page_tamplate01.dart';
 import 'package:mz_flutter_07/models/sharedpref.dart';
 import 'package:mz_flutter_07/views/accounts.dart';
+import 'package:mz_flutter_07/views/costs.dart';
 import 'package:mz_flutter_07/views/homepage.dart';
 import 'package:mz_flutter_07/views/login.dart';
 import 'package:mz_flutter_07/views/offices.dart';
@@ -410,8 +411,9 @@ class MainController extends GetxController {
     update();
   }
 
-  chooseoffice({list, officenameclm, x}) {
+  chooseoffice({list, officenameclm, x, accounts}) {
     PageTamplate01.selectedoffice = x;
+
     for (var i in list) {
       i['visible'] = false;
     }
@@ -422,17 +424,35 @@ class MainController extends GetxController {
     } else {
       List elementatoffice = [];
       elementatoffice.clear();
-      for (var j in list.where((u) =>
-          u[officenameclm] ==
-          DB.allofficeinfotable[0]['offices']
-              .where((element) => element['officename'] == x)
-              .toList()[0]['office_id'])) {
-        elementatoffice.add(j[officenameclm]);
+      if (accounts == null) {
+        for (var j in list.where((u) =>
+            u[officenameclm] ==
+            DB.allofficeinfotable[0]['offices']
+                .where((element) => element['officename'] == x)
+                .toList()[0]['office_id'])) {
+          elementatoffice.add(j[officenameclm]);
+        }
+      } else {
+        for (var i in DB.allusersinfotable[0]['users_priv_office'].where((y) =>
+            y['upo_office_id'] ==
+            DB.allofficeinfotable[0]['offices']
+                .where((element) => element['officename'] == x)
+                .toList()[0]['office_id'])) {
+          elementatoffice.add(i[officenameclm]);
+        }
       }
 
-      for (var i in list) {
-        if (elementatoffice.contains(i[officenameclm])) {
-          i['visible'] = true;
+      if (accounts != null) {
+        for (var i in list) {
+          if (elementatoffice.contains(i['user_id'])) {
+            i['visible'] = true;
+          }
+        }
+      } else {
+        for (var i in list) {
+          if (elementatoffice.contains(i[officenameclm])) {
+            i['visible'] = true;
+          }
         }
       }
     }
@@ -987,11 +1007,7 @@ insert into logs(log,logdate)values
     }
     Remind.listofactionbuttonforadd[0]['visible'] = true;
     Remind.listofactionbuttonforadd[2]['visible'] = false;
-    var t;
-    for (var l in DB.allremindinfotable[0]['remind']) {
-      t = l;
-    }
-    dbController.sendalertremind(k: t);
+
     update();
   }
 
@@ -1159,11 +1175,6 @@ insert into logs(log,logdate)values
     }
     Remind.listofactionbuttonforedit[0]['visible'] = true;
     Remind.listofactionbuttonforedit[2]['visible'] = false;
-    var t;
-    for (var l in DB.allremindinfotable[0]['remind']) {
-      t = l;
-    }
-    dbController.sendalertremind(k: t);
     update();
   }
 
@@ -1205,11 +1216,7 @@ insert into logs(log,logdate)values
     }
     list[val] = true;
     listvisible[val] = false;
- var t;
-    for (var l in DB.allremindinfotable[0]['remind']) {
-      t = l;
-    }
-    dbController.sendalertremind(k: t);
+
     update();
   }
 
@@ -1246,7 +1253,7 @@ insert into logs(log,logdate)values
     } catch (e) {
       null;
     }
-  
+
     update();
   }
 
@@ -1311,10 +1318,10 @@ insert into logs(log,logdate)values
     if (Accounts.usernamecontroller.text.trim().isEmpty) {
       Accounts.bodieslistofadd[0]['tf'][0]['error'] =
           Lang.errormsgs['emptyname-check'][BasicInfo.indexlang()];
-      for (var i in Offices.maintitlesdialogMz01) {
+      for (var i in Accounts.maintitlesdialogMz01) {
         i['selected'] = false;
       }
-      Offices.maintitlesdialogMz01[0]['selected'] = true;
+      Accounts.maintitlesdialogMz01[0]['selected'] = true;
     } else if (Accounts.fullnamecontroller.text.trim().isEmpty) {
       Accounts.bodieslistofadd[0]['tf'][1]['error'] =
           Lang.errormsgs['emptyname-check'][BasicInfo.indexlang()];
@@ -1707,14 +1714,16 @@ insert into logs(log,logdate)values
   }
 
   getCert({required String host}) async {
-    await Process.run('Powershell.exe', [
-      '''
+    var getExpiredate;
+    try {
+      await Process.run('Powershell.exe', [
+        '''
     Set-ItemProperty -Path "HKCU:\\Control Panel\\International" -Name sShortDate -Value "yyyy/MM/dd";
     '''
-    ]);
+      ]);
 
-    var getExpiredate = await Process.run('Powershell.exe', [
-      '''
+      getExpiredate = await Process.run('Powershell.exe', [
+        '''
 # Ignore SSL Warning
 [Net.ServicePointManager]::ServerCertificateValidationCallback = { \$true }
 # Create Web Http request to URI
@@ -1724,7 +1733,9 @@ insert into logs(log,logdate)values
 # Get SSL Certificate Expiration Date
 \$webRequest.ServicePoint.Certificate.GetExpirationDateString()
 '''
-    ]);
+      ]);
+    } catch (e) {}
+
     DateTime? result;
     String? r;
     try {
@@ -1742,8 +1753,6 @@ insert into logs(log,logdate)values
     DateTime? reminddate;
     if (type == 'auto') {
       reminddate = await getCert(host: host);
-
-      // print(reminddate);
     } else {
       l:
       for (var i in dateslist) {
@@ -1752,8 +1761,6 @@ insert into logs(log,logdate)values
           break l;
         }
       }
-      // print(dateslist);
-      // print(reminddate);
     }
 
     return reminddate;
@@ -1832,5 +1839,78 @@ insert into logs(log,logdate)values
       }
     }
     return result;
+  }
+
+  addcost({officeid}) async {
+    Lang.mainerrormsg = null;
+    for (var i in Accounts.bodieslistofadd[0]['tf']) {
+      i['error'] = null;
+    }
+
+    List queries = [
+      '''
+insert into costs(costname,costdetails,cost_project,costdate,cost_user_id,cost_fullname,cost_office_id)values
+('${Costs.labelcontroller.text.trim()}',
+'${Costs.notescontroller.text.trim()}',
+'${Costs.projectcontroller.text.trim()}',
+'${Costs.bodieslistofadd[0]['date']}',
+'${BasicInfo.LogInInfo![0]}',
+'${DB.userinfotable[0]['users'][0]['fullname']}',
+$officeid
+);
+''',
+    ];
+
+    queries.add('''
+insert into logs(log,logdate)values
+("${BasicInfo.LogInInfo![1]} add a new cost request _name: costname ${Costs.labelcontroller.text.trim()}",
+"${DateTime.now()}");
+      ''');
+    if (Costs.labelcontroller.text.trim().isEmpty) {
+      Costs.bodieslistofadd[0]['tf'][0]['error'] =
+          Lang.errormsgs['emptyname-check'][BasicInfo.indexlang()];
+      for (var i in Costs.maintitlesdialogMz01) {
+        i['selected'] = false;
+      }
+      Costs.maintitlesdialogMz01[0]['selected'] = true;
+    } else {
+      Costs.listofactionbuttonforadd[0]['visible'] = false;
+      Costs.listofactionbuttonforadd[2]['visible'] = true;
+      update();
+      try {
+        l:
+        for (var q in queries) {
+          await DBController()
+              .requestpost(type: 'curd', data: {'customquery': '$q'});
+          {
+            if (Lang.mainerrormsg != null) {
+              if (Lang.mainerrormsg!.contains("Duplicate")) {
+                Lang.mainerrormsg = Accounts.bodieslistofadd[0]['tf'][0]
+                        ['error'] =
+                    "${Costs.labelcontroller.text} ${Lang.errormsgs['duplicate'][BasicInfo.indexlang()]}";
+                for (var i in Costs.maintitlesdialogMz01) {
+                  i['selected'] = false;
+                }
+                Accounts.maintitlesdialogMz01[0]['selected'] = true;
+              } else {
+                Lang.mainerrormsg = Lang.mainerrormsg;
+              }
+              break l;
+            }
+          }
+        }
+        if (Lang.mainerrormsg == null) {
+          DB.allcostsinfotable = await DBController().getallcostinfo();
+          dbController.update();
+          Get.back();
+        }
+      } catch (e) {
+        Lang.mainerrormsg =
+            Lang.errormsgs['server-error'][BasicInfo.indexlang()];
+      }
+    }
+    Costs.listofactionbuttonforadd[0]['visible'] = true;
+    Costs.listofactionbuttonforadd[2]['visible'] = false;
+    update();
   }
 }

@@ -22,29 +22,56 @@ class DBController extends GetxController {
     } catch (e) {}
 
     autosendreminddaily();
+    sendalertremind();
     update();
   }
 
   autosendreminddaily() async {
-    Stream stream = Stream.periodic(Duration(seconds: 10), (x) => x++);
+    Stream stream = Stream.periodic(Duration(minutes: 50), (x) => x++);
     DB.allremindinfotable = await getallremindinfo();
     DB.allofficeinfotable = await getallofficeinfo();
-    for (var i in DB.allremindinfotable[0]['remind']
-        .where((u) => u['reminddate'] != null)) {
-      List dateslist = [];
-      if (i['type'] != 'auto') {
-        dateslist.addAll(DB.allremindinfotable[0]['reminddates']
-            .where((d) => d['remind_d_id'] == i['remind_id'])
-            .toList()
-            .map((t) => DateTime.parse(t['rdate']))
-            .toList());
-      }
-      mainController.setreminddate(
-          type: i['type'], host: i['certsrc'], dateslist: dateslist);
-      sendalertremind(k: i);
-    }
+
     stream.listen((event) async {
-      if (DateTime.now().hour == 14) {
+      for (var i in DB.allremindinfotable[0]['remind']) {
+        List dateslist = [];
+        if (i['type'] != 'auto') {
+          dateslist.addAll(DB.allremindinfotable[0]['reminddates']
+              .where((d) => d['remind_d_id'] == i['remind_id'])
+              .toList()
+              .map((t) => DateTime.parse(t['rdate']))
+              .toList());
+        }
+
+        DateTime? dt = await mainController.setreminddate(
+            type: i['type'], host: i['certsrc'], dateslist: dateslist);
+        try {
+          await requestpost(type: 'curd', data: {
+            'customquery':
+                'update remind set reminddate="$dt" where remind_id=${i['remind_id']};'
+          });
+          var dtt = await requestpost(type: 'select', data: {
+            'customquery':
+                'select reminddate from remind where remind_id=${i['remind_id']};'
+          });
+
+          i['reminddate'] = dtt[0][0];
+        } catch (o) {}
+        try {
+          await requestpost(type: 'curd', data: {
+            'customquery':
+                'update remind set reminddategetdate="${DateTime.now()}" where remind_id=${i['remind_id']};'
+          });
+          var t = await requestpost(type: 'select', data: {
+            'customquery':
+                'select reminddategetdate from remind where remind_id=${i['remind_id']};'
+          });
+
+          i['reminddategetdate'] = t[0][0];
+        } catch (o) {}
+      }
+      dbController.update();
+      print(DateTime.now().hour);
+      if (DateTime.now().hour == 9) {
         if (DB.allremindinfotable[0]['dailysend'][0]['dailysend_remind'] ==
             '0') {
           for (var j in DB.allofficeinfotable[0]['offices']) {
@@ -63,7 +90,6 @@ ${i['certsrc'] != null ? "مصدر الشهادة :${i['certsrc']}" : null}
 ------------------------
 ''';
               }
-              print(notifiall);
               try {
                 String? username =
                     (await Telegram(j['apitoken']).getMe()).username;
@@ -71,9 +97,7 @@ ${i['certsrc'] != null ? "مصدر الشهادة :${i['certsrc']}" : null}
                   await TeleDart(j['apitoken'], Event(''))
                       .sendMessage(j['chatid'], notifiall);
                 }
-              } catch (y) {
-                print(y);
-              }
+              } catch (y) {}
             }
           }
           try {
@@ -93,83 +117,89 @@ ${i['certsrc'] != null ? "مصدر الشهادة :${i['certsrc']}" : null}
     });
   }
 
-  sendalertremind({k}) async {
-    DateTime? lastsend =
-        k['lastsend'] != null ? DateTime.parse(k['lastsend']) : null;
-    int? y = mainController.calcreminddateasint(e: k);
-    if (y != null) {
-      if (y <= int.parse(k['sendalertbefor'])) {
-        Stream stream = Stream.periodic(
-            Duration(minutes: int.parse(k['repeate'])), (x) => x++);
-        stream.listen((event) async {
-          if (k['remind_office_id'] != null) {
-            k['notifi'] = DB.allremindinfotable[0]['remind']
+  sendalertremind() async {
+    DB.allremindinfotable = await DBController().getallremindinfo();
+    for (var k in DB.allremindinfotable[0]['remind']) {
+      String? lastsend = k['lastsend'];
+      int? y = mainController.calcreminddateasint(e: k);
+      if (y != null) {
+        if (y <= 0) {
+          Stream stream = Stream.periodic(
+              Duration(minutes: int.parse(k['repeate'])), (x) => x++);
+          stream.listen((event) async {
+            k['repeate'] = DB.allremindinfotable[0]['remind']
                 .where((r) => r['remind_id'] == k['remind_id'])
-                .toList()[0]['notifi'];
-            k['lastsend'] = lastsend;
-
-            if (k['notifi'] == '1' &&
-                DB.allofficeinfotable[0]['offices']
-                        .where((o) => o['office_id'] == k['remind_office_id'])
-                        .toList()[0]['notifi'] ==
-                    '1') {
-              String token = DB.allofficeinfotable[0]['offices']
-                  .where((o) => o['office_id'] == k['remind_office_id'])
-                  .toList()[0]['apitoken'];
-              String chat = DB.allofficeinfotable[0]['offices']
-                  .where((o) => o['office_id'] == k['remind_office_id'])
-                  .toList()[0]['chatid'];
-              String alertmsg;
-              alertmsg = '';
-              alertmsg = '''
+                .toList()[0]['repeate'];
+            if (k['remind_office_id'] != null) {
+              k['notifi'] = DB.allremindinfotable[0]['remind']
+                  .where((r) => r['remind_id'] == k['remind_id'])
+                  .toList()[0]['notifi'];
+              k['lastsend'] = "$lastsend";
+              dbController.update();
+              if (k['notifi'] == '1' &&
+                  DB.allofficeinfotable[0]['offices']
+                          .where((o) => o['office_id'] == k['remind_office_id'])
+                          .toList()[0]['notifi'] ==
+                      '1') {
+                String token = DB.allofficeinfotable[0]['offices']
+                    .where((o) => o['office_id'] == k['remind_office_id'])
+                    .toList()[0]['apitoken'];
+                String chat = DB.allofficeinfotable[0]['offices']
+                    .where((o) => o['office_id'] == k['remind_office_id'])
+                    .toList()[0]['chatid'];
+                String alertmsg;
+                alertmsg = '';
+                alertmsg = '''
 ${k['remindname']}
 ${k['reminddetails']}
 المدة المتبقية لانتهاء المدة المحددة ${mainController.calcexpiredate(e: k)}
 ${DateTime.now()}
 ''';
-              if (lastsend == null) {
-                try {
-                  await requestpost(type: 'select', data: {
-                    'customquery':
-                        'update remind set lastsend="${DateTime.now()}" where remind_id=${k['remind_id']};'
-                  });
-
-                  var t = await requestpost(type: 'select', data: {
-                    'customquery':
-                        'select lastsend from remind where remind_id=${k['remind_id']};'
-                  });
-                  if (t != null) {
-                    lastsend = DateTime.parse(t[0][0]);
-                  }
-                } catch (i) {}
-              }
-              print(DateTime.now().difference(lastsend!).inMinutes + 1 >=
-                  int.parse(k['repeate']));
-              if (lastsend != null &&
-                  DateTime.now().difference(lastsend!).inMinutes + 1 >=
-                      int.parse(k['repeate'])) {
-                try {
-                  String? username = (await Telegram(token).getMe()).username;
-                  if (username != null) {
-                    await TeleDart(token, Event(''))
-                        .sendMessage(chat, alertmsg);
-                    await requestpost(type: 'curd', data: {
+                if (lastsend == null) {
+                  try {
+                    await requestpost(type: 'select', data: {
                       'customquery':
                           'update remind set lastsend="${DateTime.now()}" where remind_id=${k['remind_id']};'
                     });
+
                     var t = await requestpost(type: 'select', data: {
                       'customquery':
                           'select lastsend from remind where remind_id=${k['remind_id']};'
                     });
                     if (t != null) {
-                      lastsend = DateTime.parse(t[0][0]);
+                      lastsend = t[0][0];
                     }
-                  }
-                } catch (y) {}
+                  } catch (i) {}
+                }
+
+                if (lastsend != null &&
+                    DateTime.now()
+                            .difference(DateTime.parse(lastsend!))
+                            .inMinutes >=
+                        int.parse(k['repeate'])) {
+                  try {
+                    String? username = (await Telegram(token).getMe()).username;
+                    if (username != null) {
+                      await TeleDart(token, Event(''))
+                          .sendMessage(chat, alertmsg);
+                      await requestpost(type: 'curd', data: {
+                        'customquery':
+                            'update remind set lastsend="${DateTime.now()}" where remind_id=${k['remind_id']};'
+                      });
+                      var t = await requestpost(type: 'select', data: {
+                        'customquery':
+                            'select lastsend from remind where remind_id=${k['remind_id']};'
+                      });
+                      if (t != null) {
+                        lastsend = t[0][0];
+                      }
+                    }
+                  } catch (y) {}
+                }
               }
             }
-          }
-        });
+          });
+        }
       }
     }
   }
@@ -292,6 +322,16 @@ ${DateTime.now()}
       'select * from remind;',
       'select * from reminddates;',
       'select * from dailysend;'
+    ]);
+  }
+
+  getallcostinfo() async {
+    return await gettableinfo(tablesname: [
+      'costs',
+      'comments'
+    ], infoqueries: [
+      'select * from costs;',
+      'select * from comments where t_type="costs";',
     ]);
   }
 

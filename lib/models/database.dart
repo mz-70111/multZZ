@@ -8,6 +8,7 @@ class DB {
   static List allofficeinfotable = [];
   static List allremindinfotable = [];
   static List allusersinfotable = [];
+  static List allcostsinfotable = [];
   static List logstable = [];
   static String? error;
 
@@ -147,6 +148,7 @@ remind_office_id int(11),
 type varchar(20),
 foreign key (remind_office_id) references offices(office_id),
 reminddate TIMESTAMP NULL DEFAULT NULL,
+reminddategetdate TIMESTAMP NULL DEFAULT NULL,
 createby_id int(11),
 foreign key (createby_id) references users(user_id),
 createdate TIMESTAMP NULL DEFAULT NULL,
@@ -218,6 +220,7 @@ create table if not exists costs
 cost_id int(11) unique primary key auto_increment,
 costname varchar(255) unique,
 costdetails varchar(255),
+cost_project varchar(255),
 cost varchar(255),
 attach_n varchar(255),
 attch_file MediumBLOB,
@@ -226,6 +229,8 @@ begin_acceptcost tinyint(1),
 final_acceptcost tinyint(1),
 cost_status tinyint(1),
 cost_user_id int(11),
+cost_username varchar(255),
+cost_fullname varchar(255),
 foreign key (cost_user_id) references users(user_id),
 cost_office_id int(11),
 foreign key (cost_office_id) references offices(office_id)

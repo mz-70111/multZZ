@@ -782,31 +782,38 @@ class Offices extends StatelessWidget {
 
     return GetBuilder<DBController>(
       init: dbController,
-      builder: (_) => PageTamplate01(
-        appbartitle: const ['المكاتب', 'Offices'],
-        // searchwithdatevisible: false,
-        searchrangelist: const ['officename'],
-        // chooseofficevisible: false,
-        // officechooselist: DB.allofficeinfotable[0]['offices'],
-        // officenameclmname: 'officename',
-        conditionofview: (x) => condition(x),
-        table: DB.allofficeinfotable,
-        tablename: 'offices',
-        mainItem: (x) => mainItem(e: x, ctx: context),
-        startdate: searchbydate[0],
-        setstartdate: () => null,
-        enddate: searchbydate[0],
-        setenddate: () => null,
-        addactionvisible: true,
-        initialofadd: () => initialofdialog(),
-        initial: () => buildeasyeditlist(),
-        addactiontitle: const ['إضافة مكتب', 'Add Office'],
-        addactionmainlabelsofpages: maintitlesdialogMz01,
-        addactionpages: [basics(), addemployee()],
-        listofactionbuttonforadd: listofactionbuttonforadd,
-        listoffunctionforadd: (e) => listoffunctionforadd(e),
-        floateactionbuttonlist: floatactionbuttonlist,
-      ),
+      builder: (_) {
+        for (var i in DB.allofficeinfotable[0]['offices']) {
+          i['visiblesearch'] = true;
+        }
+        PageTamplate01.searchcontroller.text = '';
+
+        return PageTamplate01(
+          appbartitle: const ['المكاتب', 'Offices'],
+          // searchwithdatevisible: false,
+          searchrangelist: const ['officename'],
+          // chooseofficevisible: false,
+          // officechooselist: DB.allofficeinfotable[0]['offices'],
+          // officenameclmname: 'officename',
+          conditionofview: (x) => condition(x),
+          table: DB.allofficeinfotable,
+          tablename: 'offices',
+          mainItem: (x) => mainItem(e: x, ctx: context),
+          startdate: searchbydate[0],
+          setstartdate: () => null,
+          enddate: searchbydate[0],
+          setenddate: () => null,
+          addactionvisible: true,
+          initialofadd: () => initialofdialog(),
+          initial: () => buildeasyeditlist(),
+          addactiontitle: const ['إضافة مكتب', 'Add Office'],
+          addactionmainlabelsofpages: maintitlesdialogMz01,
+          addactionpages: [basics(), addemployee()],
+          listofactionbuttonforadd: listofactionbuttonforadd,
+          listoffunctionforadd: (e) => listoffunctionforadd(e),
+          floateactionbuttonlist: floatactionbuttonlist,
+        );
+      },
     );
   }
 }

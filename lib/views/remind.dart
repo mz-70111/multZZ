@@ -145,7 +145,23 @@ class Remind extends StatelessWidget {
             .toList()[0]['officename']
       });
     }
+    List officesforadd = [];
     basics() {
+      officesforadd.clear();
+
+      for (var i in DB.userinfotable[0]['users_priv_office']
+          .where((u) => u['addremind'] == '1')) {
+        officesforadd.add({});
+        officesforadd[DB.userinfotable[0]['users_priv_office']
+                .where((u) => u['addremind'] == '1')
+                .toList()
+                .indexOf(i)]
+            .addAll({
+          'office': DB.allofficeinfotable[0]['offices']
+              .where((o) => o['office_id'] == i['upo_office_id'])
+              .toList()[0]['officename']
+        });
+      }
       return GetBuilder<MainController>(
         init: mainController,
         builder: (_) => Column(
@@ -156,20 +172,16 @@ class Remind extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: DropdownButton(
-                      value: offices[bodieslistofadd[0]['selectedofficeindex']]
-                          ['office'],
-                      items: offices
-                          .where((element) =>
-                              DB.userinfotable[0]['users_priv_office']
-                                  [offices.indexOf(element)]['addremind'] ==
-                              '1')
+                      value: officesforadd[bodieslistofadd[0]
+                          ['selectedofficeindex']]['office'],
+                      items: officesforadd
                           .map((e) => DropdownMenuItem(
                               value: e['office'], child: Text(e['office'])))
                           .toList(),
                       onChanged: (x) => mainController.dropdaownchhositem(
                           list: bodieslistofadd[0],
                           val: 'selectedofficeindex',
-                          x: offices.indexWhere(
+                          x: officesforadd.indexWhere(
                               (element) => element['office'] == x))),
                 )
               ],
@@ -315,6 +327,13 @@ class Remind extends StatelessWidget {
         bodieslistofadd[0]['notifi'] = true;
         bodieslistofadd[1]['details'][0]['type']['group'] = ['تلقائي', 'auto'];
       } else {
+        bodieslistofadd[0]['selectedofficeindex'] = officesforadd.indexWhere(
+            (element) =>
+                element['office'] ==
+                DB.allofficeinfotable[0]['offices']
+                    .where((element) =>
+                        element['office_id'] == e['remind_office_id'])
+                    .toList()[0]['officename']);
         remindnamecontroller.text = e['remindname'];
         reminddetailscontroller.text = e['reminddetails'];
         remindbeforcontroller.text = e['sendalertbefor'];
@@ -547,40 +566,50 @@ class Remind extends StatelessWidget {
                         style: ThemeMz.titlemediumChanga(),
                       )),
                     ]),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        ...easyeditlist[
-                                DB.allremindinfotable[0]['remind'].indexOf(e)]
-                            .where((b) =>
-                                b['visible'] == true && b['visible0'] == true)
-                            .map((b) {
-                          switch (b['type']) {
-                            case 'do-it':
-                              return IconbuttonMz(
-                                e: e,
-                                action: listoffunctionforeasyeditpanel(
-                                    ctx: ctx, e: e)[b['index']],
-                                elevate: b['elevate'],
-                                labelvisible:
-                                    b['elevate'] == 3.0 ? true : false,
-                                label: b['label'],
-                                icon: b['icon'],
-                                buttonlist: easyeditlist[DB
-                                    .allremindinfotable[0]['remind']
-                                    .indexOf(e)],
-                                index: b['index'],
-                                height: 35,
-                                width: b['elevate'] == 3.0 ? b['length'] : 40,
-                                backcolor: b['backcolor'],
-                              );
-                            case 'wait':
-                              return WaitMz.waitmz0([1, 2, 3, 4], context);
-                            default:
-                              return SizedBox();
-                          }
-                        })
-                      ],
+                    Visibility(
+                      visible: DB.userinfotable[0]['users_priv_office']
+                                  .where((o) =>
+                                      o['upo_office_id'] ==
+                                      e['remind_office_id'])
+                                  .toList()[0]['addremind'] ==
+                              '1'
+                          ? true
+                          : false,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ...easyeditlist[
+                                  DB.allremindinfotable[0]['remind'].indexOf(e)]
+                              .where((b) =>
+                                  b['visible'] == true && b['visible0'] == true)
+                              .map((b) {
+                            switch (b['type']) {
+                              case 'do-it':
+                                return IconbuttonMz(
+                                  e: e,
+                                  action: listoffunctionforeasyeditpanel(
+                                      ctx: ctx, e: e)[b['index']],
+                                  elevate: b['elevate'],
+                                  labelvisible:
+                                      b['elevate'] == 3.0 ? true : false,
+                                  label: b['label'],
+                                  icon: b['icon'],
+                                  buttonlist: easyeditlist[DB
+                                      .allremindinfotable[0]['remind']
+                                      .indexOf(e)],
+                                  index: b['index'],
+                                  height: 35,
+                                  width: b['elevate'] == 3.0 ? b['length'] : 40,
+                                  backcolor: b['backcolor'],
+                                );
+                              case 'wait':
+                                return WaitMz.waitmz0([1, 2, 3, 4], context);
+                              default:
+                                return SizedBox();
+                            }
+                          })
+                        ],
+                      ),
                     )
                   ],
                 ),
@@ -604,7 +633,7 @@ class Remind extends StatelessWidget {
                       children: [
                         Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: SelectableText(e['reminddetails']),
+                          child: Text(e['reminddetails']),
                         ),
                       ],
                     ),
@@ -633,6 +662,16 @@ class Remind extends StatelessWidget {
                             ? "لم يتم تحديد مدة الانتهاء"
                             : "تاريخ الانتهاء ${df.DateFormat("yyyy-MM-dd").format(DateTime.parse(e['reminddate']))}"),
                       ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text("${[
+                            'تم جلب تاريخ الانتهاء آخر مرة بتاريخ',
+                            'end date got last time at'
+                          ][BasicInfo.indexlang()]} ${e['reminddategetdate']}")),
                     ],
                   ),
                   Visibility(
@@ -703,12 +742,14 @@ class Remind extends StatelessWidget {
       for (var i in DB.userinfotable[0]['users_priv_office']) {
         offices.add(i['upo_office_id']);
       }
-      if (x['createby_id'] == BasicInfo.LogInInfo![0] && offices.contains(x['remind_office_id'])) {
+      if (x['createby_id'] == BasicInfo.LogInInfo![0] &&
+          offices.contains(x['remind_office_id'])) {
         return true;
-      } else if (offices.contains(x['remind_office_id'])&&  DB.allofficeinfotable[0]['users_priv_office']
-              .where((o) => o['upo_office_id'] == x['remind_office_id'])
-              .toList()[0]['showallreminds'] ==
-          '1') {
+      } else if (offices.contains(x['remind_office_id']) &&
+          DB.allofficeinfotable[0]['users_priv_office']
+                  .where((o) => o['upo_office_id'] == x['remind_office_id'])
+                  .toList()[0]['showallreminds'] ==
+              '1') {
         return true;
       } else {
         return false;
@@ -737,35 +778,45 @@ class Remind extends StatelessWidget {
 
     return GetBuilder<DBController>(
       init: dbController,
-      builder: (_) => PageTamplate01(
-        appbartitle: const ['التذكير', 'Remind'],
-        // searchwithdatevisible: false,
-        searchrangelist: const ['remindname', 'reminddetails'],
-        chooseofficevisible: true,
-        officechooselist: DB.allremindinfotable[0]['remind'],
-        officenameclm: 'remind_office_id',
-        itemnameclm: 'remind_id',
-        conditionofview: (x) => conditionofview(x),
-        table: DB.allremindinfotable,
-        tablename: 'remind',
-        mainItem: (x) => mainItem(ctx: context, e: x),
-        startdate: searchbydate[0],
-        setstartdate: () => null,
-        enddate: searchbydate[0],
-        setenddate: () => null,
-        addactionvisible: addactionvisible(),
-        initialofadd: () => initialofdialog(),
-        initial: () => buildeasyeditlist(),
-        addactiontitle: const ['إضافة تذكير', 'Add Remind'],
-        addactionmainlabelsofpages: maintitlesdialogMz01,
-        addactionpages: [
-          basics(),
-          remindoptions(),
-        ],
-        listofactionbuttonforadd: listofactionbuttonforadd,
-        listoffunctionforadd: (e) => listoffunctionforadd(e),
-        floateactionbuttonlist: floatactionbuttonlist,
-      ),
+      builder: (_) {
+        for (var i in DB.allremindinfotable[0]['remind']) {
+          i['visiblesearch'] = true;
+        }
+        PageTamplate01.searchcontroller.text = '';
+        PageTamplate01.selectedoffice = 'all';
+        for (var i in DB.allremindinfotable[0]['remind']) {
+          i['visible'] = true;
+        }
+        return PageTamplate01(
+          appbartitle: const ['التذكير', 'Remind'],
+          // searchwithdatevisible: false,
+          searchrangelist: const ['remindname', 'reminddetails'],
+          chooseofficevisible: true,
+          officechooselist: DB.allremindinfotable[0]['remind'],
+          officenameclm: 'remind_office_id',
+          itemnameclm: 'remind_id',
+          conditionofview: (x) => conditionofview(x),
+          table: DB.allremindinfotable,
+          tablename: 'remind',
+          mainItem: (x) => mainItem(ctx: context, e: x),
+          startdate: searchbydate[0],
+          setstartdate: () => null,
+          enddate: searchbydate[0],
+          setenddate: () => null,
+          addactionvisible: addactionvisible(),
+          initialofadd: () => initialofdialog(),
+          initial: () => buildeasyeditlist(),
+          addactiontitle: const ['إضافة تذكير', 'Add Remind'],
+          addactionmainlabelsofpages: maintitlesdialogMz01,
+          addactionpages: [
+            basics(),
+            remindoptions(),
+          ],
+          listofactionbuttonforadd: listofactionbuttonforadd,
+          listoffunctionforadd: (e) => listoffunctionforadd(e),
+          floateactionbuttonlist: floatactionbuttonlist,
+        );
+      },
     );
   }
 }

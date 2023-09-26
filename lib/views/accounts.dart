@@ -423,6 +423,7 @@ class Accounts extends StatelessWidget {
       addtoofficelist.clear();
       maintitlesdialogMz01[0]['selected'] = true;
       maintitlesdialogMz01[1]['selected'] = false;
+      maintitlesdialogMz01[2]['selected'] = false;
       DropDownWithSearchMz.visiblemain = false;
       for (var i in bodieslistofadd[0]['tf']) {
         i['error'] = null;
@@ -1083,31 +1084,42 @@ class Accounts extends StatelessWidget {
 
     return GetBuilder<DBController>(
       init: dbController,
-      builder: (_) => PageTamplate01(
-        appbartitle: const ['الحسابات', 'Accounts'],
-        // searchwithdatevisible: false,
-        searchrangelist: const ['username', 'fullname'],
-        // chooseofficevisible: true,
-        // officechooselist: DB.allusersinfotable[0]['users'],
-        // officenameclmname: 'upo_user_id',
-        conditionofview: (x) => true,
-        table: DB.allusersinfotable,
-        tablename: 'users',
-        mainItem: (x) => mainItem(e: x, ctx: context),
-        startdate: searchbydate[0],
-        setstartdate: () => null,
-        enddate: searchbydate[0],
-        setenddate: () => null,
-        addactionvisible: true,
-        initialofadd: () => initialofdialog(),
-        initial: () => buildeasyeditlist(),
-        addactiontitle: const ['إضافة حساب', 'Add Account'],
-        addactionmainlabelsofpages: maintitlesdialogMz01,
-        addactionpages: [basics(), basicpriv(), addtoOffice()],
-        listofactionbuttonforadd: listofactionbuttonforadd,
-        listoffunctionforadd: (e) => listoffunctionforadd(e),
-        floateactionbuttonlist: floatactionbuttonlist,
-      ),
+      builder: (_) {
+        for (var i in DB.allusersinfotable[0]['users']) {
+          i['visiblesearch'] = true;
+        }
+        PageTamplate01.searchcontroller.text = '';
+        PageTamplate01.selectedoffice = 'all';
+        for (var i in DB.allusersinfotable[0]['users']) {
+          i['visible'] = true;
+        }
+        return PageTamplate01(
+          appbartitle: const ['الحسابات', 'Accounts'],
+          // searchwithdatevisible: false,
+          searchrangelist: const ['username', 'fullname'],
+          chooseofficevisible: true,
+          officechooselist: DB.allusersinfotable[0]['users'],
+          officenameclm: 'upo_user_id',
+          accountssearch: 'dd',
+          conditionofview: (x) => true,
+          table: DB.allusersinfotable,
+          tablename: 'users',
+          mainItem: (x) => mainItem(e: x, ctx: context),
+          startdate: searchbydate[0],
+          setstartdate: () => null,
+          enddate: searchbydate[0],
+          setenddate: () => null,
+          addactionvisible: true,
+          initialofadd: () => initialofdialog(),
+          initial: () => buildeasyeditlist(),
+          addactiontitle: const ['إضافة حساب', 'Add Account'],
+          addactionmainlabelsofpages: maintitlesdialogMz01,
+          addactionpages: [basics(), basicpriv(), addtoOffice()],
+          listofactionbuttonforadd: listofactionbuttonforadd,
+          listoffunctionforadd: (e) => listoffunctionforadd(e),
+          floateactionbuttonlist: floatactionbuttonlist,
+        );
+      },
     );
   }
 }
