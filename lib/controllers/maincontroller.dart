@@ -1007,7 +1007,6 @@ insert into logs(log,logdate)values
     }
     Remind.listofactionbuttonforadd[0]['visible'] = true;
     Remind.listofactionbuttonforadd[2]['visible'] = false;
-
     update();
   }
 
@@ -1734,8 +1733,10 @@ insert into logs(log,logdate)values
 \$webRequest.ServicePoint.Certificate.GetExpirationDateString()
 '''
       ]);
-    } catch (e) {}
-
+    } catch (e) {
+      print(e);
+    }
+    print(getExpiredate.stdout);
     DateTime? result;
     String? r;
     try {
