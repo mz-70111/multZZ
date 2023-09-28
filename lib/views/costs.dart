@@ -219,9 +219,9 @@ class Costs extends StatelessWidget {
         bodieslistofadd[0]['beginaccept']['group'] = ['', ''];
         bodieslistofadd[1]['finalaccept']['group'] = ['', ''];
       } else {
-        labelcontroller.text = e['remindname'];
-        notescontroller.text = e['reminddetails'];
-        costcontroller.text = e['sendalertbefor'];
+        labelcontroller.text = e['costname'];
+        notescontroller.text = e['costdetails'];
+        costcontroller.text = e['cost'];
       }
     }
 
@@ -242,7 +242,7 @@ class Costs extends StatelessWidget {
             'length': 80.0
           },
           {
-            'index': 2,
+            'index': 1,
             'visible0': true,
             'visible': true,
             'type': 'do-it',
@@ -299,8 +299,8 @@ class Costs extends StatelessWidget {
                     child: AlertDialog(
                       scrollable: true,
                       title: Text([
-                        'هل أنت متأكد من حذف${e['remindname']}?',
-                        'sure to delete ${e['remindname']}?'
+                        'هل أنت متأكد من حذف${e['costname']}?',
+                        'sure to delete ${e['costname']}?'
                       ][BasicInfo.indexlang()]),
                       actions: [
                         ...actionlist
@@ -332,7 +332,7 @@ class Costs extends StatelessWidget {
           (e) {
             Lang.mainerrormsg = null;
             initialofdialog(e: e);
-            showDialog(
+            return showDialog(
                 context: context,
                 builder: (_) => DialogMz01(
                     title: ['تعديل', 'edit'],
@@ -372,119 +372,156 @@ class Costs extends StatelessWidget {
         ];
 
     mainItem({e, ctx}) {
-      // print(e);
-      // if (e['begin_acceptcost'] != '1') {
-      return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Card(
-            child: ExpansionTile(
-              title: Column(
-                children: [
-                  Row(children: [
-                    Text("# ${e['cost_id']}_ "),
-                    Expanded(
-                        child: Text(
-                      e['costname'],
-                      style: ThemeMz.titlemediumChanga(),
-                    )),
-                  ]),
-                  Visibility(
-                    visible: DB.userinfotable[0]['users_priv_office']
-                                .where((o) =>
-                                    o['upo_office_id'] == e['cost_office_id'])
-                                .toList()[0]['addcost'] ==
-                            '1'
-                        ? true
-                        : false,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+      if (e['begin_acceptcost'] != '1') {
+        return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Card(
+              child: ExpansionTile(
+                title: Column(
+                  children: [
+                    Row(
                       children: [
-                        //   ...easyeditlist[
-                        //           DB.allcostsinfotable[0]['costs'].indexOf(e)]
-                        //       .where((b) =>
-                        //           b['visible'] == true && b['visible0'] == true)
-                        //       .map((b) {
-                        //     switch (b['type']) {
-                        //       case 'do-it':
-                        //         return IconbuttonMz(
-                        //           e: e,
-                        //           action: listoffunctionforeasyeditpanel(
-                        //               ctx: ctx, e: e)[b['index']],
-                        //           elevate: b['elevate'],
-                        //           labelvisible:
-                        //               b['elevate'] == 3.0 ? true : false,
-                        //           label: b['label'],
-                        //           icon: b['icon'],
-                        //           buttonlist: easyeditlist[DB.allcostsinfotable[0]
-                        //                   ['costs']
-                        //               .indexOf(e)],
-                        //           index: b['index'],
-                        //           height: 35,
-                        //           width: b['elevate'] == 3.0 ? b['length'] : 40,
-                        //           backcolor: b['backcolor'],
-                        //         );
-                        //       case 'wait':
-                        //         return WaitMz.waitmz0([1, 2, 3, 4], context);
-                        //       default:
-                        //         return SizedBox();
-                        //     }
-                        //   })
+                        Text(
+                            "مقدم الطلب ${DB.allusersinfotable[0]['users'].where((us) => us['user_id'] == e['cost_user_id']).toList()[0]['fullname']}"),
                       ],
                     ),
-                  )
-                ],
-              ),
-              children: [
-                Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(e['cost_office_id'] != null
-                          ? DB.allofficeinfotable[0]['offices']
-                              .where(
-                                  (u) => u['office_id'] == e['cost_office_id'])
-                              .toList()[0]['officename']
-                          : "مكتب محذوف"),
-                    ),
+                    Row(children: [
+                      Text("  # ${e['cost_id']}_ "),
+                      Expanded(
+                          child: Text(
+                        e['costname'],
+                        style: ThemeMz.titlemediumChanga(),
+                      )),
+                    ]),
+                    Visibility(
+                      visible: BasicInfo.LogInInfo![0] == e['cost_user_id']
+                          ? true
+                          : false,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ...easyeditlist[
+                                  DB.allcostsinfotable[0]['costs'].indexOf(e)]
+                              .where(((b) =>
+                                  b['visible'] == true &&
+                                  b['visible0'] == true))
+                              .map((b) {
+                            switch (b['type']) {
+                              case 'do-it':
+                                return IconbuttonMz(
+                                  e: e,
+                                  action: listoffunctionforeasyeditpanel(
+                                      ctx: context, e: e)[b['index']],
+                                  label: b['label'],
+                                  icon: b['icon'],
+                                  labelvisible:
+                                      b['elevate'] == 3.0 ? true : false,
+                                  buttonlist: easyeditlist[DB
+                                      .allcostsinfotable[0]['costs']
+                                      .indexOf(e)],
+                                  index: b['index'],
+                                  height: 35,
+                                  width: b['elevate'] == 3.0 ? b['length'] : 40,
+                                  backcolor: b['backcolor'],
+                                );
+                              case 'wait':
+                                return WaitMz.waitmz0([1, 2, 3, 4], context);
+                              default:
+                                return SizedBox();
+                            }
+                          })
+                        ],
+                      ),
+                    )
                   ],
                 ),
-                Visibility(
-                  visible: e['costdetails'] == '' ? false : true,
-                  child: Row(
+                children: [
+                  Row(
                     children: [
                       Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Text(e['costdetails']),
+                        child: Text(e['cost_office_id'] != null
+                            ? DB.allofficeinfotable[0]['offices']
+                                .where((u) =>
+                                    u['office_id'] == e['cost_office_id'])
+                                .toList()[0]['officename']
+                            : "مكتب محذوف"),
                       ),
                     ],
                   ),
-                ),
-                Divider(),
-              ],
-            ),
-          ));
-      // }
+                  Visibility(
+                    visible: e['costdetails'] == '' ? false : true,
+                    child: Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(e['costdetails']),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(),
+                ],
+              ),
+            ));
+      }
     }
 
     conditionofview(x) {
-      // List offices = [];
-      // offices.clear();
-      // for (var i in DB.userinfotable[0]['users_priv_office']) {
-      //   offices.add(i['upo_office_id']);
-      // }
-      // if (x['cost_user_id'] == BasicInfo.LogInInfo![0] &&
-      //     offices.contains(x['cost_office_id'])) {
-      //   return true;
-      // } else if (offices.contains(x['cost_office_id']) &&
-      //     DB.allofficeinfotable[0]['users_priv_office']
-      //             .where((o) => o['upo_office_id'] == x['cost_office_id'])
-      //             .toList()[0]['showallcosts'] ==
-      //         '1') {
-      //   return true;
-      // } else {
-      //   return false;
-      // }
-      return true;
+      List offices = [];
+      offices.clear();
+      for (var i in DB.userinfotable[0]['users_priv_office']) {
+        offices.add(i['upo_office_id']);
+      }
+      if (x['cost_user_id'] == BasicInfo.LogInInfo![0] &&
+          offices.contains(x['cost_office_id'])) {
+        return true;
+      } else if (offices.contains(x['cost_office_id']) &&
+          DB.allofficeinfotable[0]['users_priv_office']
+                  .where((o) => o['upo_office_id'] == x['cost_office_id'])
+                  .toList()[0]['showallcosts'] ==
+              '1') {
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    subitem({e, ctx}) {
+      List officesthatuserin = [], usersin = [];
+      if (DB.userinfotable[0]['users_priv_office'].isNotEmpty) {
+        for (var i in DB.userinfotable[0]['users_priv_office']) {
+          officesthatuserin.add(i['upo_office_id']);
+        }
+        print(officesthatuserin);
+
+        for (var i in DB.allusersinfotable[0]['users']) {
+          for (var j in DB.allusersinfotable[0]['users_priv_office']
+              .where((u) => u['upo_user_id'] == i['user_id'])
+              .toList()) {
+            if (officesthatuserin.contains(j['upo_office_id'])) {
+              usersin.contains(j['upo_user_id'])
+                  ? null
+                  : usersin.add(j['upo_user_id']);
+            }
+          }
+        }
+        print(usersin);
+      }
+      return Column(
+        children: [
+          Divider(),
+          ...DB.allusersinfotable[0]['users']
+              .where((us) => usersin.contains(us['user_id']))
+              .map((us) {
+            return Card(
+                child: ExpansionTile(
+                    title: Text(DB.allusersinfotable[0]['users']
+                        .where((usi) => usi['user_id'] == us['user_id'])
+                        .toList()[0]['fullname'])));
+          })
+        ],
+      );
     }
 
     bool addactionvisible() {
@@ -527,6 +564,7 @@ class Costs extends StatelessWidget {
             'cost_username',
             'cost_fullname'
           ],
+          titleofmain: 'الطلبات الجديدة',
           chooseofficevisible: true,
           officechooselist: DB.allcostsinfotable[0]['costs'],
           officenameclm: 'cost_office_id',
@@ -535,6 +573,7 @@ class Costs extends StatelessWidget {
           table: DB.allcostsinfotable,
           tablename: 'costs',
           mainItem: (x) => mainItem(ctx: context, e: x),
+          subitems: subitem(),
           startdate: searchbydate[0],
           setstartdate: () => null,
           enddate: searchbydate[0],

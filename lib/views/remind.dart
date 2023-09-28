@@ -654,25 +654,41 @@ class Remind extends StatelessWidget {
                       ),
                     ],
                   ),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(e['reminddate'] == null
-                            ? "لم يتم تحديد مدة الانتهاء"
-                            : "تاريخ الانتهاء ${df.DateFormat("yyyy-MM-dd").format(DateTime.parse(e['reminddate']))}"),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text("${[
-                            'تم جلب تاريخ الانتهاء آخر مرة بتاريخ',
-                            'end date got last time at'
-                          ][BasicInfo.indexlang()]} ${e['reminddategetdate']}")),
-                    ],
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: e['reminddate'] == null
+                        ? Text([
+                            'لم يتم تحديد مدة الانتهاء',
+                            'not defined'
+                          ][BasicInfo.indexlang()])
+                        : Column(
+                            children: [
+                              Row(children: [
+                                Text([
+                                  'تاريخ الانتهاء',
+                                  'expire date'
+                                ][BasicInfo.indexlang()]),
+                                Text(df.DateFormat(" yyyy-MM-dd")
+                                    .format(DateTime.parse(e['reminddate']))),
+                              ]),
+                              Row(
+                                children: [
+                                  Text([
+                                    'تم جلب تاريخ الانتهاء آخر مرة بتاريخ',
+                                    'end date got last time at'
+                                  ][BasicInfo.indexlang()]),
+                                  Directionality(
+                                    textDirection: TextDirection.ltr,
+                                    child: Text(
+                                      df.DateFormat(" yyyy-MM-dd HH:mm ")
+                                          .format(DateTime.parse(
+                                              e['reminddategetdate'])),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                   ),
                   Visibility(
                     visible: e['reminddate'] == null ? false : true,
@@ -711,7 +727,14 @@ class Remind extends StatelessWidget {
                           child: Text("${[
                             'تم إنشاءها بواسطة',
                             'created by'
-                          ][BasicInfo.indexlang()]} ${e['createby_id'] != null ? DB.allusersinfotable[0]['users'].where((u) => u['user_id'] == e['createby_id']).toList()[0]['fullname'] : "حساب محذوف"} _${e['createdate']}")),
+                          ][BasicInfo.indexlang()]} ${e['createby_id'] != null ? DB.allusersinfotable[0]['users'].where((u) => u['user_id'] == e['createby_id']).toList()[0]['fullname'] : "حساب محذوف"} ")),
+                      Directionality(
+                        textDirection: TextDirection.ltr,
+                        child: Text(
+                          df.DateFormat(" yyyy-MM-dd HH:mm ")
+                              .format(DateTime.parse(e['createdate'])),
+                        ),
+                      ),
                     ],
                   ),
                   Visibility(
@@ -723,7 +746,16 @@ class Remind extends StatelessWidget {
                             child: Text("${[
                               'تم تعديلها آخر مرة بواسطة',
                               'last edit by'
-                            ][BasicInfo.indexlang()]} ${e['editby_id'] != null ? DB.allusersinfotable[0]['users'].where((u) => u['user_id'] == e['editby_id']).toList()[0]['fullname'] : "حساب محذوف"} _${e['editdate']}")),
+                            ][BasicInfo.indexlang()]} ${e['editby_id'] != null ? DB.allusersinfotable[0]['users'].where((u) => u['user_id'] == e['editby_id']).toList()[0]['fullname'] : "حساب محذوف"}")),
+                        Directionality(
+                          textDirection: TextDirection.ltr,
+                          child: Text(
+                            e['editdate'] != null
+                                ? df.DateFormat(" yyyy-MM-dd HH:mm ")
+                                    .format(DateTime.parse(e['editdate']))
+                                : "",
+                          ),
+                        ),
                       ],
                     ),
                   ),

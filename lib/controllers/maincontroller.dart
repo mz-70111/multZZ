@@ -21,6 +21,7 @@ import 'package:intl/intl.dart' as df;
 import 'package:teledart/teledart.dart';
 import 'package:teledart/telegram.dart';
 import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' as foundation;
 // import 'dart:io' as io;
 
 import 'package:teledart/teledart.dart';
@@ -903,8 +904,10 @@ insert into logs(log,logdate)values
           Remind.bodieslistofadd[1]['details'][0]['type']['group']
                   [BasicInfo.indexlang()] ==
               'تلقائي') {
-        reminddate = await setreminddate(
-            type: 'auto', host: inerlist[0]['controller'].text);
+        reminddate = !foundation.kIsWeb
+            ? await setreminddate(
+                type: 'auto', host: inerlist[0]['controller'].text)
+            : null;
       } else {
         reminddate = await setreminddate(type: 'manual', dateslist: dateslist);
       }
@@ -936,7 +939,7 @@ remindname,
 reminddetails,
 remind_office_id,
 notifi,
-type,certsrc,sendalertbefor,repeate,reminddate,createby_id,createdate)values
+type,certsrc,sendalertbefor,repeate,reminddate,reminddategetdate,createby_id,createdate)values
 ('${Remind.remindnamecontroller.text.trim()}',
 '${Remind.reminddetailscontroller.text.trim()}',
 '${DB.allofficeinfotable[0]['offices'].where((element) => element['officename'] == officeslistandindex).toList()[0]['office_id']}',
@@ -946,6 +949,7 @@ type,certsrc,sendalertbefor,repeate,reminddate,createby_id,createdate)values
 '${inerlist[1]['controller'].text}',
 '${inerlist[2]['controller'].text}',
 '$reminddate',
+'${DateTime.now()}',
 ${BasicInfo.LogInInfo![0]},
 '${(DateTime.now())}'
 );
@@ -1007,6 +1011,110 @@ insert into logs(log,logdate)values
     }
     Remind.listofactionbuttonforadd[0]['visible'] = true;
     Remind.listofactionbuttonforadd[2]['visible'] = false;
+
+    var i;
+    for (var o in DB.allremindinfotable[0]['remind']) {
+      i = o;
+    }
+    Stream stream =
+        Stream.periodic(Duration(minutes: int.parse(i['repeate'])), (x) => x++);
+    stream.listen((event) async {
+      try {
+        i['remind_id'] = DB.allremindinfotable[0]['remind']
+            .where((u) => u['remind_id'] == i['remind_id'])
+            .toList()[0]['remind_id'];
+
+        i['remindname'] = DB.allremindinfotable[0]['remind']
+            .where((u) => u['remind_id'] == i['remind_id'])
+            .toList()[0]['remindname'];
+        i['reminddetails'] = DB.allremindinfotable[0]['remind']
+            .where((u) => u['remind_id'] == i['remind_id'])
+            .toList()[0]['reminddetails'];
+
+        i['repeate'] = DB.allremindinfotable[0]['remind']
+            .where((u) => u['remind_id'] == i['remind_id'])
+            .toList()[0]['repeate'];
+        i['lastsend'] = DB.allremindinfotable[0]['remind']
+            .where((u) => u['remind_id'] == i['remind_id'])
+            .toList()[0]['lastsend'];
+        i['notifi'] = DB.allremindinfotable[0]['remind']
+            .where((u) => u['remind_id'] == i['remind_id'])
+            .toList()[0]['notifi'];
+        i['reminddate'] = DB.allremindinfotable[0]['remind']
+            .where((u) => u['remind_id'] == i['remind_id'])
+            .toList()[0]['reminddate'];
+        i['remind_office_id'] = DB.allremindinfotable[0]['remind']
+            .where((u) => u['remind_id'] == i['remind_id'])
+            .toList()[0]['remind_office_id'];
+      } catch (r) {
+        i['remind_id'] = null;
+      }
+      dbController.update();
+      if (DB.allofficeinfotable[0]['offices']
+              .where((of) => of['office_id'] == i['remind_office_id'])
+              .toList()[0]['notifi'] ==
+          '1') {
+        if (i['remind_id'] != null && i['notifi'] == '1') {
+          if (i['lastsend'] == null) {
+            try {
+              await dbController.requestpost(type: 'curd', data: {
+                'customquery':
+                    'update remind set lastsend="${DateTime.now()}" where remind_id=${i['remind_id']};'
+              });
+              var t = await dbController.requestpost(type: 'select', data: {
+                'customquery':
+                    'select lastsend from remind where remind_id=${i['remind_id']};'
+              });
+              i['lastsend'] = t[0][0];
+            } catch (e) {}
+          }
+
+          if (DateTime.now()
+                      .difference(DateTime.parse(i['lastsend']))
+                      .inMinutes +
+                  1 >=
+              int.parse(i['repeate'])) {
+            if (mainController.calcreminddateasint(e: i) <= 0) {
+              try {
+                String? testtoken = (await Telegram(DB.allofficeinfotable[0]
+                                ['offices']
+                            .where((of) =>
+                                of['office_id'] == i['remind_office_id'])
+                            .toList()[0]['apitoken'])
+                        .getMe())
+                    .username;
+                if (testtoken != null) {
+                  String token = DB.allofficeinfotable[0]['offices']
+                      .where((of) => of['office_id'] == i['remind_office_id'])
+                      .toList()[0]['apitoken'];
+                  String chatid = DB.allofficeinfotable[0]['offices']
+                      .where((of) => of['office_id'] == i['remind_office_id'])
+                      .toList()[0]['chatid'];
+                  await TeleDart(token, Event('')).sendMessage(chatid, '''
+${i['remindname']}
+${i['reminddetails']}
+المدة المتبقية ${mainController.calcexpiredate(e: i)}
+ـــــــــــــــ
+''');
+                  await dbController.requestpost(type: 'curd', data: {
+                    'customquery':
+                        'update remind set lastsend="${DateTime.now()}" where remind_id=${i['remind_id']};'
+                  });
+                  var t = await dbController.requestpost(type: 'select', data: {
+                    'customquery':
+                        'select lastsend from remind where remind_id=${i['remind_id']};'
+                  });
+                  i['lastsend'] = t[0][0];
+                }
+              } catch (i) {
+                print(i);
+              }
+            }
+          }
+        }
+      }
+    });
+
     update();
   }
 
@@ -1077,8 +1185,10 @@ insert into logs(log,logdate)values
           Remind.bodieslistofadd[1]['details'][0]['type']['group']
                   [BasicInfo.indexlang()] ==
               'تلقائي') {
-        reminddate = await setreminddate(
-            type: 'auto', host: inerlist[0]['controller'].text);
+        if (!foundation.kIsWeb) {
+          reminddate = await setreminddate(
+              type: 'auto', host: inerlist[0]['controller'].text);
+        }
       } else {
         reminddate = await setreminddate(type: 'manual', dateslist: dateslist);
       }
@@ -1110,6 +1220,7 @@ certsrc='${Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.in
 sendalertbefor='${inerlist[1]['controller'].text}',
 repeate='${inerlist[2]['controller'].text}',
 reminddate='$reminddate',
+reminddategetdate='${DateTime.now()}',
 editby_id=${BasicInfo.LogInInfo![0]},
 editdate='${(DateTime.now())}'
 where remind_id=$remindid;
@@ -1713,16 +1824,20 @@ insert into logs(log,logdate)values
   }
 
   getCert({required String host}) async {
-    var getExpiredate;
-    try {
-      await Process.run('Powershell.exe', [
-        '''
+    if (foundation.kIsWeb == true) {
+      print('web web web web web');
+      return null;
+    } else {
+      var getExpiredate;
+      try {
+        await Process.run('Powershell.exe', [
+          '''
     Set-ItemProperty -Path "HKCU:\\Control Panel\\International" -Name sShortDate -Value "yyyy/MM/dd";
     '''
-      ]);
+        ]);
 
-      getExpiredate = await Process.run('Powershell.exe', [
-        '''
+        getExpiredate = await Process.run('Powershell.exe', [
+          '''
 # Ignore SSL Warning
 [Net.ServicePointManager]::ServerCertificateValidationCallback = { \$true }
 # Create Web Http request to URI
@@ -1732,29 +1847,34 @@ insert into logs(log,logdate)values
 # Get SSL Certificate Expiration Date
 \$webRequest.ServicePoint.Certificate.GetExpirationDateString()
 '''
-      ]);
-    } catch (e) {
-      print(e);
+        ]);
+      } catch (e) {
+        print(e);
+      }
+      print(getExpiredate.stdout);
+      DateTime? result;
+      String? r;
+      try {
+        r = getExpiredate.stdout;
+        r = r!.substring(0, r.indexOf(' '));
+        r = r.replaceAll('/', '-');
+        result = DateTime.parse(r);
+      } catch (r) {
+        return null;
+      }
+      return result;
     }
-    print(getExpiredate.stdout);
-    DateTime? result;
-    String? r;
-    try {
-      r = getExpiredate.stdout;
-      r = r!.substring(0, r.indexOf(' '));
-      r = r.replaceAll('/', '-');
-      result = DateTime.parse(r);
-    } catch (r) {
-      return null;
-    }
-    return result;
   }
 
   setreminddate({type, host, dateslist}) async {
     DateTime? reminddate;
     if (type == 'auto') {
+      if (foundation.kIsWeb) {
+        reminddate = null;
+      }
       reminddate = await getCert(host: host);
     } else {
+      dateslist.sort((a, b) => a.toString().compareTo(b.toString()));
       l:
       for (var i in dateslist) {
         if (i.difference(DateTime.now()).inDays >= 0) {
@@ -1763,7 +1883,6 @@ insert into logs(log,logdate)values
         }
       }
     }
-
     return reminddate;
   }
 
@@ -1850,12 +1969,13 @@ insert into logs(log,logdate)values
 
     List queries = [
       '''
-insert into costs(costname,costdetails,cost_project,costdate,cost_user_id,cost_fullname,cost_office_id)values
+insert into costs(costname,costdetails,cost_project,costdate,cost_user_id,cost_username,cost_fullname,cost_office_id)values
 ('${Costs.labelcontroller.text.trim()}',
 '${Costs.notescontroller.text.trim()}',
 '${Costs.projectcontroller.text.trim()}',
 '${Costs.bodieslistofadd[0]['date']}',
 '${BasicInfo.LogInInfo![0]}',
+'${BasicInfo.LogInInfo![1]}',
 '${DB.userinfotable[0]['users'][0]['fullname']}',
 $officeid
 );

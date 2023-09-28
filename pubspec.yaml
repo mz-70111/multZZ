@@ -42,6 +42,7 @@ dependencies:
   intl: ^0.18.1
   url_launcher: ^6.1.14
   teledart: ^0.6.1
+  foundation: ^0.0.5
 
 dev_dependencies:
   flutter_test:

@@ -40,8 +40,10 @@ class PageTamplate01 extends StatelessWidget {
       required this.listofactionbuttonforadd, //list of buttom for add action
       required this.initial,
       required this.conditionofview,
-      this.accountssearch});
-  final String? tablename, officenameclm, itemnameclm;
+      this.accountssearch,
+      this.subitems,
+      this.titleofmain});
+  final String? tablename, officenameclm, itemnameclm, titleofmain;
   final List? table, officechooselist;
   final List<String> appbartitle, searchrangelist, addactiontitle;
   final List<Widget> addactionpages;
@@ -58,6 +60,7 @@ class PageTamplate01 extends StatelessWidget {
       listoffunctionforadd,
       conditionofview;
   final bool searchwithdatevisible, chooseofficevisible;
+  final Widget? subitems;
   final String? accountssearch;
   static String selectedoffice = 'all';
   static String choosenoffice = 'all';
@@ -190,11 +193,15 @@ class PageTamplate01 extends StatelessWidget {
                       child: SingleChildScrollView(
                           child: Column(
                         children: [
+                          Visibility(
+                              visible: titleofmain == null ? false : true,
+                              child: Text("$titleofmain")),
                           ...table![0][tablename].where((element) {
                             return conditionofview(element) == true &&
                                 element['visible'] == true &&
                                 element['visiblesearch'] == true;
-                          }).map((me) => mainItem(me))
+                          }).map((me) => mainItem(me)),
+                          subitems ?? SizedBox()
                         ],
                       )),
                     );
