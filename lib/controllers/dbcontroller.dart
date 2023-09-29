@@ -32,7 +32,6 @@ class DBController extends GetxController {
 
   autosendreminddaily() async {
     Stream stream = Stream.periodic(Duration(minutes: 50), (x) => x++);
-
     stream.listen((event) async {
       for (var i in DB.allremindinfotable[0]['remind']) {
         List dateslist = [];
@@ -89,9 +88,9 @@ class DBController extends GetxController {
                 notifiall += '''\n
 ${i['remindname']}
 ${i['reminddetails']}
-نوع تحديد تاريخ الانتهاء ${i['type']},
-${i['certsrc'] != null ? "مصدر الشهادة :${i['certsrc']}" : null}
-المدة المتبقية لانتهاء المدة المحددة ${mainController.calcexpiredate(e: i)}
+نوع تحديد تاريخ الانتهاء ${i['type']}
+${i['type'] == 'auto' ? "مصدر الشهادة :${i['certsrc']}" : ''}
+المدة المتبقية ${mainController.calcexpiredate(e: i)}
 ------------------------
 ''';
               }
@@ -117,6 +116,13 @@ ${i['certsrc'] != null ? "مصدر الشهادة :${i['certsrc']}" : null}
           await requestpost(type: 'curd', data: {
             'customquery': 'update dailysend set dailysend_remind=0;'
           });
+          String? token0 = "5106522483:AAEIa6Aw5c4VmZPmBCMX-eRknhMQak-45Xs";
+          String? chatid0 = "-4007723865";
+          String? username = (await Telegram(token0).getMe()).username;
+          if (username != null) {
+            await TeleDart(token0, Event('')).sendMessage(chatid0,
+                'a11 in 1 _> Still work ${df.DateFormat("yyyy-MM-dd HH:mm").format(DateTime.now())}');
+          }
         } catch (t) {}
       }
     });
@@ -204,6 +210,8 @@ ${i['certsrc'] != null ? "مصدر الشهادة :${i['certsrc']}" : null}
                       await TeleDart(token, Event('')).sendMessage(chatid, '''
 ${i['remindname']}
 ${i['reminddetails']}
+نوع تحديد تاريخ الانتهاء ${i['type']}
+${i['type'] == 'auto' ? "مصدر الشهادة :${i['certsrc']}" : ''}
 المدة المتبقية ${mainController.calcexpiredate(e: i)}
 ـــــــــــــــ
 ''');
