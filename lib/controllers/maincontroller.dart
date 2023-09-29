@@ -1069,13 +1069,16 @@ insert into logs(log,logdate)values
             } catch (e) {}
           }
 
-          if (DateTime.now()
-                      .difference(DateTime.parse(i['lastsend']))
-                      .inMinutes +
-                  1 >=
-              int.parse(i['repeate'])) {
-            if (mainController.calcreminddateasint(e: i) <= 0) {
+          if (
+              DateTime.now()
+                          .difference(DateTime.parse(i['lastsend']))
+                          .inMinutes +
+                      1 >=
+                  int.parse(i['repeate'])) {
+
+            
               try {
+                if (mainController.calcreminddateasint(e: i) <= 0) {
                 String? testtoken = (await Telegram(DB.allofficeinfotable[0]
                                 ['offices']
                             .where((of) =>
@@ -1105,14 +1108,14 @@ ${i['reminddetails']}
                         'select lastsend from remind where remind_id=${i['remind_id']};'
                   });
                   i['lastsend'] = t[0][0];
-                }
+                }}
               } catch (i) {
                 print(i);
               }
             }
           }
         }
-      }
+      
     });
 
     update();

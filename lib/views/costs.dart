@@ -544,6 +544,11 @@ class Costs extends StatelessWidget {
       }
     }
 
+    updatetable() async {
+      DB.allcostsinfotable = await DBController().getallcostinfo();
+      return DB.allcostsinfotable;
+    }
+
     return GetBuilder<DBController>(
       init: dbController,
       builder: (_) {
@@ -556,6 +561,7 @@ class Costs extends StatelessWidget {
           i['visible'] = true;
         }
         return PageTamplate01(
+          updatetable: Future(() async => await updatetable()),
           appbartitle: const ['النفقات', 'Costs'],
           // searchwithdatevisible: false,
           searchrangelist: const [

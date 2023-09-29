@@ -19,6 +19,7 @@ import 'package:intl/intl.dart' as df;
 
 class Remind extends StatelessWidget {
   const Remind({super.key});
+
   static List<Map> maintitlesdialogMz01 = [
     {
       'name': ['معلومات أساسية', 'Basics'],
@@ -353,7 +354,7 @@ class Remind extends StatelessWidget {
       }
     }
 
-    buildeasyeditlist() {
+    buildeasyeditlist() async {
       easyeditlist.clear();
       for (var i in DB.allremindinfotable[0]['remind']) {
         easyeditlist.add([]);
@@ -808,6 +809,11 @@ class Remind extends StatelessWidget {
       }
     }
 
+    updatetable() async {
+      DB.allremindinfotable = await dbController.getallremindinfo();
+      return DB.allremindinfotable;
+    }
+
     return GetBuilder<DBController>(
       init: dbController,
       builder: (_) {
@@ -820,6 +826,7 @@ class Remind extends StatelessWidget {
           i['visible'] = true;
         }
         return PageTamplate01(
+          updatetable: Future(() async => await updatetable()),
           appbartitle: const ['التذكير', 'Remind'],
           // searchwithdatevisible: false,
           searchrangelist: const ['remindname', 'reminddetails'],

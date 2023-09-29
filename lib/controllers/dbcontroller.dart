@@ -25,10 +25,19 @@ class DBController extends GetxController {
     } catch (e) {}
     autosendreminddaily();
     sendalertremind();
+    autoupdate();
     update();
   }
 
   static StreamController streamcontroller = StreamController.broadcast();
+
+  autoupdate() {
+    Stream stream = Stream.periodic(Duration(minutes: 5), (x) => x++);
+    stream.listen((event) async {
+      DB.allremindinfotable = await dbController.getallremindinfo();
+      dbController.update();
+    });
+  }
 
   autosendreminddaily() async {
     Stream stream = Stream.periodic(Duration(minutes: 50), (x) => x++);
@@ -189,8 +198,8 @@ ${i['type'] == 'auto' ? "مصدر الشهادة :${i['certsrc']}" : ''}
                           .inMinutes +
                       1 >=
                   int.parse(i['repeate'])) {
-                if (mainController.calcreminddateasint(e: i) <= 0) {
-                  try {
+                try {
+                  if (mainController.calcreminddateasint(e: i) <= 0) {
                     String? testtoken = (await Telegram(DB.allofficeinfotable[0]
                                     ['offices']
                                 .where((of) =>
@@ -225,9 +234,9 @@ ${i['type'] == 'auto' ? "مصدر الشهادة :${i['certsrc']}" : ''}
                       });
                       i['lastsend'] = t[0][0];
                     }
-                  } catch (i) {
-                    print(i);
                   }
+                } catch (i) {
+                  print(i);
                 }
               }
             }

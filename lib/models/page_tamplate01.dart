@@ -42,7 +42,8 @@ class PageTamplate01 extends StatelessWidget {
       required this.conditionofview,
       this.accountssearch,
       this.subitems,
-      this.titleofmain});
+      this.titleofmain,
+      required this.updatetable});
   final String? tablename, officenameclm, itemnameclm, titleofmain;
   final List? table, officechooselist;
   final List<String> appbartitle, searchrangelist, addactiontitle;
@@ -59,6 +60,7 @@ class PageTamplate01 extends StatelessWidget {
       initial,
       listoffunctionforadd,
       conditionofview;
+  final Future updatetable;
   final bool searchwithdatevisible, chooseofficevisible;
   final Widget? subitems;
   final String? accountssearch;
@@ -81,160 +83,184 @@ class PageTamplate01 extends StatelessWidget {
     }
     //check if user login by correct username and password
     if (BasicInfo.LogInInfo != null) {
-      initial();
-      return SafeArea(
-          child: Directionality(
-        textDirection: BasicInfo.lang(),
-        child: Scaffold(
-          appBar: AppBar(
-            centerTitle: true,
-            title: Text(
-              appbartitle[BasicInfo.indexlang()], //app bar title
-              style: ThemeMz.titlelargCairo(),
-            ),
-          ),
-          body: SizedBox(
-            width: MediaQuery.of(context).size.width,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                //search
-                TextFieldMz(
-                    controller: searchcontroller,
-                    label: const ['بحث', 'search'],
-                    onchange: (x) => mainController.search(
-                        range: searchrangelist,
-                        word: x,
-                        list: table![0][tablename]),
-                    td: BasicInfo.lang()),
-                //choose by office
-                GetBuilder<MainController>(
-                  init: mainController,
-                  builder: (_) => Visibility(
-                      visible: chooseofficevisible && officeslist.length > 2,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: SizedBox(
-                          width: MediaQuery.of(context).size.width < 500
-                              ? MediaQuery.of(context).size.width
-                              : 500,
-                          child: Card(
-                            shape: const BeveledRectangleBorder(
-                                borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(10))),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text([
-                                  '  اختيار المكتب',
-                                  'Choose Office  '
-                                ][BasicInfo.indexlang()]),
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 10, right: 10),
-                                  child: DropdownButton(
-                                      value: selectedoffice,
-                                      items: officeslist
-                                          .map((ol) => DropdownMenuItem(
-                                              value: ol, child: Text(ol)))
-                                          .toList(),
-                                      onChanged: (x) {
-                                        mainController.chooseoffice(
-                                          accounts: accountssearch,
-                                          x: x,
-                                          list: officechooselist,
-                                          officenameclm: officenameclm,
-                                        );
-                                      }),
+      return FutureBuilder(
+          future: updatetable,
+          builder: (_, snap) {
+            if (snap.connectionState == ConnectionState.waiting) {
+              return Scaffold(
+                body: Center(
+                  child: WaitMz.waitmz0([1, 2, 3, 4, 5], context),
+                ),
+              );
+            } else if (!snap.hasData) {
+              Future(() => Get.toNamed('/'));
+              return Scaffold(
+                body: Center(
+                  child: SizedBox(),
+                ),
+              );
+            } else {
+              initial();
+              return SafeArea(
+                  child: Directionality(
+                textDirection: BasicInfo.lang(),
+                child: Scaffold(
+                  appBar: AppBar(
+                    centerTitle: true,
+                    title: Text(
+                      appbartitle[BasicInfo.indexlang()], //app bar title
+                      style: ThemeMz.titlelargCairo(),
+                    ),
+                  ),
+                  body: SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        //search
+                        TextFieldMz(
+                            controller: searchcontroller,
+                            label: const ['بحث', 'search'],
+                            onchange: (x) => mainController.search(
+                                range: searchrangelist,
+                                word: x,
+                                list: table![0][tablename]),
+                            td: BasicInfo.lang()),
+                        //choose by office
+                        GetBuilder<MainController>(
+                          init: mainController,
+                          builder: (_) => Visibility(
+                              visible:
+                                  chooseofficevisible && officeslist.length > 2,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: SizedBox(
+                                  width: MediaQuery.of(context).size.width < 500
+                                      ? MediaQuery.of(context).size.width
+                                      : 500,
+                                  child: Card(
+                                    shape: const BeveledRectangleBorder(
+                                        borderRadius: BorderRadius.only(
+                                            topLeft: Radius.circular(10))),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text([
+                                          '  اختيار المكتب',
+                                          'Choose Office  '
+                                        ][BasicInfo.indexlang()]),
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              left: 10, right: 10),
+                                          child: DropdownButton(
+                                              value: selectedoffice,
+                                              items: officeslist
+                                                  .map((ol) => DropdownMenuItem(
+                                                      value: ol,
+                                                      child: Text(ol)))
+                                                  .toList(),
+                                              onChanged: (x) {
+                                                mainController.chooseoffice(
+                                                  accounts: accountssearch,
+                                                  x: x,
+                                                  list: officechooselist,
+                                                  officenameclm: officenameclm,
+                                                );
+                                              }),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
+                              )),
+                        ),
+                        //search by date range
+                        Visibility(
+                          visible: searchwithdatevisible,
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width < 500
+                                ? MediaQuery.of(context).size.width
+                                : 500,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Row(children: [
+                                  Text(['من', 'from'][BasicInfo.indexlang()]),
+                                  TextButton(
+                                    onPressed: () => setstartdate(),
+                                    style:
+                                        Theme.of(context).textButtonTheme.style,
+                                    child: Text(df.DateFormat("yyyy-MM-dd")
+                                        .format(startdate!)),
+                                  ),
+                                ]),
+                                Row(
+                                  children: [
+                                    Text(['إلى', 'to'][BasicInfo.indexlang()]),
+                                    TextButton(
+                                        onPressed: () => setenddate(),
+                                        child: Text(df.DateFormat("yyyy-MM-dd")
+                                            .format(enddate!)))
+                                  ],
+                                )
                               ],
                             ),
                           ),
                         ),
-                      )),
-                ),
-                //search by date range
-                Visibility(
-                  visible: searchwithdatevisible,
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width < 500
-                        ? MediaQuery.of(context).size.width
-                        : 500,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Row(children: [
-                          Text(['من', 'from'][BasicInfo.indexlang()]),
-                          TextButton(
-                            onPressed: () => setstartdate(),
-                            style: Theme.of(context).textButtonTheme.style,
-                            child: Text(
-                                df.DateFormat("yyyy-MM-dd").format(startdate!)),
-                          ),
-                        ]),
-                        Row(
-                          children: [
-                            Text(['إلى', 'to'][BasicInfo.indexlang()]),
-                            TextButton(
-                                onPressed: () => setenddate(),
-                                child: Text(df.DateFormat("yyyy-MM-dd")
-                                    .format(enddate!)))
-                          ],
+                        const Divider(),
+                        GetBuilder<MainController>(
+                          init: mainController,
+                          builder: (_) {
+                            return Expanded(
+                              child: SingleChildScrollView(
+                                  child: Column(
+                                children: [
+                                  Visibility(
+                                      visible:
+                                          titleofmain == null ? false : true,
+                                      child: Text("$titleofmain")),
+                                  ...table![0][tablename].where((element) {
+                                    return conditionofview(element) == true &&
+                                        element['visible'] == true &&
+                                        element['visiblesearch'] == true;
+                                  }).map((me) => mainItem(me)),
+                                  subitems ?? SizedBox()
+                                ],
+                              )),
+                            );
+                          },
+                        ),
+                        SizedBox(
+                          height: AppBar().preferredSize.height,
                         )
                       ],
                     ),
                   ),
-                ),
-                const Divider(),
-                GetBuilder<MainController>(
-                  init: mainController,
-                  builder: (_) {
-                    return Expanded(
-                      child: SingleChildScrollView(
-                          child: Column(
+                  floatingActionButton: Visibility(
+                    visible: addactionvisible,
+                    child: GetBuilder<MainController>(
+                      init: mainController,
+                      builder: (_) => Row(
                         children: [
-                          Visibility(
-                              visible: titleofmain == null ? false : true,
-                              child: Text("$titleofmain")),
-                          ...table![0][tablename].where((element) {
-                            return conditionofview(element) == true &&
-                                element['visible'] == true &&
-                                element['visiblesearch'] == true;
-                          }).map((me) => mainItem(me)),
-                          subitems ?? SizedBox()
+                          ...floateactionbuttonlist.map((f) => IconbuttonMz(
+                              backcolor: ThemeMz.iconbuttonmzbc(),
+                              width: 150,
+                              height: 50,
+                              buttonlist: floateactionbuttonlist,
+                              elevate: f['elevate'],
+                              e: f,
+                              index: f['index'],
+                              action: (e) => adddialogasWidget(ctx: context),
+                              label: addactiontitle))
                         ],
-                      )),
-                    );
-                  },
+                      ),
+                    ),
+                  ),
                 ),
-                SizedBox(
-                  height: AppBar().preferredSize.height,
-                )
-              ],
-            ),
-          ),
-          floatingActionButton: Visibility(
-            visible: addactionvisible,
-            child: GetBuilder<MainController>(
-              init: mainController,
-              builder: (_) => Row(
-                children: [
-                  ...floateactionbuttonlist.map((f) => IconbuttonMz(
-                      backcolor: ThemeMz.iconbuttonmzbc(),
-                      width: 150,
-                      height: 50,
-                      buttonlist: floateactionbuttonlist,
-                      elevate: f['elevate'],
-                      e: f,
-                      index: f['index'],
-                      action: (e) => adddialogasWidget(ctx: context),
-                      label: addactiontitle))
-                ],
-              ),
-            ),
-          ),
-        ),
-      ));
+              ));
+            }
+          });
     } else {
       Future(() => Get.offAllNamed('/'));
       return const SizedBox();

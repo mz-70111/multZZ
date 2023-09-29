@@ -1082,6 +1082,11 @@ class Accounts extends StatelessWidget {
       );
     }
 
+    updatetable() async {
+      DB.allusersinfotable = await DBController().getallusersinfo();
+      return DB.allusersinfotable;
+    }
+
     return GetBuilder<DBController>(
       init: dbController,
       builder: (_) {
@@ -1094,6 +1099,7 @@ class Accounts extends StatelessWidget {
           i['visible'] = true;
         }
         return PageTamplate01(
+          updatetable: Future(() async => await updatetable()),
           appbartitle: const ['الحسابات', 'Accounts'],
           // searchwithdatevisible: false,
           searchrangelist: const ['username', 'fullname'],

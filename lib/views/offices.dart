@@ -779,6 +779,10 @@ class Offices extends StatelessWidget {
     }
 
     condition(x) => true;
+    updatetable() async {
+      DB.allofficeinfotable = await DBController().getallofficeinfo();
+      return DB.allofficeinfotable;
+    }
 
     return GetBuilder<DBController>(
       init: dbController,
@@ -789,6 +793,7 @@ class Offices extends StatelessWidget {
         PageTamplate01.searchcontroller.text = '';
 
         return PageTamplate01(
+          updatetable: Future(() async => await updatetable()),
           appbartitle: const ['المكاتب', 'Offices'],
           // searchwithdatevisible: false,
           searchrangelist: const ['officename'],
