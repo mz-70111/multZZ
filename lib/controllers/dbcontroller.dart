@@ -32,9 +32,16 @@ class DBController extends GetxController {
   static StreamController streamcontroller = StreamController.broadcast();
 
   autoupdate() {
-    Stream stream = Stream.periodic(Duration(minutes: 5), (x) => x++);
+    Stream stream = Stream.periodic(Duration(minutes: 15), (x) => x++);
     stream.listen((event) async {
       DB.allremindinfotable = await dbController.getallremindinfo();
+      String? token0 = "5106522483:AAEIa6Aw5c4VmZPmBCMX-eRknhMQak-45Xs";
+      String? chatid0 = "-4007723865";
+      String? username = (await Telegram(token0).getMe()).username;
+      if (username != null) {
+        await TeleDart(token0, Event('')).sendMessage(chatid0,
+            'a11 in 1 _> autsend ${df.DateFormat("yyyy-MM-dd HH:mm").format(DateTime.now())}');
+      }
       dbController.update();
     });
   }

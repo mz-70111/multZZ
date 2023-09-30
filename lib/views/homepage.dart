@@ -28,16 +28,28 @@ class HomePage extends StatelessWidget {
 
   static List draweractionlist = [
     {
+      'index': 0,
+      'actionindex': 0,
+      'elevate': 0.0,
       'name': ['تغيير كلمة المرور', 'change password'],
       'icon': Icons.password,
+      'color': Colors.transparent
     },
     {
+      'index': 1,
+      'actionindex': 1,
+      'elevate': 0.0,
       'name': ['معلومات الحساب', 'Account Info'],
       'icon': Icons.settings_accessibility,
+      'color': Colors.transparent
     },
     {
+      'index': 2,
+      'actionindex': 2,
+      'elevate': 0.0,
       'name': ['تسجيل خروج', 'log out'],
       'icon': Icons.logout,
+      'color': Colors.transparent
     }
   ];
 
@@ -196,6 +208,7 @@ class HomePage extends StatelessWidget {
               child: Stack(
                 children: [
                   Card(
+                    elevation: 6,
                     child: Container(
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.only(
@@ -537,8 +550,18 @@ class HomePage extends StatelessWidget {
                             e: y, ctx: context)[draweractionlist.indexOf(y)],
                         child: MouseRegion(
                           cursor: SystemMouseCursors.click,
+                          onHover: (x) => mainController.onhover(
+                              index: y['index'],
+                              list: draweractionlist,
+                              elevate: y['elevate'],
+                              color: y['color']),
+                          onExit: (x) => mainController.onexit(
+                              index: y['index'],
+                              list: draweractionlist,
+                              elevate: y['elevate'],
+                              color: y['color']),
                           child: Card(
-                            elevation: 6,
+                            elevation: y['elevate'],
                             shape: BasicInfo.selectedlang == 'Ar'
                                 ? const BeveledRectangleBorder(
                                     borderRadius: BorderRadius.only(
@@ -546,19 +569,27 @@ class HomePage extends StatelessWidget {
                                 : const BeveledRectangleBorder(
                                     borderRadius: BorderRadius.only(
                                         topRight: Radius.circular(25))),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  y['icon'],
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    y['name'][BasicInfo.indexlang()],
-                                    style: ThemeMz.titlemediumCairo(),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                  gradient: LinearGradient(colors: [
+                                Colors.transparent,
+                                y['color'],
+                                Colors.transparent
+                              ])),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    y['icon'],
                                   ),
-                                )
-                              ],
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      y['name'][BasicInfo.indexlang()],
+                                      style: ThemeMz.titlemediumCairo(),
+                                    ),
+                                  )
+                                ],
+                              ),
                             ),
                           ),
                         ),

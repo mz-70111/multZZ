@@ -43,10 +43,26 @@ class TextFieldMz extends StatelessWidget {
             readOnly: readOnly,
             textAlign: TextAlign.center,
             onChanged: (x) => onchange!(x),
+            cursorColor: BasicInfo.selectedmode == 'Light'
+                ? Colors.blue.shade500
+                : Color.fromARGB(99, 23, 126, 130),
             decoration: InputDecoration(
+              labelStyle: TextStyle(
+                color: BasicInfo.selectedmode == 'Light'
+                    ? Colors.black54
+                    : Colors.white54,
+              ),
+              suffixIconColor: BasicInfo.selectedmode == 'Light'
+                  ? Colors.black54
+                  : Colors.white54,
+              focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                width: 2.0,
+                color: BasicInfo.selectedmode == 'Light'
+                    ? Colors.black54
+                    : Colors.white54,
+              )),
               hintText: hint,
-              border: const OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(5))),
               errorText: error,
               label: Text(
                 label[BasicInfo.indexlang()],

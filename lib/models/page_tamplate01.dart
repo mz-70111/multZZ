@@ -20,11 +20,12 @@ class PageTamplate01 extends StatelessWidget {
       this.searchwithdatevisible = false,
       required this.searchrangelist, //search range
       required this.table, //main table like DB.alloffice
-      required this.tablename, //table name like 'offices'
+
       this.chooseofficevisible = false,
       this.officechooselist, //offices list for choose
       this.officenameclm, //column name of office name for choose
-      this.itemnameclm,
+      this.officechooselist2,
+      this.officenameclm2,
       this.startdate,
       this.enddate,
       required this.setstartdate,
@@ -38,14 +39,14 @@ class PageTamplate01 extends StatelessWidget {
       required this.addactionmainlabelsofpages, //titles of pages of add action
       required this.listoffunctionforadd, //list of function for button for add action
       required this.listofactionbuttonforadd, //list of buttom for add action
-      required this.initial,
+
       required this.conditionofview,
       this.accountssearch,
       this.subitems,
       this.titleofmain,
       required this.updatetable});
-  final String? tablename, officenameclm, itemnameclm, titleofmain;
-  final List? table, officechooselist;
+  final String? officenameclm, officenameclm2, titleofmain;
+  final List? table, officechooselist, officechooselist2;
   final List<String> appbartitle, searchrangelist, addactiontitle;
   final List<Widget> addactionpages;
   final List<Map> addactionmainlabelsofpages,
@@ -57,7 +58,6 @@ class PageTamplate01 extends StatelessWidget {
       setstartdate,
       setenddate,
       initialofadd,
-      initial,
       listoffunctionforadd,
       conditionofview;
   final Future updatetable;
@@ -100,7 +100,6 @@ class PageTamplate01 extends StatelessWidget {
                 ),
               );
             } else {
-              initial();
               return SafeArea(
                   child: Directionality(
                 textDirection: BasicInfo.lang(),
@@ -122,9 +121,7 @@ class PageTamplate01 extends StatelessWidget {
                             controller: searchcontroller,
                             label: const ['بحث', 'search'],
                             onchange: (x) => mainController.search(
-                                range: searchrangelist,
-                                word: x,
-                                list: table![0][tablename]),
+                                range: searchrangelist, word: x, list: table!),
                             td: BasicInfo.lang()),
                         //choose by office
                         GetBuilder<MainController>(
@@ -162,11 +159,14 @@ class PageTamplate01 extends StatelessWidget {
                                                   .toList(),
                                               onChanged: (x) {
                                                 mainController.chooseoffice(
-                                                  accounts: accountssearch,
-                                                  x: x,
-                                                  list: officechooselist,
-                                                  officenameclm: officenameclm,
-                                                );
+                                                    accounts: accountssearch,
+                                                    x: x,
+                                                    list: officechooselist,
+                                                    list2: officechooselist2,
+                                                    officenameclm:
+                                                        officenameclm,
+                                                    officenameclm2:
+                                                        officenameclm2);
                                               }),
                                         ),
                                       ],
@@ -220,7 +220,7 @@ class PageTamplate01 extends StatelessWidget {
                                       visible:
                                           titleofmain == null ? false : true,
                                       child: Text("$titleofmain")),
-                                  ...table![0][tablename].where((element) {
+                                  ...table!.where((element) {
                                     return conditionofview(element) == true &&
                                         element['visible'] == true &&
                                         element['visiblesearch'] == true;
@@ -241,19 +241,24 @@ class PageTamplate01 extends StatelessWidget {
                     visible: addactionvisible,
                     child: GetBuilder<MainController>(
                       init: mainController,
-                      builder: (_) => Row(
-                        children: [
-                          ...floateactionbuttonlist.map((f) => IconbuttonMz(
-                              backcolor: ThemeMz.iconbuttonmzbc(),
-                              width: 150,
-                              height: 50,
-                              buttonlist: floateactionbuttonlist,
-                              elevate: f['elevate'],
-                              e: f,
-                              index: f['index'],
-                              action: (e) => adddialogasWidget(ctx: context),
-                              label: addactiontitle))
-                        ],
+                      builder: (_) => SizedBox(
+                        height: AppBar().preferredSize.height,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            ...floateactionbuttonlist.map((f) => IconbuttonMz(
+                                backcolor: ThemeMz.iconbuttonmzbc(),
+                                width: 150,
+                                height: 40,
+                                buttonlist: floateactionbuttonlist,
+                                elevate: f['elevate'],
+                                e: f,
+                                index: f['index'],
+                                action: (e) => adddialogasWidget(ctx: context),
+                                label: addactiontitle))
+                          ],
+                        ),
                       ),
                     ),
                   ),

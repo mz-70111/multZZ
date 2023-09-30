@@ -3,33 +3,41 @@ import 'package:mz_flutter_07/models/basicinfo.dart';
 
 class ThemeMz {
   static ThemeData lightmode() => ThemeData(
-        scaffoldBackgroundColor: Colors.white70,
-        cardColor: Colors.white60,
-        drawerTheme: DrawerThemeData(backgroundColor: Colors.white70),
-        appBarTheme: AppBarTheme(backgroundColor: Colors.blue.shade900),
-        colorScheme: const ColorScheme.light(),
-        switchTheme: const SwitchThemeData(
-          thumbColor: MaterialStatePropertyAll(Colors.blue),
-        ),
-        checkboxTheme: const CheckboxThemeData(
-            fillColor: MaterialStatePropertyAll(Colors.blue)),
-        radioTheme: const RadioThemeData(
-            fillColor: MaterialStatePropertyAll(Colors.blue)),
-      );
-  static ThemeData darkmode() => ThemeData(
+      scaffoldBackgroundColor: Color.fromARGB(255, 238, 238, 241),
+      cardColor: Color.fromARGB(255, 238, 238, 241),
+      drawerTheme: DrawerThemeData(backgroundColor: Colors.white70),
+      appBarTheme: AppBarTheme(backgroundColor: Colors.blue.shade700),
+      colorScheme: const ColorScheme.light(),
       switchTheme: const SwitchThemeData(
-        thumbColor: MaterialStatePropertyAll(Colors.deepPurple),
+        thumbColor: MaterialStatePropertyAll(Colors.blue),
       ),
       checkboxTheme: const CheckboxThemeData(
-          fillColor: MaterialStatePropertyAll(Colors.black)),
+          fillColor: MaterialStatePropertyAll(Colors.blue)),
       radioTheme: const RadioThemeData(
-          fillColor: MaterialStatePropertyAll(Colors.black)),
+          fillColor: MaterialStatePropertyAll(Colors.blue)),
+      expansionTileTheme: ExpansionTileThemeData());
+  static ThemeData darkmode() => ThemeData(
+      scaffoldBackgroundColor: const Color.fromARGB(255, 22, 27, 26),
+      cardColor: Color.fromARGB(255, 40, 49, 47),
+      drawerTheme:
+          DrawerThemeData(backgroundColor: Color.fromARGB(255, 22, 27, 26)),
+      dialogTheme:
+          DialogTheme(backgroundColor: Color.fromARGB(255, 22, 27, 26)),
+      appBarTheme:
+          AppBarTheme(backgroundColor: Color.fromARGB(220, 23, 126, 130)),
+      switchTheme: const SwitchThemeData(
+        thumbColor: MaterialStatePropertyAll(Color.fromARGB(220, 23, 126, 130)),
+      ),
+      checkboxTheme: const CheckboxThemeData(
+          fillColor: MaterialStatePropertyAll(Colors.black54)),
+      radioTheme: const RadioThemeData(
+          fillColor: MaterialStatePropertyAll(Colors.black54)),
       colorScheme: const ColorScheme.dark(
         error: Colors.orangeAccent,
       ));
   static Color iconbuttonmzbc() => BasicInfo.selectedmode == 'Light'
-      ? Colors.blue.shade900
-      : Colors.deepPurple;
+      ? Colors.blue.shade700
+      : Color.fromARGB(220, 23, 126, 130);
   static TextStyle titlemediumChanga() => BasicInfo.selectedmode == 'Light'
       ? const TextStyle(fontFamily: 'Changa', fontSize: 18)
       : const TextStyle(fontFamily: 'Changa', fontSize: 18);
@@ -39,6 +47,9 @@ class ThemeMz {
   static TextStyle titlemediumCairo() => BasicInfo.selectedmode == 'Light'
       ? const TextStyle(fontFamily: 'Cairo', fontSize: 18)
       : const TextStyle(fontFamily: 'Cairo', fontSize: 18);
+  static TextStyle titlemediumCairowhite() => BasicInfo.selectedmode == 'Light'
+      ? const TextStyle(fontFamily: 'Cairo', fontSize: 18, color: Colors.white)
+      : const TextStyle(fontFamily: 'Cairo', fontSize: 18, color: Colors.white);
   static TextStyle titlelargCairo() => BasicInfo.selectedmode == 'Light'
       ? const TextStyle(fontFamily: 'Cairo', fontSize: 25)
       : const TextStyle(fontFamily: 'Cairo', fontSize: 25);

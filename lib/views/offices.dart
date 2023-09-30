@@ -97,6 +97,7 @@ class Offices extends StatelessWidget {
   static List easyeditlist = [];
   @override
   Widget build(BuildContext context) {
+    List table = DB.allofficeinfotable[0]['offices'];
     basics() {
       return GetBuilder<MainController>(
         init: mainController,
@@ -743,8 +744,7 @@ class Offices extends StatelessWidget {
                       try {
                         return Row(
                           children: [
-                            ...easyeditlist[DB.allofficeinfotable[0]['offices']
-                                    .indexOf(e)]
+                            ...easyeditlist[table.indexOf(e)]
                                 .where((b) => b['visible'] == true)
                                 .map((b) => IconbuttonMz(
                                       e: e,
@@ -755,9 +755,8 @@ class Offices extends StatelessWidget {
                                           b['elevate'] == 3.0 ? true : false,
                                       label: b['label'],
                                       icon: b['icon'],
-                                      buttonlist: easyeditlist[DB
-                                          .allofficeinfotable[0]['offices']
-                                          .indexOf(e)],
+                                      buttonlist:
+                                          easyeditlist[table.indexOf(e)],
                                       index: b['index'],
                                       height: 35,
                                       width: b['elevate'] == 3.0 ? 80 : 40,
@@ -781,12 +780,14 @@ class Offices extends StatelessWidget {
     condition(x) => true;
     updatetable() async {
       DB.allofficeinfotable = await DBController().getallofficeinfo();
+      buildeasyeditlist();
       return DB.allofficeinfotable;
     }
 
     return GetBuilder<DBController>(
       init: dbController,
       builder: (_) {
+        table = DB.allofficeinfotable[0]['offices'];
         for (var i in DB.allofficeinfotable[0]['offices']) {
           i['visiblesearch'] = true;
         }
@@ -801,8 +802,7 @@ class Offices extends StatelessWidget {
           // officechooselist: DB.allofficeinfotable[0]['offices'],
           // officenameclmname: 'officename',
           conditionofview: (x) => condition(x),
-          table: DB.allofficeinfotable,
-          tablename: 'offices',
+          table: table,
           mainItem: (x) => mainItem(e: x, ctx: context),
           startdate: searchbydate[0],
           setstartdate: () => null,
@@ -810,7 +810,6 @@ class Offices extends StatelessWidget {
           setenddate: () => null,
           addactionvisible: true,
           initialofadd: () => initialofdialog(),
-          initial: () => buildeasyeditlist(),
           addactiontitle: const ['إضافة مكتب', 'Add Office'],
           addactionmainlabelsofpages: maintitlesdialogMz01,
           addactionpages: [basics(), addemployee()],

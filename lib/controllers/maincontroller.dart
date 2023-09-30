@@ -412,12 +412,13 @@ class MainController extends GetxController {
     update();
   }
 
-  chooseoffice({list, officenameclm, x, accounts}) {
+  chooseoffice({list, list2, officenameclm, officenameclm2, x, accounts}) {
     PageTamplate01.selectedoffice = x;
 
     for (var i in list) {
       i['visible'] = false;
     }
+
     if (x == "all") {
       for (var i in list) {
         i['visible'] = true;
@@ -425,6 +426,7 @@ class MainController extends GetxController {
     } else {
       List elementatoffice = [];
       elementatoffice.clear();
+
       if (accounts == null) {
         for (var j in list.where((u) =>
             u[officenameclm] ==
@@ -477,16 +479,15 @@ class MainController extends GetxController {
     color != null
         ? list[index]['color'] = BasicInfo.selectedmode == 'Light'
             ? Colors.blueAccent.withOpacity(0.3)
-            : Colors.deepPurple.withOpacity(0.3)
+            : Color.fromARGB(61, 23, 126, 130)
         : null;
     iconsize != null ? list[index]['iconsize'] = 50.0 : null;
     elevate != null ? list[index]['elevate'] = 3.0 : null;
-    BasicInfo.actionindex = list[index]['actionindex'] ?? 0;
     try {
       backcolor != null
           ? list[index]['backcolor'] = BasicInfo.selectedmode == 'Light'
               ? Colors.blueAccent
-              : Colors.deepPurple
+              : Color.fromARGB(153, 23, 126, 130)
           : null;
     } catch (r) {}
     update();
@@ -1069,16 +1070,13 @@ insert into logs(log,logdate)values
             } catch (e) {}
           }
 
-          if (
-              DateTime.now()
-                          .difference(DateTime.parse(i['lastsend']))
-                          .inMinutes +
-                      1 >=
-                  int.parse(i['repeate'])) {
-
-            
-              try {
-                if (mainController.calcreminddateasint(e: i) <= 0) {
+          if (DateTime.now()
+                      .difference(DateTime.parse(i['lastsend']))
+                      .inMinutes +
+                  1 >=
+              int.parse(i['repeate'])) {
+            try {
+              if (mainController.calcreminddateasint(e: i) <= 0) {
                 String? testtoken = (await Telegram(DB.allofficeinfotable[0]
                                 ['offices']
                             .where((of) =>
@@ -1108,14 +1106,14 @@ ${i['reminddetails']}
                         'select lastsend from remind where remind_id=${i['remind_id']};'
                   });
                   i['lastsend'] = t[0][0];
-                }}
-              } catch (i) {
-                print(i);
+                }
               }
+            } catch (i) {
+              print(i);
             }
           }
         }
-      
+      }
     });
 
     update();
@@ -2035,6 +2033,19 @@ insert into logs(log,logdate)values
     }
     Costs.listofactionbuttonforadd[0]['visible'] = true;
     Costs.listofactionbuttonforadd[2]['visible'] = false;
+    update();
+  }
+
+  setdate({ctx, date}) async {
+    DateTime? t = await showDatePicker(
+        context: ctx,
+        initialDate: DateTime.now(),
+        firstDate: DateTime.parse("2023-09-01"),
+        lastDate: DateTime.now());
+    if (t != null) {
+      date[0]['date'] = t;
+    }
+    print(date);
     update();
   }
 }

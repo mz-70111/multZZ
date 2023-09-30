@@ -113,7 +113,6 @@ class Accounts extends StatelessWidget {
     },
     {'index': 0, 'visible': false, 'type': 'wait', 'elevate': 0.0}
   ];
-
   static List<Map> listofactionbuttonforedit = [
     {
       'index': 0,
@@ -138,6 +137,8 @@ class Accounts extends StatelessWidget {
   static List easyeditlist = [];
   @override
   Widget build(BuildContext context) {
+    List table = DB.allusersinfotable[0]['users'];
+
     basics() {
       return GetBuilder<MainController>(
         init: mainController,
@@ -998,83 +999,67 @@ class Accounts extends StatelessWidget {
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
           child: Card(
-            child: Container(
-              decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [
-                Colors.transparent,
-                DB.allusersinfotable[0]['users_privileges']
-                            .where((y) => y['up_user_id'] == e['user_id'])
-                            .toList()[0]['enable'] ==
-                        '1'
-                    ? Colors.green.withOpacity(0.2)
-                    : Colors.transparent,
-              ])),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Text("# ${e['user_id']}_ "),
-                        Expanded(
-                            child: Row(
-                          children: [
-                            Text(
-                              e['username'],
-                              style: ThemeMz.titlemediumChanga(),
-                            ),
-                            Text(
-                              " _> ${e['fullname']}",
-                              style: ThemeMz.titlemediumChanga(),
-                            )
-                          ],
-                        )),
-                      ],
-                    ),
-                    GetBuilder<MainController>(
-                      init: mainController,
-                      builder: (_) {
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            ...easyeditlist[
-                                    DB.allusersinfotable[0]['users'].indexOf(e)]
-                                .where((b) =>
-                                    b['visible'] == true &&
-                                    b['visible0'] == true)
-                                .map((b) {
-                              switch (b['type']) {
-                                case 'do-it':
-                                  return IconbuttonMz(
-                                    e: e,
-                                    action: listoffunctionforeasyeditpanel(
-                                        ctx: ctx, e: e)[b['index']],
-                                    elevate: b['elevate'],
-                                    labelvisible:
-                                        b['elevate'] == 3.0 ? true : false,
-                                    label: b['label'],
-                                    icon: b['icon'],
-                                    buttonlist: easyeditlist[DB
-                                        .allusersinfotable[0]['users']
-                                        .indexOf(e)],
-                                    index: b['index'],
-                                    height: 35,
-                                    width:
-                                        b['elevate'] == 3.0 ? b['length'] : 40,
-                                    backcolor: b['backcolor'],
-                                  );
-                                case 'wait':
-                                  return WaitMz.waitmz0([1, 2, 3, 4], context);
-                                default:
-                                  return SizedBox();
-                              }
-                            })
-                          ],
-                        );
-                      },
-                    )
-                  ],
-                ),
+            elevation: 6,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Text("# ${e['user_id']}_ "),
+                      Expanded(
+                          child: Row(
+                        children: [
+                          Text(
+                            e['username'],
+                            style: ThemeMz.titlemediumChanga(),
+                          ),
+                          Text(
+                            " _> ${e['fullname']}",
+                            style: ThemeMz.titlemediumChanga(),
+                          )
+                        ],
+                      )),
+                    ],
+                  ),
+                  GetBuilder<MainController>(
+                    init: mainController,
+                    builder: (_) {
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ...easyeditlist[table.indexOf(e)]
+                              .where((b) =>
+                                  b['visible'] == true && b['visible0'] == true)
+                              .map((b) {
+                            switch (b['type']) {
+                              case 'do-it':
+                                return IconbuttonMz(
+                                  e: e,
+                                  action: listoffunctionforeasyeditpanel(
+                                      ctx: ctx, e: e)[b['index']],
+                                  elevate: b['elevate'],
+                                  labelvisible:
+                                      b['elevate'] == 3.0 ? true : false,
+                                  label: b['label'],
+                                  icon: b['icon'],
+                                  buttonlist: easyeditlist[table.indexOf(e)],
+                                  index: b['index'],
+                                  height: 35,
+                                  width: b['elevate'] == 3.0 ? b['length'] : 40,
+                                  backcolor: b['backcolor'],
+                                );
+                              case 'wait':
+                                return WaitMz.waitmz0([1, 2, 3, 4], context);
+                              default:
+                                return SizedBox();
+                            }
+                          })
+                        ],
+                      );
+                    },
+                  )
+                ],
               ),
             ),
           ),
@@ -1084,12 +1069,14 @@ class Accounts extends StatelessWidget {
 
     updatetable() async {
       DB.allusersinfotable = await DBController().getallusersinfo();
+      buildeasyeditlist();
       return DB.allusersinfotable;
     }
 
     return GetBuilder<DBController>(
       init: dbController,
       builder: (_) {
+        table = DB.allusersinfotable[0]['users'];
         for (var i in DB.allusersinfotable[0]['users']) {
           i['visiblesearch'] = true;
         }
@@ -1101,15 +1088,13 @@ class Accounts extends StatelessWidget {
         return PageTamplate01(
           updatetable: Future(() async => await updatetable()),
           appbartitle: const ['الحسابات', 'Accounts'],
-          // searchwithdatevisible: false,
           searchrangelist: const ['username', 'fullname'],
           chooseofficevisible: true,
           officechooselist: DB.allusersinfotable[0]['users'],
           officenameclm: 'upo_user_id',
-          accountssearch: 'dd',
+          accountssearch: 'notnull',
           conditionofview: (x) => true,
-          table: DB.allusersinfotable,
-          tablename: 'users',
+          table: table,
           mainItem: (x) => mainItem(e: x, ctx: context),
           startdate: searchbydate[0],
           setstartdate: () => null,
@@ -1117,7 +1102,6 @@ class Accounts extends StatelessWidget {
           setenddate: () => null,
           addactionvisible: true,
           initialofadd: () => initialofdialog(),
-          initial: () => buildeasyeditlist(),
           addactiontitle: const ['إضافة حساب', 'Add Account'],
           addactionmainlabelsofpages: maintitlesdialogMz01,
           addactionpages: [basics(), basicpriv(), addtoOffice()],

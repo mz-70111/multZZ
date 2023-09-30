@@ -111,6 +111,8 @@ class Remind extends StatelessWidget {
   static List easyeditlist = [];
   @override
   Widget build(BuildContext context) {
+    List table = DB.allremindinfotable[0]['remind'];
+
     TextEditingController certsrccontroller = TextEditingController();
     TextEditingController remindrepeateeverycontroller =
         TextEditingController(text: '60');
@@ -354,7 +356,7 @@ class Remind extends StatelessWidget {
       }
     }
 
-    buildeasyeditlist() async {
+    buildeasyeditlist() {
       easyeditlist.clear();
       for (var i in DB.allremindinfotable[0]['remind']) {
         easyeditlist.add([]);
@@ -402,6 +404,7 @@ class Remind extends StatelessWidget {
           {'visible0': true, 'visible': false, 'type': 'wait'},
         });
       }
+      return easyeditlist;
     }
 
     List<Function> listoffunctionforadd(e) => [
@@ -540,233 +543,240 @@ class Remind extends StatelessWidget {
           }
         ];
 
+    updatetable() async {
+      DB.allremindinfotable = await dbController.getallremindinfo();
+      buildeasyeditlist();
+      return DB.allremindinfotable;
+    }
+
     mainItem({e, ctx}) {
-      try {
-        return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Card(
-              child: ExpansionTile(
-                title: Column(
+      return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Card(
+            child: ExpansionTile(
+              title: Column(
+                children: [
+                  Row(children: [
+                    Container(
+                      width: 10,
+                      height: 50,
+                      color: mainController.calcexpiredateasint(e: e) == null
+                          ? Colors.grey
+                          : mainController.calcexpiredateasint(e: e) <= 0
+                              ? Colors.red
+                              : mainController.calcreminddateasint(e: e) <= 0
+                                  ? Colors.deepOrangeAccent
+                                  : Colors.green,
+                    ),
+                    Text("# ${e['remind_id']}_ "),
+                    Expanded(
+                        child: Text(
+                      e['remindname'],
+                      style: ThemeMz.titlemediumChanga(),
+                    )),
+                  ]),
+                  Builder(builder: (_) {
+                    try {
+                      return Visibility(
+                        visible: DB.userinfotable[0]['users_priv_office']
+                                    .where((o) =>
+                                        o['upo_office_id'] ==
+                                        e['remind_office_id'])
+                                    .toList()[0]['addremind'] ==
+                                '1'
+                            ? true
+                            : false,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            ...easyeditlist[table.indexOf(e)]
+                                .where((b) =>
+                                    b['visible'] == true &&
+                                    b['visible0'] == true)
+                                .map((b) {
+                              switch (b['type']) {
+                                case 'do-it':
+                                  return IconbuttonMz(
+                                    e: e,
+                                    action: listoffunctionforeasyeditpanel(
+                                        ctx: ctx, e: e)[b['index']],
+                                    elevate: b['elevate'],
+                                    labelvisible:
+                                        b['elevate'] == 3.0 ? true : false,
+                                    label: b['label'],
+                                    icon: b['icon'],
+                                    buttonlist: easyeditlist[table.indexOf(e)],
+                                    index: b['index'],
+                                    height: 35,
+                                    width:
+                                        b['elevate'] == 3.0 ? b['length'] : 40,
+                                    backcolor: b['backcolor'],
+                                  );
+                                case 'wait':
+                                  return WaitMz.waitmz0([1, 2, 3, 4], context);
+                                default:
+                                  return SizedBox();
+                              }
+                            })
+                          ],
+                        ),
+                      );
+                    } catch (e) {
+                      print(e);
+                      return SizedBox();
+                    }
+                  })
+                ],
+              ),
+              children: [
+                Row(
                   children: [
-                    Row(children: [
-                      Container(
-                        width: 10,
-                        height: 50,
-                        color: mainController.calcexpiredateasint(e: e) == null
-                            ? Colors.grey
-                            : mainController.calcexpiredateasint(e: e) <= 0
-                                ? Colors.red
-                                : mainController.calcreminddateasint(e: e) <= 0
-                                    ? Colors.deepOrangeAccent
-                                    : Colors.green,
-                      ),
-                      Text("# ${e['remind_id']}_ "),
-                      Expanded(
-                          child: Text(
-                        e['remindname'],
-                        style: ThemeMz.titlemediumChanga(),
-                      )),
-                    ]),
-                    Visibility(
-                      visible: DB.userinfotable[0]['users_priv_office']
-                                  .where((o) =>
-                                      o['upo_office_id'] ==
-                                      e['remind_office_id'])
-                                  .toList()[0]['addremind'] ==
-                              '1'
-                          ? true
-                          : false,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          ...easyeditlist[
-                                  DB.allremindinfotable[0]['remind'].indexOf(e)]
-                              .where((b) =>
-                                  b['visible'] == true && b['visible0'] == true)
-                              .map((b) {
-                            switch (b['type']) {
-                              case 'do-it':
-                                return IconbuttonMz(
-                                  e: e,
-                                  action: listoffunctionforeasyeditpanel(
-                                      ctx: ctx, e: e)[b['index']],
-                                  elevate: b['elevate'],
-                                  labelvisible:
-                                      b['elevate'] == 3.0 ? true : false,
-                                  label: b['label'],
-                                  icon: b['icon'],
-                                  buttonlist: easyeditlist[DB
-                                      .allremindinfotable[0]['remind']
-                                      .indexOf(e)],
-                                  index: b['index'],
-                                  height: 35,
-                                  width: b['elevate'] == 3.0 ? b['length'] : 40,
-                                  backcolor: b['backcolor'],
-                                );
-                              case 'wait':
-                                return WaitMz.waitmz0([1, 2, 3, 4], context);
-                              default:
-                                return SizedBox();
-                            }
-                          })
-                        ],
-                      ),
-                    )
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(e['remind_office_id'] != null
+                          ? DB.allofficeinfotable[0]['offices']
+                              .where((u) =>
+                                  u['office_id'] == e['remind_office_id'])
+                              .toList()[0]['officename']
+                          : "مكتب محذوف"),
+                    ),
                   ],
                 ),
-                children: [
-                  Row(
+                Visibility(
+                  visible: e['reminddetails'] == '' ? false : true,
+                  child: Row(
                     children: [
                       Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Text(e['remind_office_id'] != null
-                            ? DB.allofficeinfotable[0]['offices']
-                                .where((u) =>
-                                    u['office_id'] == e['remind_office_id'])
-                                .toList()[0]['officename']
-                            : "مكتب محذوف"),
+                        child: Text(e['reminddetails']),
                       ),
                     ],
                   ),
-                  Visibility(
-                    visible: e['reminddetails'] == '' ? false : true,
-                    child: Row(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(e['reminddetails']),
-                        ),
-                      ],
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                          "${['الاشعارات', 'Notifi'][BasicInfo.indexlang()]}"
+                          " ${e['notifi'] == '1' ? [
+                              'مفعلة',
+                              'enabled'
+                            ][BasicInfo.indexlang()] : [
+                              'ملغاة',
+                              'disabled'
+                            ][BasicInfo.indexlang()]}"),
                     ),
-                  ),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                            "${['الاشعارات', 'Notifi'][BasicInfo.indexlang()]}"
-                            " ${e['notifi'] == '1' ? [
-                                'مفعلة',
-                                'enabled'
-                              ][BasicInfo.indexlang()] : [
-                                'ملغاة',
-                                'disabled'
-                              ][BasicInfo.indexlang()]}"),
-                      ),
-                    ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: e['reminddate'] == null
-                        ? Text([
-                            'لم يتم تحديد مدة الانتهاء',
-                            'not defined'
-                          ][BasicInfo.indexlang()])
-                        : Column(
-                            children: [
-                              Row(children: [
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: e['reminddate'] == null
+                      ? Text([
+                          'لم يتم تحديد مدة الانتهاء',
+                          'not defined'
+                        ][BasicInfo.indexlang()])
+                      : Column(
+                          children: [
+                            Row(children: [
+                              Text([
+                                'تاريخ الانتهاء',
+                                'expire date'
+                              ][BasicInfo.indexlang()]),
+                              Text(df.DateFormat(" yyyy-MM-dd")
+                                  .format(DateTime.parse(e['reminddate']))),
+                            ]),
+                            Row(
+                              children: [
                                 Text([
-                                  'تاريخ الانتهاء',
-                                  'expire date'
+                                  'تم جلب تاريخ الانتهاء آخر مرة بتاريخ',
+                                  'end date got last time at'
                                 ][BasicInfo.indexlang()]),
-                                Text(df.DateFormat(" yyyy-MM-dd")
-                                    .format(DateTime.parse(e['reminddate']))),
-                              ]),
-                              Row(
-                                children: [
-                                  Text([
-                                    'تم جلب تاريخ الانتهاء آخر مرة بتاريخ',
-                                    'end date got last time at'
-                                  ][BasicInfo.indexlang()]),
-                                  Directionality(
-                                    textDirection: TextDirection.ltr,
-                                    child: Text(
-                                      df.DateFormat(" yyyy-MM-dd HH:mm ")
-                                          .format(DateTime.parse(
-                                              e['reminddategetdate'])),
-                                    ),
+                                Directionality(
+                                  textDirection: TextDirection.ltr,
+                                  child: Text(
+                                    df.DateFormat(" yyyy-MM-dd HH:mm ").format(
+                                        DateTime.parse(e['reminddategetdate'])),
                                   ),
-                                ],
-                              ),
-                            ],
-                          ),
-                  ),
-                  Visibility(
-                    visible: e['reminddate'] == null ? false : true,
-                    child: Row(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text("${[
-                            'المدة المتبقية للتنبيه',
-                            'Duration to alert'
-                          ][BasicInfo.indexlang()]}"
-                              " ${mainController.calcreminddate(e: e)}"),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                ),
+                Visibility(
+                  visible: e['reminddate'] == null ? false : true,
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text("${[
+                          'المدة المتبقية للتنبيه',
+                          'Duration to alert'
+                        ][BasicInfo.indexlang()]}"
+                            " ${mainController.calcreminddate(e: e)}"),
+                      ),
+                    ],
                   ),
-                  Visibility(
-                    visible: e['reminddate'] == null ? false : true,
-                    child: Row(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text("${[
-                            'المدة المتبقية لانتهاء المدة',
-                            'Duration to Expire'
-                          ][BasicInfo.indexlang()]}"
-                              " ${mainController.calcexpiredate(e: e)}"),
-                        ),
-                      ],
-                    ),
+                ),
+                Visibility(
+                  visible: e['reminddate'] == null ? false : true,
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text("${[
+                          'المدة المتبقية لانتهاء المدة',
+                          'Duration to Expire'
+                        ][BasicInfo.indexlang()]}"
+                            " ${mainController.calcexpiredate(e: e)}"),
+                      ),
+                    ],
                   ),
-                  Row(
+                ),
+                Row(
+                  children: [
+                    Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text("${[
+                          'تم إنشاءها بواسطة',
+                          'created by'
+                        ][BasicInfo.indexlang()]} ${e['createby_id'] != null ? DB.allusersinfotable[0]['users'].where((u) => u['user_id'] == e['createby_id']).toList()[0]['fullname'] : "حساب محذوف"} ")),
+                    Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: Text(
+                        df.DateFormat(" yyyy-MM-dd HH:mm ")
+                            .format(DateTime.parse(e['createdate'])),
+                      ),
+                    ),
+                  ],
+                ),
+                Visibility(
+                  visible: e['editdate'] != null ? true : false,
+                  child: Row(
                     children: [
                       Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text("${[
-                            'تم إنشاءها بواسطة',
-                            'created by'
-                          ][BasicInfo.indexlang()]} ${e['createby_id'] != null ? DB.allusersinfotable[0]['users'].where((u) => u['user_id'] == e['createby_id']).toList()[0]['fullname'] : "حساب محذوف"} ")),
+                            'تم تعديلها آخر مرة بواسطة',
+                            'last edit by'
+                          ][BasicInfo.indexlang()]} ${e['editby_id'] != null ? DB.allusersinfotable[0]['users'].where((u) => u['user_id'] == e['editby_id']).toList()[0]['fullname'] : "حساب محذوف"}")),
                       Directionality(
                         textDirection: TextDirection.ltr,
                         child: Text(
-                          df.DateFormat(" yyyy-MM-dd HH:mm ")
-                              .format(DateTime.parse(e['createdate'])),
+                          e['editdate'] != null
+                              ? df.DateFormat(" yyyy-MM-dd HH:mm ")
+                                  .format(DateTime.parse(e['editdate']))
+                              : "",
                         ),
                       ),
                     ],
                   ),
-                  Visibility(
-                    visible: e['editdate'] != null ? true : false,
-                    child: Row(
-                      children: [
-                        Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text("${[
-                              'تم تعديلها آخر مرة بواسطة',
-                              'last edit by'
-                            ][BasicInfo.indexlang()]} ${e['editby_id'] != null ? DB.allusersinfotable[0]['users'].where((u) => u['user_id'] == e['editby_id']).toList()[0]['fullname'] : "حساب محذوف"}")),
-                        Directionality(
-                          textDirection: TextDirection.ltr,
-                          child: Text(
-                            e['editdate'] != null
-                                ? df.DateFormat(" yyyy-MM-dd HH:mm ")
-                                    .format(DateTime.parse(e['editdate']))
-                                : "",
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Divider(),
-                ],
-              ),
-            ));
-      } catch (t) {
-        return SizedBox();
-      }
+                ),
+                Divider(),
+              ],
+            ),
+          ));
     }
 
     conditionofview(x) {
@@ -809,14 +819,10 @@ class Remind extends StatelessWidget {
       }
     }
 
-    updatetable() async {
-      DB.allremindinfotable = await dbController.getallremindinfo();
-      return DB.allremindinfotable;
-    }
-
     return GetBuilder<DBController>(
       init: dbController,
       builder: (_) {
+        table = DB.allremindinfotable[0]['remind'];
         for (var i in DB.allremindinfotable[0]['remind']) {
           i['visiblesearch'] = true;
         }
@@ -833,10 +839,8 @@ class Remind extends StatelessWidget {
           chooseofficevisible: true,
           officechooselist: DB.allremindinfotable[0]['remind'],
           officenameclm: 'remind_office_id',
-          itemnameclm: 'remind_id',
           conditionofview: (x) => conditionofview(x),
-          table: DB.allremindinfotable,
-          tablename: 'remind',
+          table: table,
           mainItem: (x) => mainItem(ctx: context, e: x),
           startdate: searchbydate[0],
           setstartdate: () => null,
@@ -844,7 +848,6 @@ class Remind extends StatelessWidget {
           setenddate: () => null,
           addactionvisible: addactionvisible(),
           initialofadd: () => initialofdialog(),
-          initial: () => buildeasyeditlist(),
           addactiontitle: const ['إضافة تذكير', 'Add Remind'],
           addactionmainlabelsofpages: maintitlesdialogMz01,
           addactionpages: [
