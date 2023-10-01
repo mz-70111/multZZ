@@ -120,31 +120,31 @@ class Costs extends StatelessWidget {
   static List easyeditlist = [], exportfunctionlist = [];
   @override
   Widget build(BuildContext context) {
-    List table = DB.allusersinfotable[0]['users'];
-    List table2 = DB.allcostsinfotable[0]['costs'];
     List offices = [];
     offices.clear();
-    for (var i in DB.userinfotable[0]['users_priv_office']) {
+    for (var i in DB.userinfotable![0]['users_priv_office']) {
       offices.add({});
-      offices[DB.userinfotable[0]['users_priv_office'].indexOf(i)].addAll({
-        'office': DB.allofficeinfotable[0]['offices']
-            .where((o) => o['office_id'] == i['upo_office_id'])
-            .toList()[0]['officename']
-      });
+      if (DB.allofficeinfotable != null) {
+        offices[DB.userinfotable![0]['users_priv_office'].indexOf(i)].addAll({
+          'office': DB.allofficeinfotable![0]['offices']
+              .where((o) => o['office_id'] == i['upo_office_id'])
+              .toList()[0]['officename']
+        });
+      }
     }
     basics() {
       List officesforadd = [];
       officesforadd.clear();
 
-      for (var i in DB.userinfotable[0]['users_priv_office']
+      for (var i in DB.userinfotable![0]['users_priv_office']
           .where((u) => u['addcost'] == '1')) {
         officesforadd.add({});
-        officesforadd[DB.userinfotable[0]['users_priv_office']
+        officesforadd[DB.userinfotable![0]['users_priv_office']
                 .where((u) => u['addcost'] == '1')
                 .toList()
                 .indexOf(i)]
             .addAll({
-          'office': DB.allofficeinfotable[0]['offices']
+          'office': DB.allofficeinfotable![0]['offices']
               .where((o) => o['office_id'] == i['upo_office_id'])
               .toList()[0]['officename']
         });
@@ -226,9 +226,10 @@ class Costs extends StatelessWidget {
 
     buildexport() {
       exportfunctionlist.clear();
-      for (var i in DB.allusersinfotable[0]['users']) {
+      for (var i in DB.allusersinfotable![0]['users']) {
         exportfunctionlist.add([]);
-        exportfunctionlist[DB.allusersinfotable[0]['users'].indexOf(i)].addAll({
+        exportfunctionlist[DB.allusersinfotable![0]['users'].indexOf(i)]
+            .addAll({
           {
             'index': 0,
             'visible0': true,
@@ -248,9 +249,9 @@ class Costs extends StatelessWidget {
 
     buildeasyeditlist() {
       easyeditlist.clear();
-      for (var i in DB.allcostsinfotable[0]['costs']) {
+      for (var i in DB.allcostsinfotable![0]['costs']) {
         easyeditlist.add([]);
-        easyeditlist[DB.allcostsinfotable[0]['costs'].indexOf(i)].addAll({
+        easyeditlist[DB.allcostsinfotable![0]['costs'].indexOf(i)].addAll({
           {
             'index': 0,
             'visible0': true,
@@ -282,7 +283,7 @@ class Costs extends StatelessWidget {
     List<Function> listoffunctionforadd(e) => [
           (e) => mainController.addcost(
               officeid:
-                  '${DB.allofficeinfotable[0]['offices'].where((element) => element['officename'] == offices[bodieslistofadd[0]['selectedofficeindex']]['office']).toList()[0]['office_id']}'),
+                  '${DB.allofficeinfotable![0]['offices'].where((element) => element['officename'] == offices[bodieslistofadd[0]['selectedofficeindex']]['office']).toList()[0]['office_id']}'),
           (e) => Get.back(),
         ];
     List<Function> listoffunctionforedit(e) => [
@@ -395,7 +396,7 @@ class Costs extends StatelessWidget {
     listoffunctionforexpot({e, ctx}) => [(e) {}];
     mainItem({e, ctx}) {
       bool ak = true;
-      for (var i in DB.allcostsinfotable[0]['costs']
+      for (var i in DB.allcostsinfotable![0]['costs']
           .where((c) => c['cost_user_id'] == e['user_id'])
           .toList()) {
         if (i['final_acceptcost'] != '1') {
@@ -423,7 +424,8 @@ class Costs extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    ...exportfunctionlist[table.indexOf(e)]
+                    ...exportfunctionlist[
+                            DB.allcostsinfotable![0]['costs'].indexOf(e)]
                         .where((b) =>
                             b['visible'] == true && b['visible0'] == true)
                         .map((b) {
@@ -437,7 +439,8 @@ class Costs extends StatelessWidget {
                             labelvisible: b['elevate'] == 3.0 ? true : false,
                             label: b['label'],
                             icon: b['icon'],
-                            buttonlist: exportfunctionlist[table.indexOf(e)],
+                            buttonlist: exportfunctionlist[
+                                DB.allcostsinfotable![0]['costs'].indexOf(e)],
                             index: b['index'],
                             height: 35,
                             width: b['elevate'] == 3.0 ? b['length'] : 40,
@@ -454,10 +457,10 @@ class Costs extends StatelessWidget {
               ],
             ),
             children: [
-              ...DB.allcostsinfotable[0]['costs']
+              ...DB.allcostsinfotable![0]['costs']
                   .where((c) => c['cost_user_id'] == e['user_id'])
                   .map((c) {
-                print(DB.allcostsinfotable[0]['costs'].indexOf(c));
+                print(DB.allcostsinfotable![0]['costs'].indexOf(c));
 
                 return Column(
                   children: [
@@ -487,7 +490,7 @@ class Costs extends StatelessWidget {
                                 child: Row(
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
-                                      ...easyeditlist[DB.allcostsinfotable[0]
+                                      ...easyeditlist[DB.allcostsinfotable![0]
                                                   ['costs']
                                               .indexOf(c)]
                                           .where((b) =>
@@ -509,7 +512,8 @@ class Costs extends StatelessWidget {
                                               label: b['label'],
                                               icon: b['icon'],
                                               buttonlist: easyeditlist[DB
-                                                  .allcostsinfotable[0]['costs']
+                                                  .allcostsinfotable![0]
+                                                      ['costs']
                                                   .indexOf(c)],
                                               index: b['index'],
                                               height: 35,
@@ -533,7 +537,7 @@ class Costs extends StatelessWidget {
                             Row(
                               children: [
                                 Text(
-                                    " ${c['cost_project']} _ ${DB.allofficeinfotable[0]['offices'].where((o) => o['office_id'] == c['cost_office_id']).toList()[0]['officename']}"),
+                                    " ${c['cost_project']} _ ${DB.allofficeinfotable![0]['offices'].where((o) => o['office_id'] == c['cost_office_id']).toList()[0]['officename']}"),
                               ],
                             ),
                             Row(
@@ -547,7 +551,7 @@ class Costs extends StatelessWidget {
                                     textDirection: TextDirection.ltr,
                                     child: Text('''
                                         الرأي المبدأي: ${c['begin_acceptcost'] == '1' ? 'مقبول' : c['begin_acceptcost'] == '0' ? 'مرفوض' : 'غير محدد'}
-                                        ${c['begin_acceptcost'] == '1' || c['begin_acceptcost'] == '0' ? 'بواسطة ${DB.allusersinfotable[0]['users'].where((u) => u['user_id'] == c['begin_acceptcost_user']).toList()[0]['fullname']}' : ''}
+                                        ${c['begin_acceptcost'] == '1' || c['begin_acceptcost'] == '0' ? 'بواسطة ${DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == c['begin_acceptcost_user']).toList()[0]['fullname']}' : ''}
                                         ''')),
                               ],
                             ),
@@ -571,13 +575,13 @@ class Costs extends StatelessWidget {
 
     conditionofview(x) {
       List officesii = [];
-      for (var y in DB.userinfotable[0]['users_priv_office']) {
+      for (var y in DB.userinfotable![0]['users_priv_office']) {
         if (y['upo_user_id'] == BasicInfo.LogInInfo![0] &&
             y['showallcosts'] == '1') {
           officesii.add(y['upo_office_id']);
         }
       }
-      for (var i in DB.allusersinfotable[0]['users_priv_office']
+      for (var i in DB.allusersinfotable![0]['users_priv_office']
           .where((u) => u['upo_user_id'] == x['user_id'])
           .toList()) {
         if (x['user_id'] == BasicInfo.LogInInfo![0] ||
@@ -591,10 +595,10 @@ class Costs extends StatelessWidget {
 
     bool addactionvisible() {
       int st = 0;
-      if (DB.userinfotable[0]['users_priv_office'].isNotEmpty) {
+      if (DB.userinfotable![0]['users_priv_office'].isNotEmpty) {
         l:
         for (var i in offices) {
-          if (DB.userinfotable[0]['users_priv_office'][offices.indexOf(i)]
+          if (DB.userinfotable![0]['users_priv_office'][offices.indexOf(i)]
                   ['addcost'] ==
               '1') {
             st = 1;
@@ -620,26 +624,24 @@ class Costs extends StatelessWidget {
     return GetBuilder<DBController>(
       init: dbController,
       builder: (_) {
-        table = DB.allusersinfotable[0]['users'];
-        table2 = DB.allcostsinfotable[0]['costs'];
-        for (var i in DB.allusersinfotable[0]['users']) {
-          i['visiblesearch'] = true;
+        if (DB.allusersinfotable != null) {
+          for (var i in DB.allusersinfotable![0]['users']) {
+            i['visiblesearch'] = true;
+          }
         }
         PageTamplate01.searchcontroller.text = '';
         PageTamplate01.selectedoffice = 'all';
-        for (var i in DB.allusersinfotable[0]['users']) {
-          i['visible'] = true;
-        }
+
         return PageTamplate01(
             updatetable: Future(() async => await updatetable()),
             appbartitle: const ['النفقات', 'Costs'],
             searchrangelist: const ['username', 'fullname'],
             chooseofficevisible: true,
-            officechooselist: DB.allusersinfotable[0]['users'],
+            officechooselist: DB.allusersinfotable![0]['users'],
             officenameclm: 'upo_user_id',
             accountssearch: 'notnull',
             conditionofview: (x) => conditionofview(x),
-            table: table,
+            table: [],
             mainItem: (x) => mainItem(e: x, ctx: context),
             startdate: searchbydate[0],
             setstartdate: () => null,

@@ -137,8 +137,6 @@ class Accounts extends StatelessWidget {
   static List easyeditlist = [];
   @override
   Widget build(BuildContext context) {
-    List table = DB.allusersinfotable[0]['users'];
-
     basics() {
       return GetBuilder<MainController>(
         init: mainController,
@@ -441,78 +439,80 @@ class Accounts extends StatelessWidget {
         bodieslistofadd[1]['bp'][0]['enable'] = true;
         bodieslistofadd[1]['bp'][0]['mustchgpass'] = true;
         bodieslistofadd[1]['bp'][0]['pbx'] = false;
-        for (var i in DB.allofficeinfotable[0]['offices']) {
-          addtoofficelist.add({});
-          addtoofficelist[DB.allofficeinfotable[0]['offices'].indexOf(i)]
-              .addAll({
-            'office_id': i['office_id'],
-            'name': i['officename'],
-            'visible': true,
-            'visiblesearch': true,
-            'position': ['موظف', 'employee'],
-            'Po-employee': ['موظف', 'employee'],
-            'Po-supervisor': ['مشرف', 'supervisor'],
-            'P-addtask': [
-              false,
-              ['إضافة مهمة', 'Add task']
-            ],
-            'P-showalltasks': [
-              false,
-              ['مشاهدة جميع المهام', 'show all tasks']
-            ],
-            'P-addremind': [
-              true,
-              ['إضافة تذكير', 'Add remind']
-            ],
-            'P-showallreminds': [
-              true,
-              ['مشاهدة جميع التنبيهات ', 'show all reminds']
-            ],
-            'P-addtodo': [
-              true,
-              ['إضافة إجرائية', 'Add todo']
-            ],
-            'P-showalltodos': [
-              true,
-              ['مشاهدة جميع الإجرائيات ', 'show all todos']
-            ],
-            'P-addping': [
-              true,
-              ['Add ping', 'Add ping']
-            ],
-            'P-showallpings': [
-              true,
-              ['show all pings', 'show all pings']
-            ],
-            'P-addemailtest': [
-              true,
-              ['إضافة تفحص ايميل', 'Add Email test']
-            ],
-            'P-showallemailtests': [
-              true,
-              ['show all emailtests', 'show all emailtests']
-            ],
-            'P-addcost': [
-              true,
-              ['إضافة طلب سلفة', 'Add Cost']
-            ],
-            'P-showallcosts': [
-              false,
-              ['مشاهدة جميع السلف', 'show all costs']
-            ],
-            'P-acceptcosts': [
-              false,
-              ['موافقة على السلفة', 'Accept Cost']
-            ],
-            'P-addhyperlink': [
-              false,
-              ['إضافة رابط خارجي', 'Add HyperLink']
-            ],
-            'P-showallhyperlinks': [
-              false,
-              ['مشاهدة جميع الروابط', 'show all h-links']
-            ],
-          });
+        if (DB.allofficeinfotable != null) {
+          for (var i in DB.allofficeinfotable![0]['offices']) {
+            addtoofficelist.add({});
+            addtoofficelist[DB.allofficeinfotable![0]['offices'].indexOf(i)]
+                .addAll({
+              'office_id': i['office_id'],
+              'name': i['officename'],
+              'visible': true,
+              'visiblesearch': true,
+              'position': ['موظف', 'employee'],
+              'Po-employee': ['موظف', 'employee'],
+              'Po-supervisor': ['مشرف', 'supervisor'],
+              'P-addtask': [
+                false,
+                ['إضافة مهمة', 'Add task']
+              ],
+              'P-showalltasks': [
+                false,
+                ['مشاهدة جميع المهام', 'show all tasks']
+              ],
+              'P-addremind': [
+                true,
+                ['إضافة تذكير', 'Add remind']
+              ],
+              'P-showallreminds': [
+                true,
+                ['مشاهدة جميع التنبيهات ', 'show all reminds']
+              ],
+              'P-addtodo': [
+                true,
+                ['إضافة إجرائية', 'Add todo']
+              ],
+              'P-showalltodos': [
+                true,
+                ['مشاهدة جميع الإجرائيات ', 'show all todos']
+              ],
+              'P-addping': [
+                true,
+                ['Add ping', 'Add ping']
+              ],
+              'P-showallpings': [
+                true,
+                ['show all pings', 'show all pings']
+              ],
+              'P-addemailtest': [
+                true,
+                ['إضافة تفحص ايميل', 'Add Email test']
+              ],
+              'P-showallemailtests': [
+                true,
+                ['show all emailtests', 'show all emailtests']
+              ],
+              'P-addcost': [
+                true,
+                ['إضافة طلب سلفة', 'Add Cost']
+              ],
+              'P-showallcosts': [
+                false,
+                ['مشاهدة جميع السلف', 'show all costs']
+              ],
+              'P-acceptcosts': [
+                false,
+                ['موافقة على السلفة', 'Accept Cost']
+              ],
+              'P-addhyperlink': [
+                false,
+                ['إضافة رابط خارجي', 'Add HyperLink']
+              ],
+              'P-showallhyperlinks': [
+                false,
+                ['مشاهدة جميع الروابط', 'show all h-links']
+              ],
+            });
+          }
         }
       } else {
         usernamecontroller.text = e['username'];
@@ -523,28 +523,28 @@ class Accounts extends StatelessWidget {
             ['hint'] = ['بدون تغيير', 'no change'][BasicInfo.indexlang()];
         emailcontroller.text = e['email'] ?? '';
         mobilecontorller.text = e['mobile'] ?? '';
-        bodieslistofadd[1]['bp'][0]['admin'] = DB.allusersinfotable[0]
+        bodieslistofadd[1]['bp'][0]['admin'] = DB.allusersinfotable![0]
                         ['users_privileges']
                     .where((up) => up['up_user_id'] == e['user_id'])
                     .toList()[0]['admin'] ==
                 '1'
             ? true
             : false;
-        bodieslistofadd[1]['bp'][0]['enable'] = DB.allusersinfotable[0]
+        bodieslistofadd[1]['bp'][0]['enable'] = DB.allusersinfotable![0]
                         ['users_privileges']
                     .where((up) => up['up_user_id'] == e['user_id'])
                     .toList()[0]['enable'] ==
                 '1'
             ? true
             : false;
-        bodieslistofadd[1]['bp'][0]['mustchgpass'] = DB.allusersinfotable[0]
+        bodieslistofadd[1]['bp'][0]['mustchgpass'] = DB.allusersinfotable![0]
                         ['users_privileges']
                     .where((up) => up['up_user_id'] == e['user_id'])
                     .toList()[0]['mustchgpass'] ==
                 '1'
             ? true
             : false;
-        bodieslistofadd[1]['bp'][0]['pbx'] = DB.allusersinfotable[0]
+        bodieslistofadd[1]['bp'][0]['pbx'] = DB.allusersinfotable![0]
                         ['users_privileges']
                     .where((up) => up['up_user_id'] == e['user_id'])
                     .toList()[0]['pbx'] ==
@@ -552,17 +552,17 @@ class Accounts extends StatelessWidget {
             ? true
             : false;
 
-        for (var i in DB.allusersinfotable[0]['users_priv_office']
+        for (var i in DB.allusersinfotable![0]['users_priv_office']
             .where((uu) => uu['upo_user_id'] == e['user_id'])) {
           addtoofficelist.add({});
-          addtoofficelist[DB.allusersinfotable[0]['users_priv_office']
+          addtoofficelist[DB.allusersinfotable![0]['users_priv_office']
                   .where((uu) => uu['upo_user_id'] == e['user_id'])
                   .toList()
                   .indexOf(i)]
               .addAll({
             'office_id': i['upo_office_id'],
-            'name': DB.allofficeinfotable[0]['offices'][DB.allofficeinfotable[0]
-                        ['offices']
+            'name': DB.allofficeinfotable![0]['offices'][DB
+                    .allofficeinfotable![0]['offices']
                     .indexWhere((u) => u['office_id'] == i['upo_office_id'])]
                 ['officename'],
             'visible': false,
@@ -639,88 +639,89 @@ class Accounts extends StatelessWidget {
         for (var j in addtoofficelist) {
           officein.add(j['office_id']);
         }
-
-        for (var i in DB.allofficeinfotable[0]['offices']
-            .where((uu) => !officein.contains(uu['office_id']))) {
-          addtoofficelist.add({});
-          addtoofficelist[addtoofficelist.length - 1].addAll({
-            'office_id': i['office_id'],
-            'name': i['officename'],
-            'visible': true,
-            'visiblesearch': true,
-            'position': ['موظف', 'employee'],
-            'Po-employee': ['موظف', 'employee'],
-            'Po-supervisor': ['مشرف', 'supervisor'],
-            'P-addtask': [
-              false,
-              ['إضافة مهمة', 'Add task']
-            ],
-            'P-showalltasks': [
-              false,
-              ['مشاهدة جميع المهام', 'show all tasks']
-            ],
-            'P-addremind': [
-              true,
-              ['إضافة تذكير', 'Add remind']
-            ],
-            'P-showallreminds': [
-              true,
-              ['مشاهدة جميع التنبيهات ', 'show all reminds']
-            ],
-            'P-addtodo': [
-              true,
-              ['إضافة إجرائية', 'Add todo']
-            ],
-            'P-showalltodos': [
-              true,
-              ['مشاهدة جميع الإجرائيات ', 'show all todos']
-            ],
-            'P-addping': [
-              true,
-              ['Add ping', 'Add ping']
-            ],
-            'P-showallpings': [
-              true,
-              ['show all pings', 'show all pings']
-            ],
-            'P-addemailtest': [
-              true,
-              ['إضافة تفحص ايميل', 'Add Email test']
-            ],
-            'P-showallemailtests': [
-              true,
-              ['show all emailtests', 'show all emailtests']
-            ],
-            'P-addcost': [
-              true,
-              ['إضافة طلب سلفة', 'Add Cost']
-            ],
-            'P-showallcosts': [
-              false,
-              ['مشاهدة جميع السلف', 'show all costs']
-            ],
-            'P-acceptcosts': [
-              false,
-              ['موافقة على السلفة', 'Accept Cost']
-            ],
-            'P-addhyperlink': [
-              false,
-              ['إضافة رابط خارجي', 'Add HyperLink']
-            ],
-            'P-showallhyperlinks': [
-              false,
-              ['مشاهدة جميع الروابط', 'show all h-links']
-            ],
-          });
+        if (DB.allofficeinfotable != null) {
+          for (var i in DB.allofficeinfotable![0]['offices']
+              .where((uu) => !officein.contains(uu['office_id']))) {
+            addtoofficelist.add({});
+            addtoofficelist[addtoofficelist.length - 1].addAll({
+              'office_id': i['office_id'],
+              'name': i['officename'],
+              'visible': true,
+              'visiblesearch': true,
+              'position': ['موظف', 'employee'],
+              'Po-employee': ['موظف', 'employee'],
+              'Po-supervisor': ['مشرف', 'supervisor'],
+              'P-addtask': [
+                false,
+                ['إضافة مهمة', 'Add task']
+              ],
+              'P-showalltasks': [
+                false,
+                ['مشاهدة جميع المهام', 'show all tasks']
+              ],
+              'P-addremind': [
+                true,
+                ['إضافة تذكير', 'Add remind']
+              ],
+              'P-showallreminds': [
+                true,
+                ['مشاهدة جميع التنبيهات ', 'show all reminds']
+              ],
+              'P-addtodo': [
+                true,
+                ['إضافة إجرائية', 'Add todo']
+              ],
+              'P-showalltodos': [
+                true,
+                ['مشاهدة جميع الإجرائيات ', 'show all todos']
+              ],
+              'P-addping': [
+                true,
+                ['Add ping', 'Add ping']
+              ],
+              'P-showallpings': [
+                true,
+                ['show all pings', 'show all pings']
+              ],
+              'P-addemailtest': [
+                true,
+                ['إضافة تفحص ايميل', 'Add Email test']
+              ],
+              'P-showallemailtests': [
+                true,
+                ['show all emailtests', 'show all emailtests']
+              ],
+              'P-addcost': [
+                true,
+                ['إضافة طلب سلفة', 'Add Cost']
+              ],
+              'P-showallcosts': [
+                false,
+                ['مشاهدة جميع السلف', 'show all costs']
+              ],
+              'P-acceptcosts': [
+                false,
+                ['موافقة على السلفة', 'Accept Cost']
+              ],
+              'P-addhyperlink': [
+                false,
+                ['إضافة رابط خارجي', 'Add HyperLink']
+              ],
+              'P-showallhyperlinks': [
+                false,
+                ['مشاهدة جميع الروابط', 'show all h-links']
+              ],
+            });
+          }
         }
       }
     }
 
     buildeasyeditlist() {
       easyeditlist.clear();
-      for (var i in DB.allusersinfotable[0]['users']) {
+      for (var i in DB.allusersinfotable![0]['users']) {
         easyeditlist.add([]);
-        easyeditlist[DB.allusersinfotable[0]['users'].indexOf(i)].addAll({
+        easyeditlist[DB.allusersinfotable![0]['users'].indexOf(i)].addAll({
           {
             'index': 0,
             'visible0':
@@ -744,7 +745,7 @@ class Accounts extends StatelessWidget {
             'visible': true,
             'type': 'do-it',
             'icon': Icons.account_box,
-            'label': DB.allusersinfotable[0]['users_privileges']
+            'label': DB.allusersinfotable![0]['users_privileges']
                         .where((y) => y['up_user_id'] == i['user_id'])
                         .toList()[0]['enable'] ==
                     '1'
@@ -846,9 +847,9 @@ class Accounts extends StatelessWidget {
               }),
           (e) => mainController.disableenableaccount(
               userid: e['user_id'],
-              list: easyeditlist[DB.allusersinfotable[0]['users']
+              list: easyeditlist[DB.allusersinfotable![0]['users']
                   .indexWhere((u) => u['user_id'] == e['user_id'])][1],
-              listvisible: easyeditlist[DB.allusersinfotable[0]['users']
+              listvisible: easyeditlist[DB.allusersinfotable![0]['users']
                   .indexWhere((u) => u['user_id'] == e['user_id'])][3],
               val: 'visible'),
           (e) => showDialog(
@@ -1025,38 +1026,49 @@ class Accounts extends StatelessWidget {
                   GetBuilder<MainController>(
                     init: mainController,
                     builder: (_) {
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          ...easyeditlist[table.indexOf(e)]
-                              .where((b) =>
-                                  b['visible'] == true && b['visible0'] == true)
-                              .map((b) {
-                            switch (b['type']) {
-                              case 'do-it':
-                                return IconbuttonMz(
-                                  e: e,
-                                  action: listoffunctionforeasyeditpanel(
-                                      ctx: ctx, e: e)[b['index']],
-                                  elevate: b['elevate'],
-                                  labelvisible:
-                                      b['elevate'] == 3.0 ? true : false,
-                                  label: b['label'],
-                                  icon: b['icon'],
-                                  buttonlist: easyeditlist[table.indexOf(e)],
-                                  index: b['index'],
-                                  height: 35,
-                                  width: b['elevate'] == 3.0 ? b['length'] : 40,
-                                  backcolor: b['backcolor'],
-                                );
-                              case 'wait':
-                                return WaitMz.waitmz0([1, 2, 3, 4], context);
-                              default:
-                                return SizedBox();
-                            }
-                          })
-                        ],
-                      );
+                      try {
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            ...easyeditlist[DB.allofficeinfotable![0]['users']
+                                    .indexWhere(
+                                        (r) => r['user_id'] == e['user_id'])]
+                                .where((b) =>
+                                    b['visible'] == true &&
+                                    b['visible0'] == true)
+                                .map((b) {
+                              switch (b['type']) {
+                                case 'do-it':
+                                  return IconbuttonMz(
+                                    e: e,
+                                    action: listoffunctionforeasyeditpanel(
+                                        ctx: ctx, e: e)[b['index']],
+                                    elevate: b['elevate'],
+                                    labelvisible:
+                                        b['elevate'] == 3.0 ? true : false,
+                                    label: b['label'],
+                                    icon: b['icon'],
+                                    buttonlist: easyeditlist[DB
+                                        .allofficeinfotable![0]['users']
+                                        .indexWhere((r) =>
+                                            r['user_id'] == e['user_id'])],
+                                    index: b['index'],
+                                    height: 35,
+                                    width:
+                                        b['elevate'] == 3.0 ? b['length'] : 40,
+                                    backcolor: b['backcolor'],
+                                  );
+                                case 'wait':
+                                  return WaitMz.waitmz0([1, 2, 3, 4], context);
+                                default:
+                                  return SizedBox();
+                              }
+                            })
+                          ],
+                        );
+                      } catch (e) {
+                        return SizedBox();
+                      }
                     },
                   )
                 ],
@@ -1070,31 +1082,35 @@ class Accounts extends StatelessWidget {
     updatetable() async {
       DB.allusersinfotable = await DBController().getallusersinfo();
       buildeasyeditlist();
+
       return DB.allusersinfotable;
     }
 
     return GetBuilder<DBController>(
       init: dbController,
       builder: (_) {
-        table = DB.allusersinfotable[0]['users'];
-        for (var i in DB.allusersinfotable[0]['users']) {
-          i['visiblesearch'] = true;
+        if (DB.allusersinfotable != null) {
+          for (var i in DB.allusersinfotable![0]['users']) {
+            i['visiblesearch'] = true;
+          }
         }
         PageTamplate01.searchcontroller.text = '';
         PageTamplate01.selectedoffice = 'all';
-        for (var i in DB.allusersinfotable[0]['users']) {
-          i['visible'] = true;
-        }
+
         return PageTamplate01(
           updatetable: Future(() async => await updatetable()),
           appbartitle: const ['الحسابات', 'Accounts'],
           searchrangelist: const ['username', 'fullname'],
           chooseofficevisible: true,
-          officechooselist: DB.allusersinfotable[0]['users'],
+          officechooselist: DB.allusersinfotable != null
+              ? DB.allusersinfotable![0]['users']
+              : [],
           officenameclm: 'upo_user_id',
           accountssearch: 'notnull',
           conditionofview: (x) => true,
-          table: table,
+          table: DB.allusersinfotable != null
+              ? DB.allusersinfotable![0]['users']
+              : null,
           mainItem: (x) => mainItem(e: x, ctx: context),
           startdate: searchbydate[0],
           setstartdate: () => null,

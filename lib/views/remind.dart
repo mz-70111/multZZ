@@ -111,8 +111,6 @@ class Remind extends StatelessWidget {
   static List easyeditlist = [];
   @override
   Widget build(BuildContext context) {
-    List table = DB.allremindinfotable[0]['remind'];
-
     TextEditingController certsrccontroller = TextEditingController();
     TextEditingController remindrepeateeverycontroller =
         TextEditingController(text: '60');
@@ -140,27 +138,29 @@ class Remind extends StatelessWidget {
     ];
     List offices = [];
     offices.clear();
-    for (var i in DB.userinfotable[0]['users_priv_office']) {
-      offices.add({});
-      offices[DB.userinfotable[0]['users_priv_office'].indexOf(i)].addAll({
-        'office': DB.allofficeinfotable[0]['offices']
-            .where((o) => o['office_id'] == i['upo_office_id'])
-            .toList()[0]['officename']
-      });
+    if (DB.allofficeinfotable != null) {
+      for (var i in DB.userinfotable![0]['users_priv_office']) {
+        offices.add({});
+        offices[DB.userinfotable![0]['users_priv_office'].indexOf(i)].addAll({
+          'office': DB.allofficeinfotable![0]['offices']
+              .where((o) => o['office_id'] == i['upo_office_id'])
+              .toList()[0]['officename']
+        });
+      }
     }
     List officesforadd = [];
     basics() {
       officesforadd.clear();
 
-      for (var i in DB.userinfotable[0]['users_priv_office']
+      for (var i in DB.userinfotable![0]['users_priv_office']
           .where((u) => u['addremind'] == '1')) {
         officesforadd.add({});
-        officesforadd[DB.userinfotable[0]['users_priv_office']
+        officesforadd[DB.userinfotable![0]['users_priv_office']
                 .where((u) => u['addremind'] == '1')
                 .toList()
                 .indexOf(i)]
             .addAll({
-          'office': DB.allofficeinfotable[0]['offices']
+          'office': DB.allofficeinfotable![0]['offices']
               .where((o) => o['office_id'] == i['upo_office_id'])
               .toList()[0]['officename']
         });
@@ -333,7 +333,7 @@ class Remind extends StatelessWidget {
         bodieslistofadd[0]['selectedofficeindex'] = officesforadd.indexWhere(
             (element) =>
                 element['office'] ==
-                DB.allofficeinfotable[0]['offices']
+                DB.allofficeinfotable![0]['offices']
                     .where((element) =>
                         element['office_id'] == e['remind_office_id'])
                     .toList()[0]['officename']);
@@ -347,7 +347,7 @@ class Remind extends StatelessWidget {
             e['type'] == 'auto' ? ['تلقائي', 'auto'] : ['يدوي', 'manual'];
         if (e['type'] != 'auto') {
           certsrccontroller.text = '';
-          for (var i in DB.allremindinfotable[0]['reminddates']
+          for (var i in DB.allremindinfotable![0]['reminddates']
               .where((r) => r['remind_d_id'] == e['remind_id'])
               .toList()) {
             daysofalert.add(DateTime.parse(i['rdate']));
@@ -358,51 +358,53 @@ class Remind extends StatelessWidget {
 
     buildeasyeditlist() {
       easyeditlist.clear();
-      for (var i in DB.allremindinfotable[0]['remind']) {
-        easyeditlist.add([]);
-        easyeditlist[DB.allremindinfotable[0]['remind'].indexOf(i)].addAll({
-          {
-            'index': 0,
-            'visible0': true,
-            'visible': true,
-            'type': 'do-it',
-            'icon': Icons.delete_forever,
-            'label': ['حذف', 'delete'],
-            'elevate': 0.0,
-            'backcolor': Colors.transparent,
-            'length': 80.0
-          },
-          {
-            'index': 1,
-            'visible0': true,
-            'visible': true,
-            'type': 'do-it',
-            'icon': i['notifi'] == '1'
-                ? Icons.notifications
-                : Icons.notifications_off,
-            'label': DB.allremindinfotable[0]['remind']
-                        .where((y) => y['remind_id'] == i['remind_id'])
-                        .toList()[0]['notifi'] ==
-                    '1'
-                ? ['تعطيل الاشعارات', 'disable notifi']
-                : ['تفعيل الاشعارات', 'enable notifi'],
-            'elevate': 0.0,
-            'backcolor': Colors.transparent,
-            'length': 150.0
-          },
-          {
-            'index': 2,
-            'visible0': true,
-            'visible': true,
-            'type': 'do-it',
-            'icon': Icons.edit,
-            'label': ['تعديل', 'edit'],
-            'elevate': 0.0,
-            'backcolor': Colors.transparent,
-            'length': 80.0
-          },
-          {'visible0': true, 'visible': false, 'type': 'wait'},
-        });
+      if (DB.allremindinfotable != null) {
+        for (var i in DB.allremindinfotable![0]['remind']) {
+          easyeditlist.add([]);
+          easyeditlist[DB.allremindinfotable![0]['remind'].indexOf(i)].addAll({
+            {
+              'index': 0,
+              'visible0': true,
+              'visible': true,
+              'type': 'do-it',
+              'icon': Icons.delete_forever,
+              'label': ['حذف', 'delete'],
+              'elevate': 0.0,
+              'backcolor': Colors.transparent,
+              'length': 80.0
+            },
+            {
+              'index': 1,
+              'visible0': true,
+              'visible': true,
+              'type': 'do-it',
+              'icon': i['notifi'] == '1'
+                  ? Icons.notifications
+                  : Icons.notifications_off,
+              'label': DB.allremindinfotable![0]['remind']
+                          .where((y) => y['remind_id'] == i['remind_id'])
+                          .toList()[0]['notifi'] ==
+                      '1'
+                  ? ['تعطيل الاشعارات', 'disable notifi']
+                  : ['تفعيل الاشعارات', 'enable notifi'],
+              'elevate': 0.0,
+              'backcolor': Colors.transparent,
+              'length': 150.0
+            },
+            {
+              'index': 2,
+              'visible0': true,
+              'visible': true,
+              'type': 'do-it',
+              'icon': Icons.edit,
+              'label': ['تعديل', 'edit'],
+              'elevate': 0.0,
+              'backcolor': Colors.transparent,
+              'length': 80.0
+            },
+            {'visible0': true, 'visible': false, 'type': 'wait'},
+          });
+        }
       }
       return easyeditlist;
     }
@@ -495,9 +497,9 @@ class Remind extends StatelessWidget {
           (e) {
             return mainController.disableenablenotifiremind(
                 remindid: e['remind_id'],
-                list: easyeditlist[DB.allremindinfotable[0]['remind']
+                list: easyeditlist[DB.allremindinfotable![0]['remind']
                     .indexWhere((u) => u['remind_id'] == e['remind_id'])][1],
-                listvisible: easyeditlist[DB.allremindinfotable[0]['remind']
+                listvisible: easyeditlist[DB.allremindinfotable![0]['remind']
                     .indexWhere((u) => u['remind_id'] == e['remind_id'])][3],
                 val: 'visible');
           },
@@ -544,8 +546,48 @@ class Remind extends StatelessWidget {
         ];
 
     updatetable() async {
-      DB.allremindinfotable = await dbController.getallremindinfo();
-      buildeasyeditlist();
+      if (DB.allremindinfotable != null) {
+        DB.allremindinfotable = await dbController.getallremindinfo();
+        List dateslist = [];
+        dateslist.clear();
+        for (var i in DB.allremindinfotable![0]['remind']) {
+          if (i['type'] != 'auto') {
+            try {
+              dateslist.addAll(DB.allremindinfotable![0]['reminddates']
+                  .where((d) => d['remind_d_id'] == i['remind_id'])
+                  .toList()
+                  .map((t) => DateTime.parse(t['rdate']))
+                  .toList());
+            } catch (e) {}
+          }
+          DateTime? dt = await mainController.setreminddate(
+              type: i['type'], host: i['certsrc'], dateslist: dateslist);
+          try {
+            await dbController.requestpost(type: 'curd', data: {
+              'customquery':
+                  'update remind set reminddate="$dt",reminddategetdate="${DateTime.now()}" where remind_id=${i['remind_id']};'
+            });
+            var dtt = await dbController.requestpost(type: 'select', data: {
+              'customquery':
+                  'select reminddate,reminddategetdate from remind where remind_id=${i['remind_id']};'
+            });
+            i['reminddate'] = dtt[0][0];
+            i['reminddategetdate'] = dtt[0][1];
+          } catch (o) {}
+        }
+        print(DB.allremindinfotable);
+
+        buildeasyeditlist();
+        for (var i in DB.allremindinfotable![0]['remind']) {
+          i['visiblesearch'] = true;
+        }
+        PageTamplate01.searchcontroller.text = '';
+        PageTamplate01.selectedoffice = 'all';
+
+        for (var i in DB.allremindinfotable![0]['remind']) {
+          i['visible'] = true;
+        }
+      }
       return DB.allremindinfotable;
     }
 
@@ -578,7 +620,7 @@ class Remind extends StatelessWidget {
                   Builder(builder: (_) {
                     try {
                       return Visibility(
-                        visible: DB.userinfotable[0]['users_priv_office']
+                        visible: DB.userinfotable![0]['users_priv_office']
                                     .where((o) =>
                                         o['upo_office_id'] ==
                                         e['remind_office_id'])
@@ -589,7 +631,8 @@ class Remind extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            ...easyeditlist[table.indexOf(e)]
+                            ...easyeditlist[DB.allremindinfotable![0]['remind']
+                                    .indexOf(e)]
                                 .where((b) =>
                                     b['visible'] == true &&
                                     b['visible0'] == true)
@@ -605,7 +648,9 @@ class Remind extends StatelessWidget {
                                         b['elevate'] == 3.0 ? true : false,
                                     label: b['label'],
                                     icon: b['icon'],
-                                    buttonlist: easyeditlist[table.indexOf(e)],
+                                    buttonlist: easyeditlist[DB
+                                        .allremindinfotable![0]['remind']
+                                        .indexOf(e)],
                                     index: b['index'],
                                     height: 35,
                                     width:
@@ -634,7 +679,7 @@ class Remind extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(e['remind_office_id'] != null
-                          ? DB.allofficeinfotable[0]['offices']
+                          ? DB.allofficeinfotable![0]['offices']
                               .where((u) =>
                                   u['office_id'] == e['remind_office_id'])
                               .toList()[0]['officename']
@@ -741,7 +786,7 @@ class Remind extends StatelessWidget {
                         child: Text("${[
                           'تم إنشاءها بواسطة',
                           'created by'
-                        ][BasicInfo.indexlang()]} ${e['createby_id'] != null ? DB.allusersinfotable[0]['users'].where((u) => u['user_id'] == e['createby_id']).toList()[0]['fullname'] : "حساب محذوف"} ")),
+                        ][BasicInfo.indexlang()]} ${e['createby_id'] != null ? DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == e['createby_id']).toList()[0]['fullname'] : "حساب محذوف"} ")),
                     Directionality(
                       textDirection: TextDirection.ltr,
                       child: Text(
@@ -760,7 +805,7 @@ class Remind extends StatelessWidget {
                           child: Text("${[
                             'تم تعديلها آخر مرة بواسطة',
                             'last edit by'
-                          ][BasicInfo.indexlang()]} ${e['editby_id'] != null ? DB.allusersinfotable[0]['users'].where((u) => u['user_id'] == e['editby_id']).toList()[0]['fullname'] : "حساب محذوف"}")),
+                          ][BasicInfo.indexlang()]} ${e['editby_id'] != null ? DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == e['editby_id']).toList()[0]['fullname'] : "حساب محذوف"}")),
                       Directionality(
                         textDirection: TextDirection.ltr,
                         child: Text(
@@ -782,14 +827,14 @@ class Remind extends StatelessWidget {
     conditionofview(x) {
       List offices = [];
       offices.clear();
-      for (var i in DB.userinfotable[0]['users_priv_office']) {
+      for (var i in DB.userinfotable![0]['users_priv_office']) {
         offices.add(i['upo_office_id']);
       }
       if (x['createby_id'] == BasicInfo.LogInInfo![0] &&
           offices.contains(x['remind_office_id'])) {
         return true;
       } else if (offices.contains(x['remind_office_id']) &&
-          DB.allofficeinfotable[0]['users_priv_office']
+          DB.allofficeinfotable![0]['users_priv_office']
                   .where((o) => o['upo_office_id'] == x['remind_office_id'])
                   .toList()[0]['showallreminds'] ==
               '1') {
@@ -801,10 +846,10 @@ class Remind extends StatelessWidget {
 
     bool addactionvisible() {
       int st = 0;
-      if (DB.userinfotable[0]['users_priv_office'].isNotEmpty) {
+      if (DB.userinfotable![0]['users_priv_office'].isNotEmpty) {
         l:
         for (var i in offices) {
-          if (DB.userinfotable[0]['users_priv_office'][offices.indexOf(i)]
+          if (DB.userinfotable![0]['users_priv_office'][offices.indexOf(i)]
                   ['addremind'] ==
               '1') {
             st = 1;
@@ -822,25 +867,18 @@ class Remind extends StatelessWidget {
     return GetBuilder<DBController>(
       init: dbController,
       builder: (_) {
-        table = DB.allremindinfotable[0]['remind'];
-        for (var i in DB.allremindinfotable[0]['remind']) {
-          i['visiblesearch'] = true;
-        }
-        PageTamplate01.searchcontroller.text = '';
-        PageTamplate01.selectedoffice = 'all';
-        for (var i in DB.allremindinfotable[0]['remind']) {
-          i['visible'] = true;
-        }
         return PageTamplate01(
           updatetable: Future(() async => await updatetable()),
           appbartitle: const ['التذكير', 'Remind'],
           // searchwithdatevisible: false,
           searchrangelist: const ['remindname', 'reminddetails'],
           chooseofficevisible: true,
-          officechooselist: DB.allremindinfotable[0]['remind'],
+          officechooselist: DB.allremindinfotable != null
+              ? DB.allremindinfotable![0]['remind']
+              : [],
           officenameclm: 'remind_office_id',
           conditionofview: (x) => conditionofview(x),
-          table: table,
+          table: [],
           mainItem: (x) => mainItem(ctx: context, e: x),
           startdate: searchbydate[0],
           setstartdate: () => null,

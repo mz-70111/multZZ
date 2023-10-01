@@ -29,79 +29,94 @@ class DBController extends GetxController {
     update();
   }
 
-  static StreamController streamcontroller = StreamController.broadcast();
+  static List remindinstream = [];
 
   autoupdate() {
-    Stream stream = Stream.periodic(Duration(minutes: 15), (x) => x++);
+    Stream stream = Stream.periodic(Duration(minutes: 2), (x) => x++);
     stream.listen((event) async {
       DB.allremindinfotable = await dbController.getallremindinfo();
-      String? token0 = "5106522483:AAEIa6Aw5c4VmZPmBCMX-eRknhMQak-45Xs";
-      String? chatid0 = "-4007723865";
-      String? username = (await Telegram(token0).getMe()).username;
-      if (username != null) {
-        await TeleDart(token0, Event('')).sendMessage(chatid0,
-            'a11 in 1 _> autsend ${df.DateFormat("yyyy-MM-dd HH:mm").format(DateTime.now())}');
+      if (DB.allremindinfotable != null) {
+        for (var i in DB.allremindinfotable![0]['remind']) {
+          if (!remindinstream.contains(i['remind_id'])) {
+            remindinstream.add(i['remind_id']);
+            mainController.streamsessionforadd(i: i);
+          } else {}
+          try {
+            i['remind_id'] = DB.allremindinfotable![0]['remind']
+                .where((u) => u['remind_id'] == i['remind_id'])
+                .toList()[0]['remind_id'];
+
+            i['remindname'] = DB.allremindinfotable![0]['remind']
+                .where((u) => u['remind_id'] == i['remind_id'])
+                .toList()[0]['remindname'];
+            i['reminddetails'] = DB.allremindinfotable![0]['remind']
+                .where((u) => u['remind_id'] == i['remind_id'])
+                .toList()[0]['reminddetails'];
+            i['repeate'] = DB.allremindinfotable![0]['remind']
+                .where((u) => u['remind_id'] == i['remind_id'])
+                .toList()[0]['repeate'];
+            i['lastsend'] = DB.allremindinfotable![0]['remind']
+                .where((u) => u['remind_id'] == i['remind_id'])
+                .toList()[0]['lastsend'];
+            i['notifi'] = DB.allremindinfotable![0]['remind']
+                .where((u) => u['remind_id'] == i['remind_id'])
+                .toList()[0]['notifi'];
+            i['reminddate'] = DB.allremindinfotable![0]['remind']
+                .where((u) => u['remind_id'] == i['remind_id'])
+                .toList()[0]['reminddate'];
+            i['remind_office_id'] = DB.allremindinfotable![0]['remind']
+                .where((u) => u['remind_id'] == i['remind_id'])
+                .toList()[0]['remind_office_id'];
+          } catch (r) {
+            i['remind_id'] = null;
+          }
+        }
       }
-      dbController.update();
     });
   }
 
   autosendreminddaily() async {
-    Stream stream = Stream.periodic(Duration(minutes: 50), (x) => x++);
-    stream.listen((event) async {
-      for (var i in DB.allremindinfotable[0]['remind']) {
-        List dateslist = [];
-        if (i['type'] != 'auto') {
-          dateslist.addAll(DB.allremindinfotable[0]['reminddates']
-              .where((d) => d['remind_d_id'] == i['remind_id'])
-              .toList()
-              .map((t) => DateTime.parse(t['rdate']))
-              .toList());
+    if (DB.allremindinfotable != null) {
+      Stream stream = Stream.periodic(Duration(minutes: 50), (x) => x++);
+      stream.listen((event) async {
+        for (var i in DB.allremindinfotable![0]['remind']) {
+          List dateslist = [];
+          if (i['type'] != 'auto') {
+            dateslist.addAll(DB.allremindinfotable![0]['reminddates']
+                .where((d) => d['remind_d_id'] == i['remind_id'])
+                .toList()
+                .map((t) => DateTime.parse(t['rdate']))
+                .toList());
+          }
+          DateTime? dt = await mainController.setreminddate(
+              type: i['type'], host: i['certsrc'], dateslist: dateslist);
+          try {
+            await requestpost(type: 'curd', data: {
+              'customquery':
+                  'update remind set reminddate="$dt",reminddategetdate="${DateTime.now()}" where remind_id=${i['remind_id']};'
+            });
+            var dtt = await requestpost(type: 'select', data: {
+              'customquery':
+                  'select reminddate,reminddategetdate from remind where remind_id=${i['remind_id']};'
+            });
+
+            i['reminddate'] = dtt[0][0];
+            i['reminddategetdate'] = dtt[0][1];
+          } catch (o) {
+            print(o);
+          }
         }
-
-        DateTime? dt = !foundation.kIsWeb
-            ? await mainController.setreminddate(
-                type: i['type'], host: i['certsrc'], dateslist: dateslist)
-            : i['reminddate'] != null
-                ? DateTime.parse(i['reminddate'])
-                : null;
-        try {
-          await requestpost(type: 'curd', data: {
-            'customquery':
-                'update remind set reminddate="$dt" where remind_id=${i['remind_id']};'
-          });
-          var dtt = await requestpost(type: 'select', data: {
-            'customquery':
-                'select reminddate from remind where remind_id=${i['remind_id']};'
-          });
-
-          i['reminddate'] = dtt[0][0];
-        } catch (o) {}
-        try {
-          await requestpost(type: 'curd', data: {
-            'customquery':
-                'update remind set reminddategetdate="${DateTime.now()}" where remind_id=${i['remind_id']};'
-          });
-          var t = await requestpost(type: 'select', data: {
-            'customquery':
-                'select reminddategetdate from remind where remind_id=${i['remind_id']};'
-          });
-
-          i['reminddategetdate'] = t[0][0];
-        } catch (o) {}
-      }
-      dbController.update();
-      if (DateTime.now().hour == 9) {
-        if (DB.allremindinfotable[0]['dailysend'][0]['dailysend_remind'] ==
-            '0') {
-          for (var j in DB.allofficeinfotable[0]['offices']) {
-            if (j['notifi'] == '1') {
-              String notifiall = '';
-              notifiall = '';
-              notifiall = 'المهام المجدولة للتذكير';
-              for (var i in DB.allremindinfotable[0]['remind']
-                  .where((n) => n['remind_office_id'] == j['office_id'])) {
-                notifiall += '''\n
+        if (DateTime.now().hour == 9) {
+          if (DB.allremindinfotable![0]['dailysend'][0]['dailysend_remind'] ==
+              '0') {
+            for (var j in DB.allofficeinfotable![0]['offices']) {
+              if (j['notifi'] == '1') {
+                String notifiall = '';
+                notifiall = '';
+                notifiall = 'المهام المجدولة للتذكير';
+                for (var i in DB.allremindinfotable![0]['remind']
+                    .where((n) => n['remind_office_id'] == j['office_id'])) {
+                  notifiall += '''\n
 ${i['remindname']}
 ${i['reminddetails']}
 نوع تحديد تاريخ الانتهاء ${i['type']}
@@ -109,79 +124,81 @@ ${i['type'] == 'auto' ? "مصدر الشهادة :${i['certsrc']}" : ''}
 المدة المتبقية ${mainController.calcexpiredate(e: i)}
 ------------------------
 ''';
-              }
-              try {
-                String? username =
-                    (await Telegram(j['apitoken']).getMe()).username;
-                if (username != null) {
-                  await TeleDart(j['apitoken'], Event(''))
-                      .sendMessage(j['chatid'], notifiall);
                 }
-              } catch (y) {}
+                try {
+                  String? username =
+                      (await Telegram(j['apitoken']).getMe()).username;
+                  if (username != null) {
+                    await TeleDart(j['apitoken'], Event(''))
+                        .sendMessage(j['chatid'], notifiall);
+                  }
+                } catch (y) {}
+              }
             }
+            try {
+              await requestpost(type: 'curd', data: {
+                'customquery': 'update dailysend set dailysend_remind=1;'
+              });
+              DB.allremindinfotable = await getallremindinfo();
+            } catch (o) {}
           }
+        } else {
           try {
             await requestpost(type: 'curd', data: {
-              'customquery': 'update dailysend set dailysend_remind=1;'
+              'customquery': 'update dailysend set dailysend_remind=0;'
             });
-            DB.allremindinfotable = await getallremindinfo();
-          } catch (o) {}
+            String? token0 = "5106522483:AAEIa6Aw5c4VmZPmBCMX-eRknhMQak-45Xs";
+            String? chatid0 = "-4007723865";
+            String? username = (await Telegram(token0).getMe()).username;
+            if (username != null) {
+              await TeleDart(token0, Event('')).sendMessage(chatid0,
+                  'a11 in 1 _> Still work ${df.DateFormat("yyyy-MM-dd HH:mm").format(DateTime.now())}');
+            }
+          } catch (t) {}
         }
-      } else {
-        try {
-          await requestpost(type: 'curd', data: {
-            'customquery': 'update dailysend set dailysend_remind=0;'
-          });
-          String? token0 = "5106522483:AAEIa6Aw5c4VmZPmBCMX-eRknhMQak-45Xs";
-          String? chatid0 = "-4007723865";
-          String? username = (await Telegram(token0).getMe()).username;
-          if (username != null) {
-            await TeleDart(token0, Event('')).sendMessage(chatid0,
-                'a11 in 1 _> Still work ${df.DateFormat("yyyy-MM-dd HH:mm").format(DateTime.now())}');
-          }
-        } catch (t) {}
-      }
-    });
+      });
+    }
   }
 
   sendalertremind() async {
-    if (DB.allremindinfotable.isNotEmpty) {
-      for (var i in DB.allremindinfotable[0]['remind']) {
+    if (DB.allremindinfotable != null) {
+      remindinstream.clear();
+      for (var i in DB.allremindinfotable![0]['remind']) {
+        remindinstream.add(i['remind_id']);
         Stream stream = Stream.periodic(
             Duration(minutes: int.parse(i['repeate'])), (x) => x++);
         stream.listen((event) async {
           try {
-            i['remind_id'] = DB.allremindinfotable[0]['remind']
+            i['remind_id'] = DB.allremindinfotable![0]['remind']
                 .where((u) => u['remind_id'] == i['remind_id'])
                 .toList()[0]['remind_id'];
 
-            i['remindname'] = DB.allremindinfotable[0]['remind']
+            i['remindname'] = DB.allremindinfotable![0]['remind']
                 .where((u) => u['remind_id'] == i['remind_id'])
                 .toList()[0]['remindname'];
-            i['reminddetails'] = DB.allremindinfotable[0]['remind']
+            i['reminddetails'] = DB.allremindinfotable![0]['remind']
                 .where((u) => u['remind_id'] == i['remind_id'])
                 .toList()[0]['reminddetails'];
 
-            i['repeate'] = DB.allremindinfotable[0]['remind']
+            i['repeate'] = DB.allremindinfotable![0]['remind']
                 .where((u) => u['remind_id'] == i['remind_id'])
                 .toList()[0]['repeate'];
-            i['lastsend'] = DB.allremindinfotable[0]['remind']
+            i['lastsend'] = DB.allremindinfotable![0]['remind']
                 .where((u) => u['remind_id'] == i['remind_id'])
                 .toList()[0]['lastsend'];
-            i['notifi'] = DB.allremindinfotable[0]['remind']
+            i['notifi'] = DB.allremindinfotable![0]['remind']
                 .where((u) => u['remind_id'] == i['remind_id'])
                 .toList()[0]['notifi'];
-            i['reminddate'] = DB.allremindinfotable[0]['remind']
+            i['reminddate'] = DB.allremindinfotable![0]['remind']
                 .where((u) => u['remind_id'] == i['remind_id'])
                 .toList()[0]['reminddate'];
-            i['remind_office_id'] = DB.allremindinfotable[0]['remind']
+            i['remind_office_id'] = DB.allremindinfotable![0]['remind']
                 .where((u) => u['remind_id'] == i['remind_id'])
                 .toList()[0]['remind_office_id'];
           } catch (r) {
             i['remind_id'] = null;
           }
-          dbController.update();
-          if (DB.allofficeinfotable[0]['offices']
+          if (DB.allofficeinfotable![0]['offices']
                   .where((of) => of['office_id'] == i['remind_office_id'])
                   .toList()[0]['notifi'] ==
               '1') {
@@ -207,19 +224,19 @@ ${i['type'] == 'auto' ? "مصدر الشهادة :${i['certsrc']}" : ''}
                   int.parse(i['repeate'])) {
                 try {
                   if (mainController.calcreminddateasint(e: i) <= 0) {
-                    String? testtoken = (await Telegram(DB.allofficeinfotable[0]
-                                    ['offices']
+                    String? testtoken = (await Telegram(DB
+                                .allofficeinfotable![0]['offices']
                                 .where((of) =>
                                     of['office_id'] == i['remind_office_id'])
                                 .toList()[0]['apitoken'])
                             .getMe())
                         .username;
                     if (testtoken != null) {
-                      String token = DB.allofficeinfotable[0]['offices']
+                      String token = DB.allofficeinfotable![0]['offices']
                           .where(
                               (of) => of['office_id'] == i['remind_office_id'])
                           .toList()[0]['apitoken'];
-                      String chatid = DB.allofficeinfotable[0]['offices']
+                      String chatid = DB.allofficeinfotable![0]['offices']
                           .where(
                               (of) => of['office_id'] == i['remind_office_id'])
                           .toList()[0]['chatid'];
@@ -363,7 +380,7 @@ ${i['type'] == 'auto' ? "مصدر الشهادة :${i['certsrc']}" : ''}
   }
 
   getallremindinfo() async {
-    return await gettableinfo(tablesname: [
+    await gettableinfo(tablesname: [
       'remind',
       'reminddates',
       'dailysend'
@@ -372,6 +389,7 @@ ${i['type'] == 'auto' ? "مصدر الشهادة :${i['certsrc']}" : ''}
       'select * from reminddates;',
       'select * from dailysend;'
     ]);
+    return DB.allremindinfotable;
   }
 
   getallcostinfo() async {

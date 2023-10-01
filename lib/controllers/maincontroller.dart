@@ -234,22 +234,24 @@ class MainController extends GetxController {
       HomePage.dialogactionlist[1]['visible'] = true;
       HomePage.dialogactionlist[2]['visible'] = true;
       update();
-      try {
-        await DBController().requestpost(type: 'curd', data: {
-          'customquery':
-              "update users set fullname='$fullname',mobile='$mobile',email='$email' where user_id=${DB.userinfotable[0]['users'][0]['user_id']};"
-        });
-        await DBController().requestpost(type: 'curd', data: {
-          'customquery':
-              "insert into logs set log='${BasicInfo.LogInInfo![1]} edit personal Info As fullname=$fullname,mobile=$mobile,email=$email',logdate='${DateTime.now()}';"
-        });
-        DB.userinfotable = await DBController()
-            .getuserinfo(userid: DB.userinfotable[0]['users'][0]['user_id']);
+      if (DB.userinfotable != null) {
+        try {
+          await DBController().requestpost(type: 'curd', data: {
+            'customquery':
+                "update users set fullname='$fullname',mobile='$mobile',email='$email' where user_id=${DB.userinfotable![0]['users'][0]['user_id']};"
+          });
+          await DBController().requestpost(type: 'curd', data: {
+            'customquery':
+                "insert into logs set log='${BasicInfo.LogInInfo![1]} edit personal Info As fullname=$fullname,mobile=$mobile,email=$email',logdate='${DateTime.now()}';"
+          });
+          DB.userinfotable = await DBController()
+              .getuserinfo(userid: DB.userinfotable![0]['users'][0]['user_id']);
 
-        Get.back();
-      } catch (e) {
-        Lang.mainerrormsg =
-            Lang.errormsgs['server-error'][BasicInfo.indexlang()];
+          Get.back();
+        } catch (e) {
+          Lang.mainerrormsg =
+              Lang.errormsgs['server-error'][BasicInfo.indexlang()];
+        }
       }
     }
 
@@ -293,11 +295,11 @@ class MainController extends GetxController {
       try {
         HomePage.waitchangepass = true;
         await DBController().changpass(
-            userid: DB.userinfotable[0]['users'][0]['user_id'],
+            userid: DB.userinfotable![0]['users'][0]['user_id'],
             password: codepassword(word: newpass));
         await DBController().requestpost(type: 'curd', data: {
           'customquery':
-              "update users_privileges set mustchgpass=0 where up_user_id=${DB.userinfotable[0]['users'][0]['user_id']};"
+              "update users_privileges set mustchgpass=0 where up_user_id=${DB.userinfotable![0]['users'][0]['user_id']};"
         });
         await DBController().requestpost(type: 'curd', data: {
           'customquery':
@@ -426,35 +428,37 @@ class MainController extends GetxController {
     } else {
       List elementatoffice = [];
       elementatoffice.clear();
-
-      if (accounts == null) {
-        for (var j in list.where((u) =>
-            u[officenameclm] ==
-            DB.allofficeinfotable[0]['offices']
-                .where((element) => element['officename'] == x)
-                .toList()[0]['office_id'])) {
-          elementatoffice.add(j[officenameclm]);
-        }
-      } else {
-        for (var i in DB.allusersinfotable[0]['users_priv_office'].where((y) =>
-            y['upo_office_id'] ==
-            DB.allofficeinfotable[0]['offices']
-                .where((element) => element['officename'] == x)
-                .toList()[0]['office_id'])) {
-          elementatoffice.add(i[officenameclm]);
-        }
-      }
-
-      if (accounts != null) {
-        for (var i in list) {
-          if (elementatoffice.contains(i['user_id'])) {
-            i['visible'] = true;
+      if (DB.allofficeinfotable != null) {
+        if (accounts == null) {
+          for (var j in list.where((u) =>
+              u[officenameclm] ==
+              DB.allofficeinfotable![0]['offices']
+                  .where((element) => element['officename'] == x)
+                  .toList()[0]['office_id'])) {
+            elementatoffice.add(j[officenameclm]);
+          }
+        } else {
+          for (var i in DB.allusersinfotable![0]['users_priv_office'].where(
+              (y) =>
+                  y['upo_office_id'] ==
+                  DB.allofficeinfotable![0]['offices']
+                      .where((element) => element['officename'] == x)
+                      .toList()[0]['office_id'])) {
+            elementatoffice.add(i[officenameclm]);
           }
         }
-      } else {
-        for (var i in list) {
-          if (elementatoffice.contains(i[officenameclm])) {
-            i['visible'] = true;
+
+        if (accounts != null) {
+          for (var i in list) {
+            if (elementatoffice.contains(i['user_id'])) {
+              i['visible'] = true;
+            }
+          }
+        } else {
+          for (var i in list) {
+            if (elementatoffice.contains(i[officenameclm])) {
+              i['visible'] = true;
+            }
           }
         }
       }
@@ -788,8 +792,8 @@ insert into logs(log,logdate)values
   }
 
   removeoffice({officeid, list}) async {
-    String officename = DB.allofficeinfotable[0]['offices'][DB
-        .allofficeinfotable[0]['offices']
+    String officename = DB.allofficeinfotable![0]['offices'][DB
+        .allofficeinfotable![0]['offices']
         .indexWhere((r) => r['office_id'] == officeid)]['officename'];
     List queries = [
       '''
@@ -923,7 +927,7 @@ notifi,
 type,certsrc,sendalertbefor,repeate,reminddate,createby_id,createdate)values
 ('${Remind.remindnamecontroller.text.trim()}',
 '${Remind.reminddetailscontroller.text.trim()}',
-'${DB.allofficeinfotable[0]['offices'].where((element) => element['officename'] == officeslistandindex).toList()[0]['office_id']}',
+'${DB.allofficeinfotable![0]['offices'].where((element) => element['officename'] == officeslistandindex).toList()[0]['office_id']}',
 "${Remind.bodieslistofadd[0]['notifi'] == true ? '1' : '0'}",
 '${Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'auto' || Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'تلقائي' ? 'auto' : 'manual'}',
 '${Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'auto' || Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'تلقائي' ? inerlist[0]['controller'].text : 'null'}',
@@ -943,7 +947,7 @@ notifi,
 type,certsrc,sendalertbefor,repeate,reminddate,reminddategetdate,createby_id,createdate)values
 ('${Remind.remindnamecontroller.text.trim()}',
 '${Remind.reminddetailscontroller.text.trim()}',
-'${DB.allofficeinfotable[0]['offices'].where((element) => element['officename'] == officeslistandindex).toList()[0]['office_id']}',
+'${DB.allofficeinfotable![0]['offices'].where((element) => element['officename'] == officeslistandindex).toList()[0]['office_id']}',
 "${Remind.bodieslistofadd[0]['notifi'] == true ? '1' : '0'}",
 '${Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'auto' || Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'تلقائي' ? 'auto' : 'manual'}',
 '${Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'auto' || Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'تلقائي' ? inerlist[0]['controller'].text : 'null'}',
@@ -1012,109 +1016,6 @@ insert into logs(log,logdate)values
     }
     Remind.listofactionbuttonforadd[0]['visible'] = true;
     Remind.listofactionbuttonforadd[2]['visible'] = false;
-
-    var i;
-    for (var o in DB.allremindinfotable[0]['remind']) {
-      i = o;
-    }
-    Stream stream =
-        Stream.periodic(Duration(minutes: int.parse(i['repeate'])), (x) => x++);
-    stream.listen((event) async {
-      try {
-        i['remind_id'] = DB.allremindinfotable[0]['remind']
-            .where((u) => u['remind_id'] == i['remind_id'])
-            .toList()[0]['remind_id'];
-
-        i['remindname'] = DB.allremindinfotable[0]['remind']
-            .where((u) => u['remind_id'] == i['remind_id'])
-            .toList()[0]['remindname'];
-        i['reminddetails'] = DB.allremindinfotable[0]['remind']
-            .where((u) => u['remind_id'] == i['remind_id'])
-            .toList()[0]['reminddetails'];
-
-        i['repeate'] = DB.allremindinfotable[0]['remind']
-            .where((u) => u['remind_id'] == i['remind_id'])
-            .toList()[0]['repeate'];
-        i['lastsend'] = DB.allremindinfotable[0]['remind']
-            .where((u) => u['remind_id'] == i['remind_id'])
-            .toList()[0]['lastsend'];
-        i['notifi'] = DB.allremindinfotable[0]['remind']
-            .where((u) => u['remind_id'] == i['remind_id'])
-            .toList()[0]['notifi'];
-        i['reminddate'] = DB.allremindinfotable[0]['remind']
-            .where((u) => u['remind_id'] == i['remind_id'])
-            .toList()[0]['reminddate'];
-        i['remind_office_id'] = DB.allremindinfotable[0]['remind']
-            .where((u) => u['remind_id'] == i['remind_id'])
-            .toList()[0]['remind_office_id'];
-      } catch (r) {
-        i['remind_id'] = null;
-      }
-      dbController.update();
-      if (DB.allofficeinfotable[0]['offices']
-              .where((of) => of['office_id'] == i['remind_office_id'])
-              .toList()[0]['notifi'] ==
-          '1') {
-        if (i['remind_id'] != null && i['notifi'] == '1') {
-          if (i['lastsend'] == null) {
-            try {
-              await dbController.requestpost(type: 'curd', data: {
-                'customquery':
-                    'update remind set lastsend="${DateTime.now()}" where remind_id=${i['remind_id']};'
-              });
-              var t = await dbController.requestpost(type: 'select', data: {
-                'customquery':
-                    'select lastsend from remind where remind_id=${i['remind_id']};'
-              });
-              i['lastsend'] = t[0][0];
-            } catch (e) {}
-          }
-
-          if (DateTime.now()
-                      .difference(DateTime.parse(i['lastsend']))
-                      .inMinutes +
-                  1 >=
-              int.parse(i['repeate'])) {
-            try {
-              if (mainController.calcreminddateasint(e: i) <= 0) {
-                String? testtoken = (await Telegram(DB.allofficeinfotable[0]
-                                ['offices']
-                            .where((of) =>
-                                of['office_id'] == i['remind_office_id'])
-                            .toList()[0]['apitoken'])
-                        .getMe())
-                    .username;
-                if (testtoken != null) {
-                  String token = DB.allofficeinfotable[0]['offices']
-                      .where((of) => of['office_id'] == i['remind_office_id'])
-                      .toList()[0]['apitoken'];
-                  String chatid = DB.allofficeinfotable[0]['offices']
-                      .where((of) => of['office_id'] == i['remind_office_id'])
-                      .toList()[0]['chatid'];
-                  await TeleDart(token, Event('')).sendMessage(chatid, '''
-${i['remindname']}
-${i['reminddetails']}
-المدة المتبقية ${mainController.calcexpiredate(e: i)}
-ـــــــــــــــ
-''');
-                  await dbController.requestpost(type: 'curd', data: {
-                    'customquery':
-                        'update remind set lastsend="${DateTime.now()}" where remind_id=${i['remind_id']};'
-                  });
-                  var t = await dbController.requestpost(type: 'select', data: {
-                    'customquery':
-                        'select lastsend from remind where remind_id=${i['remind_id']};'
-                  });
-                  i['lastsend'] = t[0][0];
-                }
-              }
-            } catch (i) {
-              print(i);
-            }
-          }
-        }
-      }
-    });
 
     update();
   }
@@ -1199,7 +1100,7 @@ ${i['reminddetails']}
 update remind set
 remindname='${Remind.remindnamecontroller.text.trim()}',
 reminddetails='${Remind.reminddetailscontroller.text.trim()}',
-remind_office_id='${DB.allofficeinfotable[0]['offices'].where((element) => element['officename'] == officeslistandindex).toList()[0]['office_id']}',
+remind_office_id='${DB.allofficeinfotable![0]['offices'].where((element) => element['officename'] == officeslistandindex).toList()[0]['office_id']}',
 notifi="${Remind.bodieslistofadd[0]['notifi'] == true ? '1' : '0'}",
 type='${Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'auto' || Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'تلقائي' ? 'auto' : 'manual'}',
 certsrc='${Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'auto' || Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'تلقائي' ? inerlist[0]['controller'].text : 'null'}',
@@ -1214,7 +1115,7 @@ where remind_id=$remindid;
 update remind set
 remindname='${Remind.remindnamecontroller.text.trim()}',
 reminddetails='${Remind.reminddetailscontroller.text.trim()}',
-remind_office_id='${DB.allofficeinfotable[0]['offices'].where((element) => element['officename'] == officeslistandindex).toList()[0]['office_id']}',
+remind_office_id='${DB.allofficeinfotable![0]['offices'].where((element) => element['officename'] == officeslistandindex).toList()[0]['office_id']}',
 notifi="${Remind.bodieslistofadd[0]['notifi'] == true ? '1' : '0'}",
 type='${Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'auto' || Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'تلقائي' ? 'auto' : 'manual'}',
 certsrc='${Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'auto' || Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'تلقائي' ? inerlist[0]['controller'].text : 'null'}',
@@ -1290,10 +1191,10 @@ insert into logs(log,logdate)values
   }
 
   disableenablenotifiremind({remindid, list, listvisible, val}) async {
-    String status = DB.allremindinfotable[0]['remind']
+    String status = DB.allremindinfotable![0]['remind']
         .where((u) => u['remind_id'] == remindid)
         .toList()[0]['notifi'];
-    String remindname = DB.allremindinfotable[0]['remind']
+    String remindname = DB.allremindinfotable![0]['remind']
         .where((u) => u['remind_id'] == remindid)
         .toList()[0]['remindname'];
     List queries = [
@@ -1332,8 +1233,8 @@ insert into logs(log,logdate)values
   }
 
   removeremind({remindid, list}) async {
-    String remindname = DB.allremindinfotable[0]['remind'][DB
-        .allremindinfotable[0]['remind']
+    String remindname = DB.allremindinfotable![0]['remind'][DB
+        .allremindinfotable![0]['remind']
         .indexWhere((r) => r['remind_id'] == remindid)]['remindname'];
     List queries = [
       '''
@@ -1509,10 +1410,10 @@ insert into logs(log,logdate)values
   }
 
   disableenableaccount({userid, list, listvisible, val}) async {
-    String status = DB.allusersinfotable[0]['users_privileges']
+    String status = DB.allusersinfotable![0]['users_privileges']
         .where((u) => u['up_user_id'] == userid)
         .toList()[0]['enable'];
-    String username = DB.allusersinfotable[0]['users']
+    String username = DB.allusersinfotable![0]['users']
         .where((u) => u['user_id'] == userid)
         .toList()[0]['username'];
     List queries = [
@@ -1560,7 +1461,7 @@ insert into logs(log,logdate)values
 
   resetpassword(
       {userid, newpassword, confirmpassword, actionlist, tflist}) async {
-    String username = DB.allusersinfotable[0]['users'][DB.allusersinfotable[0]
+    String username = DB.allusersinfotable![0]['users'][DB.allusersinfotable![0]
             ['users']
         .indexWhere((r) => r['user_id'] == userid)]['user_id'];
     List queries = [
@@ -1749,7 +1650,7 @@ insert into logs(log,logdate)values
   }
 
   removeaccount({userid, list}) async {
-    String username = DB.allusersinfotable[0]['users'][DB.allusersinfotable[0]
+    String username = DB.allusersinfotable![0]['users'][DB.allusersinfotable![0]
             ['users']
         .indexWhere((r) => r['user_id'] == userid)]['username'];
     List queries = [
@@ -1826,7 +1727,6 @@ insert into logs(log,logdate)values
 
   getCert({required String host}) async {
     if (foundation.kIsWeb == true) {
-      print('web web web web web');
       return null;
     } else {
       var getExpiredate;
@@ -1849,10 +1749,7 @@ insert into logs(log,logdate)values
 \$webRequest.ServicePoint.Certificate.GetExpirationDateString()
 '''
         ]);
-      } catch (e) {
-        print(e);
-      }
-      print(getExpiredate.stdout);
+      } catch (e) {}
       DateTime? result;
       String? r;
       try {
@@ -1884,6 +1781,7 @@ insert into logs(log,logdate)values
         }
       }
     }
+
     return reminddate;
   }
 
@@ -1977,7 +1875,7 @@ insert into costs(costname,costdetails,cost_project,costdate,cost_user_id,cost_u
 '${Costs.bodieslistofadd[0]['date']}',
 '${BasicInfo.LogInInfo![0]}',
 '${BasicInfo.LogInInfo![1]}',
-'${DB.userinfotable[0]['users'][0]['fullname']}',
+'${DB.userinfotable![0]['users'][0]['fullname']}',
 $officeid
 );
 ''',
@@ -2045,7 +1943,108 @@ insert into logs(log,logdate)values
     if (t != null) {
       date[0]['date'] = t;
     }
-    print(date);
     update();
+  }
+
+  streamsessionforadd({i}) {
+    for (var o in DB.allremindinfotable![0]['remind']) {
+      i = o;
+    }
+    Stream stream =
+        Stream.periodic(Duration(minutes: int.parse(i['repeate'])), (x) => x++);
+    stream.listen((event) async {
+      try {
+        i['remind_id'] = DB.allremindinfotable![0]['remind']
+            .where((u) => u['remind_id'] == i['remind_id'])
+            .toList()[0]['remind_id'];
+
+        i['remindname'] = DB.allremindinfotable![0]['remind']
+            .where((u) => u['remind_id'] == i['remind_id'])
+            .toList()[0]['remindname'];
+        i['reminddetails'] = DB.allremindinfotable![0]['remind']
+            .where((u) => u['remind_id'] == i['remind_id'])
+            .toList()[0]['reminddetails'];
+        i['repeate'] = DB.allremindinfotable![0]['remind']
+            .where((u) => u['remind_id'] == i['remind_id'])
+            .toList()[0]['repeate'];
+        i['lastsend'] = DB.allremindinfotable![0]['remind']
+            .where((u) => u['remind_id'] == i['remind_id'])
+            .toList()[0]['lastsend'];
+        i['notifi'] = DB.allremindinfotable![0]['remind']
+            .where((u) => u['remind_id'] == i['remind_id'])
+            .toList()[0]['notifi'];
+        i['reminddate'] = DB.allremindinfotable![0]['remind']
+            .where((u) => u['remind_id'] == i['remind_id'])
+            .toList()[0]['reminddate'];
+        i['remind_office_id'] = DB.allremindinfotable![0]['remind']
+            .where((u) => u['remind_id'] == i['remind_id'])
+            .toList()[0]['remind_office_id'];
+      } catch (r) {
+        i['remind_id'] = null;
+      }
+      if (DB.allofficeinfotable![0]['offices']
+              .where((of) => of['office_id'] == i['remind_office_id'])
+              .toList()[0]['notifi'] ==
+          '1') {
+        if (i['remind_id'] != null && i['notifi'] == '1') {
+          if (i['lastsend'] == null) {
+            try {
+              await dbController.requestpost(type: 'curd', data: {
+                'customquery':
+                    'update remind set lastsend="${DateTime.now()}" where remind_id=${i['remind_id']};'
+              });
+              var t = await dbController.requestpost(type: 'select', data: {
+                'customquery':
+                    'select lastsend from remind where remind_id=${i['remind_id']};'
+              });
+              i['lastsend'] = t[0][0];
+            } catch (e) {}
+          }
+
+          if (DateTime.now()
+                      .difference(DateTime.parse(i['lastsend']))
+                      .inMinutes +
+                  1 >=
+              int.parse(i['repeate'])) {
+            try {
+              if (mainController.calcreminddateasint(e: i) <= 0) {
+                String? testtoken = (await Telegram(DB.allofficeinfotable![0]
+                                ['offices']
+                            .where((of) =>
+                                of['office_id'] == i['remind_office_id'])
+                            .toList()[0]['apitoken'])
+                        .getMe())
+                    .username;
+                if (testtoken != null) {
+                  String token = DB.allofficeinfotable![0]['offices']
+                      .where((of) => of['office_id'] == i['remind_office_id'])
+                      .toList()[0]['apitoken'];
+                  String chatid = DB.allofficeinfotable![0]['offices']
+                      .where((of) => of['office_id'] == i['remind_office_id'])
+                      .toList()[0]['chatid'];
+                  await TeleDart(token, Event('')).sendMessage(chatid, '''
+${i['remindname']}
+${i['reminddetails']}
+المدة المتبقية ${mainController.calcexpiredate(e: i)}
+ـــــــــــــــ
+''');
+                  await dbController.requestpost(type: 'curd', data: {
+                    'customquery':
+                        'update remind set lastsend="${DateTime.now()}" where remind_id=${i['remind_id']};'
+                  });
+                  var t = await dbController.requestpost(type: 'select', data: {
+                    'customquery':
+                        'select lastsend from remind where remind_id=${i['remind_id']};'
+                  });
+                  i['lastsend'] = t[0][0];
+                }
+              }
+            } catch (i) {
+              print(i);
+            }
+          }
+        }
+      }
+    });
   }
 }

@@ -73,10 +73,10 @@ class PageTamplate01 extends StatelessWidget {
     List officeslist = [];
     officeslist.clear();
     officeslist.add('all');
-    for (var i in DB.userinfotable[0]['users_priv_office']) {
-      if (DB.userinfotable[0]['users_priv_office'].isNotEmpty) {
-        officeslist.add(DB.allofficeinfotable[0]['offices'][DB
-                .allofficeinfotable[0]['offices']
+    for (var i in DB.userinfotable![0]['users_priv_office']) {
+      if (DB.userinfotable![0]['users_priv_office'].isNotEmpty) {
+        officeslist.add(DB.allofficeinfotable![0]['offices'][DB
+                .allofficeinfotable![0]['offices']
                 .indexWhere((of) => of['office_id'] == i['upo_office_id'])]
             ['officename']);
       }
@@ -92,14 +92,7 @@ class PageTamplate01 extends StatelessWidget {
                   child: WaitMz.waitmz0([1, 2, 3, 4, 5], context),
                 ),
               );
-            } else if (!snap.hasData) {
-              Future(() => Get.toNamed('/'));
-              return Scaffold(
-                body: Center(
-                  child: SizedBox(),
-                ),
-              );
-            } else {
+            } else if (snap.hasData) {
               return SafeArea(
                   child: Directionality(
                 textDirection: BasicInfo.lang(),
@@ -214,20 +207,20 @@ class PageTamplate01 extends StatelessWidget {
                           builder: (_) {
                             return Expanded(
                               child: SingleChildScrollView(
-                                  child: Column(
-                                children: [
-                                  Visibility(
-                                      visible:
-                                          titleofmain == null ? false : true,
-                                      child: Text("$titleofmain")),
-                                  ...table!.where((element) {
-                                    return conditionofview(element) == true &&
-                                        element['visible'] == true &&
-                                        element['visiblesearch'] == true;
-                                  }).map((me) => mainItem(me)),
-                                  subitems ?? SizedBox()
-                                ],
-                              )),
+                                  child: table != null
+                                      ? Column(
+                                          children: [
+                                            ...table!.where((element) {
+                                              return conditionofview(element) ==
+                                                      true &&
+                                                  element['visible'] == true &&
+                                                  element['visiblesearch'] ==
+                                                      true;
+                                            }).map((me) => mainItem(me)),
+                                            subitems ?? SizedBox()
+                                          ],
+                                        )
+                                      : SizedBox()),
                             );
                           },
                         ),
@@ -264,6 +257,13 @@ class PageTamplate01 extends StatelessWidget {
                   ),
                 ),
               ));
+            } else {
+              Future(() => Get.toNamed('/'));
+              return Scaffold(
+                body: Center(
+                  child: SizedBox(),
+                ),
+              );
             }
           });
     } else {

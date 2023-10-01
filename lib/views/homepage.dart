@@ -150,7 +150,7 @@ class HomePage extends StatelessWidget {
       'action': () => Get.toNamed('/home/offices'),
       'color': Colors.transparent,
       'iconsize': 40.0,
-      'visible': DB.userinfotable[0]['users_privileges'][0]['admin'] == '1'
+      'visible': DB.userinfotable![0]['users_privileges'][0]['admin'] == '1'
           ? true
           : false,
     },
@@ -161,7 +161,7 @@ class HomePage extends StatelessWidget {
       'action': () => Get.toNamed('/home/accounts'),
       'color': Colors.transparent,
       'iconsize': 40.0,
-      'visible': DB.userinfotable[0]['users_privileges'][0]['admin'] == '1'
+      'visible': DB.userinfotable![0]['users_privileges'][0]['admin'] == '1'
           ? true
           : false,
     },
@@ -272,9 +272,9 @@ class HomePage extends StatelessWidget {
     }
 
     basicinfo() {
-      fullnamecontroller.text = DB.userinfotable[0]['users'][0]['fullname'];
-      mobilecontroller.text = DB.userinfotable[0]['users'][0]['mobile'] ?? '';
-      emailcontroller.text = DB.userinfotable[0]['users'][0]['email'] ?? '';
+      fullnamecontroller.text = DB.userinfotable![0]['users'][0]['fullname'];
+      mobilecontroller.text = DB.userinfotable![0]['users'][0]['mobile'] ?? '';
+      emailcontroller.text = DB.userinfotable![0]['users'][0]['email'] ?? '';
 
       return Card(
         child: Column(
@@ -286,7 +286,7 @@ class HomePage extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
-                      "#_ ${DB.userinfotable[0]['users'][0]['user_id']} ${DB.userinfotable[0]['users'][0]['username']}",
+                      "#_ ${DB.userinfotable![0]['users'][0]['user_id']} ${DB.userinfotable![0]['users'][0]['username']}",
                       style:
                           const TextStyle(fontFamily: 'Changa', fontSize: 20),
                     ),
@@ -314,16 +314,16 @@ class HomePage extends StatelessWidget {
         'mustchpass': ['يجب تغيير كلمة المرور', 'Password should be changed'],
         'pbx': ['وصول لتسجيلات المقسم', 'access to PBX records']
       };
-      DB.userinfotable[0]['users_privileges'][0]['admin'] == '1'
+      DB.userinfotable![0]['users_privileges'][0]['admin'] == '1'
           ? privilegesm.add(words['admin'][BasicInfo.indexlang()])
           : null;
-      DB.userinfotable[0]['users_privileges'][0]['enable'] == '1'
+      DB.userinfotable![0]['users_privileges'][0]['enable'] == '1'
           ? privilegesm.add(words['enable'][BasicInfo.indexlang()])
           : privilegesm.add(words['disable'][BasicInfo.indexlang()]);
-      DB.userinfotable[0]['users_privileges'][0]['mustchgpass'] == '1'
+      DB.userinfotable![0]['users_privileges'][0]['mustchgpass'] == '1'
           ? privilegesm.add(words['mustchgpass'][BasicInfo.indexlang()])
           : null;
-      DB.userinfotable[0]['users_privileges'][0]['pbx'] == '1'
+      DB.userinfotable![0]['users_privileges'][0]['pbx'] == '1'
           ? privilegesm.add(words['pbx'][BasicInfo.indexlang()])
           : null;
 
@@ -383,76 +383,76 @@ class HomePage extends StatelessWidget {
         ],
       };
       privilegeso.clear();
-      for (var i in DB.userinfotable[0]['users_priv_office']) {
+      for (var i in DB.userinfotable![0]['users_priv_office']) {
         privilegeso.add([]);
-        privilegeso[DB.userinfotable[0]['users_priv_office'].indexOf(i)].add(
-            DB.allofficeinfotable[0]['offices'][DB.allofficeinfotable[0]
+        privilegeso[DB.userinfotable![0]['users_priv_office'].indexOf(i)].add(
+            DB.allofficeinfotable![0]['offices'][DB.allofficeinfotable![0]
                         ['offices']
                     .indexWhere((o) => o['office_id'] == i['upo_office_id'])]
                 ['officename']);
         i['position'] == 'supervisor'
-            ? privilegeso[DB.userinfotable[0]['users_priv_office'].indexOf(i)]
+            ? privilegeso[DB.userinfotable![0]['users_priv_office'].indexOf(i)]
                 .add(words['supervisor'][BasicInfo.indexlang()])
-            : privilegeso[DB.userinfotable[0]['users_priv_office'].indexOf(i)]
+            : privilegeso[DB.userinfotable![0]['users_priv_office'].indexOf(i)]
                 .add(words['employee'][BasicInfo.indexlang()]);
         i['addtask'] == '1'
-            ? privilegeso[DB.userinfotable[0]['users_priv_office'].indexOf(i)]
+            ? privilegeso[DB.userinfotable![0]['users_priv_office'].indexOf(i)]
                 .add(words['addtask'][BasicInfo.indexlang()])
             : null;
         i['showalltasks'] == '1'
-            ? privilegeso[DB.userinfotable[0]['users_priv_office'].indexOf(i)]
+            ? privilegeso[DB.userinfotable![0]['users_priv_office'].indexOf(i)]
                 .add(words['showalltasks'][BasicInfo.indexlang()])
             : null;
         i['addtodo'] == '1'
-            ? privilegeso[DB.userinfotable[0]['users_priv_office'].indexOf(i)]
+            ? privilegeso[DB.userinfotable![0]['users_priv_office'].indexOf(i)]
                 .add(words['addtodo'][BasicInfo.indexlang()])
             : null;
         i['showalltodos'] == '1'
-            ? privilegeso[DB.userinfotable[0]['users_priv_office'].indexOf(i)]
+            ? privilegeso[DB.userinfotable![0]['users_priv_office'].indexOf(i)]
                 .add(words['showalltodos'][BasicInfo.indexlang()])
             : null;
         i['addremind'] == '1'
-            ? privilegeso[DB.userinfotable[0]['users_priv_office'].indexOf(i)]
+            ? privilegeso[DB.userinfotable![0]['users_priv_office'].indexOf(i)]
                 .add(words['addremind'][BasicInfo.indexlang()])
             : null;
         i['showallreminds'] == '1'
-            ? privilegeso[DB.userinfotable[0]['users_priv_office'].indexOf(i)]
+            ? privilegeso[DB.userinfotable![0]['users_priv_office'].indexOf(i)]
                 .add(words['showallreminds'][BasicInfo.indexlang()])
             : null;
         i['addcost'] == '1'
-            ? privilegeso[DB.userinfotable[0]['users_priv_office'].indexOf(i)]
+            ? privilegeso[DB.userinfotable![0]['users_priv_office'].indexOf(i)]
                 .add(words['addcost'][BasicInfo.indexlang()])
             : null;
         i['acceptcosts'] == '1'
-            ? privilegeso[DB.userinfotable[0]['users_priv_office'].indexOf(i)]
+            ? privilegeso[DB.userinfotable![0]['users_priv_office'].indexOf(i)]
                 .add(words['acceptcosts'][BasicInfo.indexlang()])
             : null;
         i['showallcosts'] == '1'
-            ? privilegeso[DB.userinfotable[0]['users_priv_office'].indexOf(i)]
+            ? privilegeso[DB.userinfotable![0]['users_priv_office'].indexOf(i)]
                 .add(words['showallcosts'][BasicInfo.indexlang()])
             : null;
         i['addping'] == '1'
-            ? privilegeso[DB.userinfotable[0]['users_priv_office'].indexOf(i)]
+            ? privilegeso[DB.userinfotable![0]['users_priv_office'].indexOf(i)]
                 .add(words['addping'][BasicInfo.indexlang()])
             : null;
         i['showallpings'] == '1'
-            ? privilegeso[DB.userinfotable[0]['users_priv_office'].indexOf(i)]
+            ? privilegeso[DB.userinfotable![0]['users_priv_office'].indexOf(i)]
                 .add(words['showallpings'][BasicInfo.indexlang()])
             : null;
         i['addemailtest'] == '1'
-            ? privilegeso[DB.userinfotable[0]['users_priv_office'].indexOf(i)]
+            ? privilegeso[DB.userinfotable![0]['users_priv_office'].indexOf(i)]
                 .add(words['addemailtest'][BasicInfo.indexlang()])
             : null;
         i['showallemailtests'] == '1'
-            ? privilegeso[DB.userinfotable[0]['users_priv_office'].indexOf(i)]
+            ? privilegeso[DB.userinfotable![0]['users_priv_office'].indexOf(i)]
                 .add(words['showallemailtests'][BasicInfo.indexlang()])
             : null;
         i['addhyperlink'] == '1'
-            ? privilegeso[DB.userinfotable[0]['users_priv_office'].indexOf(i)]
+            ? privilegeso[DB.userinfotable![0]['users_priv_office'].indexOf(i)]
                 .add(words['addhyperlink'][BasicInfo.indexlang()])
             : null;
         i['showallhyperlinks'] == '1'
-            ? privilegeso[DB.userinfotable[0]['users_priv_office'].indexOf(i)]
+            ? privilegeso[DB.userinfotable![0]['users_priv_office'].indexOf(i)]
                 .add(words['showallhyperlinks'][BasicInfo.indexlang()])
             : null;
       }
@@ -617,10 +617,10 @@ class HomePage extends StatelessWidget {
 
     if (BasicInfo.LogInInfo != null) {
       List maincardlistvisibilty = [
-        DB.userinfotable[0]['users_privileges'][0]['admin'] == '1'
+        DB.userinfotable![0]['users_privileges'][0]['admin'] == '1'
             ? true
             : false,
-        DB.userinfotable[0]['users_privileges'][0]['admin'] == '1'
+        DB.userinfotable![0]['users_privileges'][0]['admin'] == '1'
             ? true
             : false,
         true,

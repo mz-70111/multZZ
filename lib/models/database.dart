@@ -2,14 +2,14 @@ import 'package:mz_flutter_07/controllers/dbcontroller.dart';
 import 'package:mz_flutter_07/controllers/maincontroller.dart';
 
 class DB {
-  static List versioninfotable = [];
-  static List userinfotable = [];
+  static List? versioninfotable;
+  static List? userinfotable;
 
-  static List allofficeinfotable = [];
-  static List allremindinfotable = [];
-  static List allusersinfotable = [];
-  static List allcostsinfotable = [];
-  static List logstable = [];
+  static List? allofficeinfotable;
+  static List? allremindinfotable;
+  static List? allusersinfotable;
+  static List? allcostsinfotable;
+  static List? logstable;
   static String? error;
 
   List queries = [
