@@ -581,16 +581,16 @@ class MainController extends GetxController {
     update();
   }
 
-  setstartdatefor({ctx, list}) async {
+  setstartdatefor({ctx, list, index, date}) async {
     DateTime? dt = await showDatePicker(
         context: ctx,
         initialDate: DateTime.now(),
         firstDate: DateTime.parse("2023-08-01"),
         lastDate: DateTime.now());
     if (dt != null) {
-      list[0] = dt;
-      dbController.update();
+      list[index][date] = dt;
     }
+    update();
   }
 
   changeswitchvalue({list, val, x}) {

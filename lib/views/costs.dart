@@ -113,10 +113,7 @@ class Costs extends StatelessWidget {
     },
     {'index': 0, 'visible': false, 'type': 'wait', 'elevate': 0.0}
   ];
-  static List<DateTime> searchbydate = [
-    DateTime.now().add(Duration(days: -30)),
-    DateTime.now()
-  ];
+
   static List easyeditlist = [], exportfunctionlist = [];
   @override
   Widget build(BuildContext context) {
@@ -424,8 +421,8 @@ class Costs extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    ...exportfunctionlist[
-                            DB.allcostsinfotable![0]['costs'].indexOf(e)]
+                    ...exportfunctionlist[DB.allusersinfotable![0]['users']
+                            .indexWhere((r) => r['user_id'] == e['user_id'])]
                         .where((b) =>
                             b['visible'] == true && b['visible0'] == true)
                         .map((b) {
@@ -440,7 +437,8 @@ class Costs extends StatelessWidget {
                             label: b['label'],
                             icon: b['icon'],
                             buttonlist: exportfunctionlist[
-                                DB.allcostsinfotable![0]['costs'].indexOf(e)],
+                                DB.allusersinfotable![0]['users'].indexWhere(
+                                    (r) => r['user_id'] == e['user_id'])],
                             index: b['index'],
                             height: 35,
                             width: b['elevate'] == 3.0 ? b['length'] : 40,
@@ -460,8 +458,6 @@ class Costs extends StatelessWidget {
               ...DB.allcostsinfotable![0]['costs']
                   .where((c) => c['cost_user_id'] == e['user_id'])
                   .map((c) {
-                print(DB.allcostsinfotable![0]['costs'].indexOf(c));
-
                 return Column(
                   children: [
                     Padding(
@@ -582,7 +578,7 @@ class Costs extends StatelessWidget {
         }
       }
       for (var i in DB.allusersinfotable![0]['users_priv_office']
-          .where((u) => u['upo_user_id'] == x['user_id'])
+          .where((u) => u['up o_user _id'] == x['user_id'])
           .toList()) {
         if (x['user_id'] == BasicInfo.LogInInfo![0] ||
             officesii.contains(i['upo_office_id'])) {
@@ -614,10 +610,11 @@ class Costs extends StatelessWidget {
     }
 
     updatetable() async {
-      DB.allcostsinfotable = await DBController().getallcostinfo();
       DB.allusersinfotable = await DBController().getallusersinfo();
+      DB.allcostsinfotable = await DBController().getallcostinfo();
       buildeasyeditlist();
       buildexport();
+      print(DB.allusersinfotable);
       return DB.allusersinfotable;
     }
 
@@ -631,22 +628,20 @@ class Costs extends StatelessWidget {
         }
         PageTamplate01.searchcontroller.text = '';
         PageTamplate01.selectedoffice = 'all';
-
         return PageTamplate01(
-            updatetable: Future(() async => await updatetable()),
+            updatetable: () async => await updatetable(),
             appbartitle: const ['النفقات', 'Costs'],
             searchrangelist: const ['username', 'fullname'],
             chooseofficevisible: true,
-            officechooselist: DB.allusersinfotable![0]['users'],
+            officechooselist: DB.allusersinfotable != null
+                ? DB.allusersinfotable![0]['users']
+                : [],
             officenameclm: 'upo_user_id',
             accountssearch: 'notnull',
             conditionofview: (x) => conditionofview(x),
-            table: [],
+            searchwithdatevisible: true,
+            table: 'users',
             mainItem: (x) => mainItem(e: x, ctx: context),
-            startdate: searchbydate[0],
-            setstartdate: () => null,
-            enddate: searchbydate[0],
-            setenddate: () => null,
             addactionvisible: addactionvisible(),
             initialofadd: () => initialofdialog(),
             addactiontitle: const ['إضافة طلب', 'Add request'],

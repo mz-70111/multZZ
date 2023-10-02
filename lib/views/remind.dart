@@ -545,52 +545,6 @@ class Remind extends StatelessWidget {
           }
         ];
 
-    updatetable() async {
-      if (DB.allremindinfotable != null) {
-        DB.allremindinfotable = await dbController.getallremindinfo();
-        List dateslist = [];
-        dateslist.clear();
-        for (var i in DB.allremindinfotable![0]['remind']) {
-          if (i['type'] != 'auto') {
-            try {
-              dateslist.addAll(DB.allremindinfotable![0]['reminddates']
-                  .where((d) => d['remind_d_id'] == i['remind_id'])
-                  .toList()
-                  .map((t) => DateTime.parse(t['rdate']))
-                  .toList());
-            } catch (e) {}
-          }
-          DateTime? dt = await mainController.setreminddate(
-              type: i['type'], host: i['certsrc'], dateslist: dateslist);
-          try {
-            await dbController.requestpost(type: 'curd', data: {
-              'customquery':
-                  'update remind set reminddate="$dt",reminddategetdate="${DateTime.now()}" where remind_id=${i['remind_id']};'
-            });
-            var dtt = await dbController.requestpost(type: 'select', data: {
-              'customquery':
-                  'select reminddate,reminddategetdate from remind where remind_id=${i['remind_id']};'
-            });
-            i['reminddate'] = dtt[0][0];
-            i['reminddategetdate'] = dtt[0][1];
-          } catch (o) {}
-        }
-        print(DB.allremindinfotable);
-
-        buildeasyeditlist();
-        for (var i in DB.allremindinfotable![0]['remind']) {
-          i['visiblesearch'] = true;
-        }
-        PageTamplate01.searchcontroller.text = '';
-        PageTamplate01.selectedoffice = 'all';
-
-        for (var i in DB.allremindinfotable![0]['remind']) {
-          i['visible'] = true;
-        }
-      }
-      return DB.allremindinfotable;
-    }
-
     mainItem({e, ctx}) {
       return Padding(
           padding: const EdgeInsets.all(8.0),
@@ -864,11 +818,56 @@ class Remind extends StatelessWidget {
       }
     }
 
+    updatetable() async {
+      DB.allremindinfotable = await dbController.getallremindinfo();
+      List dateslist = [];
+      dateslist.clear();
+      if (DB.allremindinfotable != null) {
+        for (var i in DB.allremindinfotable![0]['remind']) {
+          if (i['type'] != 'auto') {
+            try {
+              dateslist.addAll(DB.allremindinfotable![0]['reminddates']
+                  .where((d) => d['remind_d_id'] == i['remind_id'])
+                  .toList()
+                  .map((t) => DateTime.parse(t['rdate']))
+                  .toList());
+            } catch (e) {}
+          }
+          DateTime? dt = await mainController.setreminddate(
+              type: i['type'], host: i['certsrc'], dateslist: dateslist);
+          try {
+            await dbController.requestpost(type: 'curd', data: {
+              'customquery':
+                  'update remind set reminddate="$dt",reminddategetdate="${DateTime.now()}" where remind_id=${i['remind_id']};'
+            });
+            var dtt = await dbController.requestpost(type: 'select', data: {
+              'customquery':
+                  'select reminddate,reminddategetdate from remind where remind_id=${i['remind_id']};'
+            });
+            i['reminddate'] = dtt[0][0];
+            i['reminddategetdate'] = dtt[0][1];
+          } catch (o) {}
+        }
+        buildeasyeditlist();
+        for (var i in DB.allremindinfotable![0]['remind']) {
+          i['visiblesearch'] = true;
+        }
+        PageTamplate01.searchcontroller.text = '';
+        PageTamplate01.selectedoffice = 'all';
+
+        for (var i in DB.allremindinfotable![0]['remind']) {
+          i['visible'] = true;
+        }
+      }
+      print(DB.allremindinfotable);
+      return DB.allremindinfotable;
+    }
+
     return GetBuilder<DBController>(
       init: dbController,
       builder: (_) {
         return PageTamplate01(
-          updatetable: Future(() async => await updatetable()),
+          updatetable: () async => await updatetable(),
           appbartitle: const ['التذكير', 'Remind'],
           // searchwithdatevisible: false,
           searchrangelist: const ['remindname', 'reminddetails'],
@@ -878,12 +877,9 @@ class Remind extends StatelessWidget {
               : [],
           officenameclm: 'remind_office_id',
           conditionofview: (x) => conditionofview(x),
-          table: [],
+          table: 'remind',
           mainItem: (x) => mainItem(ctx: context, e: x),
-          startdate: searchbydate[0],
-          setstartdate: () => null,
-          enddate: searchbydate[0],
-          setenddate: () => null,
+
           addactionvisible: addactionvisible(),
           initialofadd: () => initialofdialog(),
           addactiontitle: const ['إضافة تذكير', 'Add Remind'],

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mz_flutter_07/controllers/dbcontroller.dart';
 import 'package:mz_flutter_07/controllers/maincontroller.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:mz_flutter_07/models/bottonicon.dart';
@@ -20,16 +21,11 @@ class PageTamplate01 extends StatelessWidget {
       this.searchwithdatevisible = false,
       required this.searchrangelist, //search range
       required this.table, //main table like DB.alloffice
-
       this.chooseofficevisible = false,
       this.officechooselist, //offices list for choose
       this.officenameclm, //column name of office name for choose
       this.officechooselist2,
       this.officenameclm2,
-      this.startdate,
-      this.enddate,
-      required this.setstartdate,
-      required this.setenddate,
       required this.mainItem, //main items in page like user name ,office name
       required this.addactionvisible, //visible of add action
       required this.initialofadd,
@@ -39,34 +35,35 @@ class PageTamplate01 extends StatelessWidget {
       required this.addactionmainlabelsofpages, //titles of pages of add action
       required this.listoffunctionforadd, //list of function for button for add action
       required this.listofactionbuttonforadd, //list of buttom for add action
-
       required this.conditionofview,
       this.accountssearch,
       this.subitems,
       this.titleofmain,
       required this.updatetable});
-  final String? officenameclm, officenameclm2, titleofmain;
-  final List? table, officechooselist, officechooselist2;
+  final String? table, officenameclm, officenameclm2, titleofmain;
+  final List? officechooselist, officechooselist2;
   final List<String> appbartitle, searchrangelist, addactiontitle;
   final List<Widget> addactionpages;
   final List<Map> addactionmainlabelsofpages,
       listofactionbuttonforadd,
       floateactionbuttonlist;
   final bool addactionvisible;
-  final DateTime? startdate, enddate;
+
   final Function mainItem,
-      setstartdate,
-      setenddate,
       initialofadd,
       listoffunctionforadd,
-      conditionofview;
-  final Future updatetable;
+      conditionofview,
+      updatetable;
   final bool searchwithdatevisible, chooseofficevisible;
   final Widget? subitems;
   final String? accountssearch;
   static String selectedoffice = 'all';
   static String choosenoffice = 'all';
   static TextEditingController searchcontroller = TextEditingController();
+  static List searchbydate = [
+    {'date': DateTime.now().add(Duration(days: -30))},
+    {'date': DateTime.now()}
+  ];
   @override
   Widget build(BuildContext context) {
     //create list of sort by office if user who login and in tow office at least
@@ -84,7 +81,7 @@ class PageTamplate01 extends StatelessWidget {
     //check if user login by correct username and password
     if (BasicInfo.LogInInfo != null) {
       return FutureBuilder(
-          future: updatetable,
+          future: Future(() async => await updatetable()),
           builder: (_, snap) {
             if (snap.connectionState == ConnectionState.waiting) {
               return Scaffold(
@@ -169,60 +166,65 @@ class PageTamplate01 extends StatelessWidget {
                               )),
                         ),
                         //search by date range
-                        Visibility(
-                          visible: searchwithdatevisible,
-                          child: SizedBox(
-                            width: MediaQuery.of(context).size.width < 500
-                                ? MediaQuery.of(context).size.width
-                                : 500,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Row(children: [
-                                  Text(['من', 'from'][BasicInfo.indexlang()]),
-                                  TextButton(
-                                    onPressed: () => setstartdate(),
-                                    style:
-                                        Theme.of(context).textButtonTheme.style,
-                                    child: Text(df.DateFormat("yyyy-MM-dd")
-                                        .format(startdate!)),
-                                  ),
-                                ]),
-                                Row(
-                                  children: [
-                                    Text(['إلى', 'to'][BasicInfo.indexlang()]),
+                        GetBuilder<MainController>(
+                          init: mainController,
+                          builder: (_) => Visibility(
+                            visible: searchwithdatevisible,
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width < 500
+                                  ? MediaQuery.of(context).size.width
+                                  : 500,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Row(children: [
+                                    Text(['من', 'from'][BasicInfo.indexlang()]),
                                     TextButton(
-                                        onPressed: () => setenddate(),
-                                        child: Text(df.DateFormat("yyyy-MM-dd")
-                                            .format(enddate!)))
-                                  ],
-                                )
-                              ],
+                                      onPressed: () =>
+                                          mainController.setstartdatefor(
+                                              ctx: context,
+                                              list: searchbydate,
+                                              index: 0,
+                                              date: 'date'),
+                                      style: Theme.of(context)
+                                          .textButtonTheme
+                                          .style,
+                                      child: Text(df.DateFormat("yyyy-MM-dd")
+                                          .format(searchbydate[0]['date'])),
+                                    ),
+                                  ]),
+                                  Row(
+                                    children: [
+                                      Text(
+                                          ['إلى', 'to'][BasicInfo.indexlang()]),
+                                      TextButton(
+                                          onPressed: () {},
+                                          child: Text(df.DateFormat(
+                                                  "yyyy-MM-dd")
+                                              .format(searchbydate[1]['date'])))
+                                    ],
+                                  )
+                                ],
+                              ),
                             ),
                           ),
                         ),
                         const Divider(),
-                        GetBuilder<MainController>(
-                          init: mainController,
-                          builder: (_) {
-                            return Expanded(
-                              child: SingleChildScrollView(
-                                  child: table != null
-                                      ? Column(
-                                          children: [
-                                            ...table!.where((element) {
-                                              return conditionofview(element) ==
-                                                      true &&
-                                                  element['visible'] == true &&
-                                                  element['visiblesearch'] ==
-                                                      true;
-                                            }).map((me) => mainItem(me)),
-                                            subitems ?? SizedBox()
-                                          ],
-                                        )
-                                      : SizedBox()),
-                            );
-                          },
+                        Expanded(
+                          child: SingleChildScrollView(
+                              child: snap.data != null
+                                  ? Column(
+                                      children: [
+                                        ...snap.data[0][table].where((element) {
+                                          return conditionofview(element) ==
+                                                  true &&
+                                              element['visible'] == true &&
+                                              element['visiblesearch'] == true;
+                                        }).map((me) => mainItem(me)),
+                                      ],
+                                    )
+                                  : SizedBox()),
                         ),
                         SizedBox(
                           height: AppBar().preferredSize.height,

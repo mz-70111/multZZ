@@ -806,7 +806,7 @@ class Offices extends StatelessWidget {
         PageTamplate01.searchcontroller.text = '';
 
         return PageTamplate01(
-          updatetable: Future(() async => await updatetable()),
+          updatetable: () async => await updatetable(),
           appbartitle: const ['المكاتب', 'Offices'],
           // searchwithdatevisible: false,
           searchrangelist: const ['officename'],
@@ -814,12 +814,9 @@ class Offices extends StatelessWidget {
           // officechooselist: DB.allofficeinfotable[0]['offices'],
           // officenameclmname: 'officename',
           conditionofview: (x) => condition(x),
-          table: DB.allofficeinfotable![0]['offices'],
+          table: 'offices',
           mainItem: (x) => mainItem(e: x, ctx: context),
-          startdate: searchbydate[0],
-          setstartdate: () => null,
-          enddate: searchbydate[0],
-          setenddate: () => null,
+
           addactionvisible: true,
           initialofadd: () => initialofdialog(),
           addactiontitle: const ['إضافة مكتب', 'Add Office'],

@@ -1030,7 +1030,7 @@ class Accounts extends StatelessWidget {
                         return Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            ...easyeditlist[DB.allofficeinfotable![0]['users']
+                            ...easyeditlist[DB.allusersinfotable![0]['users']
                                     .indexWhere(
                                         (r) => r['user_id'] == e['user_id'])]
                                 .where((b) =>
@@ -1049,7 +1049,7 @@ class Accounts extends StatelessWidget {
                                     label: b['label'],
                                     icon: b['icon'],
                                     buttonlist: easyeditlist[DB
-                                        .allofficeinfotable![0]['users']
+                                        .allusersinfotable![0]['users']
                                         .indexWhere((r) =>
                                             r['user_id'] == e['user_id'])],
                                     index: b['index'],
@@ -1066,7 +1066,8 @@ class Accounts extends StatelessWidget {
                             })
                           ],
                         );
-                      } catch (e) {
+                      } catch (es) {
+                        print(es);
                         return SizedBox();
                       }
                     },
@@ -1082,23 +1083,14 @@ class Accounts extends StatelessWidget {
     updatetable() async {
       DB.allusersinfotable = await DBController().getallusersinfo();
       buildeasyeditlist();
-
       return DB.allusersinfotable;
     }
 
     return GetBuilder<DBController>(
       init: dbController,
       builder: (_) {
-        if (DB.allusersinfotable != null) {
-          for (var i in DB.allusersinfotable![0]['users']) {
-            i['visiblesearch'] = true;
-          }
-        }
-        PageTamplate01.searchcontroller.text = '';
-        PageTamplate01.selectedoffice = 'all';
-
         return PageTamplate01(
-          updatetable: Future(() async => await updatetable()),
+          updatetable: () async => await updatetable(),
           appbartitle: const ['الحسابات', 'Accounts'],
           searchrangelist: const ['username', 'fullname'],
           chooseofficevisible: true,
@@ -1108,14 +1100,8 @@ class Accounts extends StatelessWidget {
           officenameclm: 'upo_user_id',
           accountssearch: 'notnull',
           conditionofview: (x) => true,
-          table: DB.allusersinfotable != null
-              ? DB.allusersinfotable![0]['users']
-              : null,
+          table: 'users',
           mainItem: (x) => mainItem(e: x, ctx: context),
-          startdate: searchbydate[0],
-          setstartdate: () => null,
-          enddate: searchbydate[0],
-          setenddate: () => null,
           addactionvisible: true,
           initialofadd: () => initialofdialog(),
           addactiontitle: const ['إضافة حساب', 'Add Account'],

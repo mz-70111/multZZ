@@ -40,12 +40,11 @@ class DBController extends GetxController {
           if (!remindinstream.contains(i['remind_id'])) {
             remindinstream.add(i['remind_id']);
             mainController.streamsessionforadd(i: i);
-          } else {}
+          }
           try {
             i['remind_id'] = DB.allremindinfotable![0]['remind']
                 .where((u) => u['remind_id'] == i['remind_id'])
                 .toList()[0]['remind_id'];
-
             i['remindname'] = DB.allremindinfotable![0]['remind']
                 .where((u) => u['remind_id'] == i['remind_id'])
                 .toList()[0]['remindname'];
@@ -122,6 +121,7 @@ ${i['reminddetails']}
 نوع تحديد تاريخ الانتهاء ${i['type']}
 ${i['type'] == 'auto' ? "مصدر الشهادة :${i['certsrc']}" : ''}
 المدة المتبقية ${mainController.calcexpiredate(e: i)}
+تاريخ الانتهاء : ${i['reminddate'] != null ? 'غير محدد' : '${i['reminddate']}'}
 ------------------------
 ''';
                 }
@@ -246,6 +246,7 @@ ${i['reminddetails']}
 نوع تحديد تاريخ الانتهاء ${i['type']}
 ${i['type'] == 'auto' ? "مصدر الشهادة :${i['certsrc']}" : ''}
 المدة المتبقية ${mainController.calcexpiredate(e: i)}
+تاريخ الانتهاء : ${i['reminddate'] != null ? 'غير محدد' : '${i['reminddate']}'}
 ـــــــــــــــ
 ''');
                       await requestpost(type: 'curd', data: {
@@ -380,7 +381,7 @@ ${i['type'] == 'auto' ? "مصدر الشهادة :${i['certsrc']}" : ''}
   }
 
   getallremindinfo() async {
-    await gettableinfo(tablesname: [
+    return await gettableinfo(tablesname: [
       'remind',
       'reminddates',
       'dailysend'
@@ -389,7 +390,6 @@ ${i['type'] == 'auto' ? "مصدر الشهادة :${i['certsrc']}" : ''}
       'select * from reminddates;',
       'select * from dailysend;'
     ]);
-    return DB.allremindinfotable;
   }
 
   getallcostinfo() async {
