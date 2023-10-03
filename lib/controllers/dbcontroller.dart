@@ -34,7 +34,9 @@ class DBController extends GetxController {
   autoupdate() {
     Stream stream = Stream.periodic(Duration(minutes: 2), (x) => x++);
     stream.listen((event) async {
-      DB.allremindinfotable = await dbController.getallremindinfo();
+      try {
+        DB.allremindinfotable = await dbController.getallremindinfo();
+      } catch (r) {}
       if (DB.allremindinfotable != null) {
         for (var i in DB.allremindinfotable![0]['remind']) {
           if (!remindinstream.contains(i['remind_id'])) {

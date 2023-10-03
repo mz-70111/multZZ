@@ -332,14 +332,7 @@ class MainController extends GetxController {
     update();
   }
 
-  search(
-      {word,
-      list,
-      required List<String> range,
-      firstdate,
-      lastdate,
-      datelist,
-      columnname}) {
+  search({word, list, required List<String> range, datecolumnname}) {
     for (var t in list) {
       t['visiblesearch'] = false;
     }
@@ -347,26 +340,6 @@ class MainController extends GetxController {
       for (var r in range) {
         if (i[r].toString().isCaseInsensitiveContains(word)) {
           i['visiblesearch'] = true;
-          // if (datelist != null) {
-          //   for (var i in datelist) {
-          //     if ((DateTime.parse(firstdate)
-          //                 .isBefore(DateTime.parse(i[columnname])) ||
-          //             df.DateFormat('yyyy-MM-dd')
-          //                     .format(DateTime.parse(firstdate)) ==
-          //                 df.DateFormat('yyyy-MM-dd')
-          //                     .format(DateTime.parse(i[columnname]))) &&
-          //         (DateTime.parse(lastdate)
-          //                 .isAfter(DateTime.parse(i[columnname])) ||
-          //             df.DateFormat('yyyy-MM-dd')
-          //                     .format(DateTime.parse(lastdate)) ==
-          //                 df.DateFormat('yyyy-MM-dd')
-          //                     .format(DateTime.parse(i[columnname])))) {
-          //       i['visiblesearch'] = true;
-          //     }
-          //   }
-          // } else {
-          //   i['visiblesearch'] = true;
-          // }
         }
       }
     }
@@ -559,6 +532,33 @@ class MainController extends GetxController {
     update();
   }
 
+  changeradioacceptcost({list, index, x, clmname, costid}) async {
+    list[index][clmname] = x == 'موافق' || x == 'accept'
+        ? ['موافق', 'accept']
+        : ['مرفوض', 'reject'];
+    int? st;
+    st = x == 'موافق' || x == 'accept' ? 1 : 0;
+    try {
+      list[2]['visible'] = true;
+      list[0]['visible'] = false;
+      update();
+      clmname=='beginaccept'?
+      await dbController.requestpost(type: 'crud', data: {
+        'customquery':
+            'update costs set begin_acceptcost=$st,begin_acceptcost_user=${BasicInfo.LogInInfo![0]},begin_acceptcost_date="${DateTime.now()}" where cost_id=$costid;'
+      }): await dbController.requestpost(type: 'crud', data: {
+        'customquery':
+            'update costs set final_acceptcost=$st,final_acceptcost_user=${BasicInfo.LogInInfo![0]},final_acceptcost_date="${DateTime.now()}" where cost_id=$costid;'
+      });
+      DB.allcostsinfotable = await dbController.getallcostinfo();
+    } catch (e) {
+    }
+    list[2]['visible'] = false;
+    list[0]['visible'] = true;
+  dbController.update();
+    update();
+  }
+
   chackboxpriv({x, required list, index, e}) {
     list[index][e][0] = x;
     update();
@@ -581,15 +581,59 @@ class MainController extends GetxController {
     update();
   }
 
-  setstartdatefor({ctx, list, index, date}) async {
+  setstartdatefor({ctx, list, index, date, searchlist}) async {
     DateTime? dt = await showDatePicker(
         context: ctx,
-        initialDate: DateTime.now(),
-        firstDate: DateTime.parse("2023-08-01"),
-        lastDate: DateTime.now());
+        initialDate: list[index][date],
+        firstDate: list[1][date].add(Duration(days: -90)),
+        lastDate: list[1][date].add(Duration(days: -1)));
     if (dt != null) {
       list[index][date] = dt;
+      if (searchlist != null) {
+        for (var i in searchlist) {
+          i['visiblesearch'] = false;
+        }
+        for (var i in searchlist) {
+          if (i['costdate'] != null) {
+            if (DateTime.parse(i['costdate']).isAfter(dt) ||
+                df.DateFormat("yyyy-MM-dd")
+                        .format(DateTime.parse(i['costdate'])) ==
+                    df.DateFormat("yyyy-MM-dd").format(dt)) {
+              i['visiblesearch'] = true;
+            }
+          }
+        }
+      }
     }
+
+    update();
+  }
+
+  setrnddatefor({ctx, list, index, date, searchlist}) async {
+    DateTime? dt = await showDatePicker(
+        context: ctx,
+        initialDate: list[index][date],
+        firstDate: list[0][date].add(Duration(days: 1)),
+        lastDate: list[0][date].add(Duration(days: 90)));
+    if (dt != null) {
+      list[index][date] = dt;
+      if (searchlist != null) {
+        for (var i in searchlist) {
+          i['visiblesearch'] = false;
+        }
+        for (var i in searchlist) {
+          if (i['costdate'] != null) {
+            if (DateTime.parse(i['costdate']).isBefore(dt) ||
+                df.DateFormat("yyyy-MM-dd")
+                        .format(DateTime.parse(i['costdate'])) ==
+                    df.DateFormat("yyyy-MM-dd").format(dt)) {
+              i['visiblesearch'] = true;
+            }
+          }
+        }
+      }
+    }
+
     update();
   }
 
@@ -1868,14 +1912,12 @@ insert into logs(log,logdate)values
 
     List queries = [
       '''
-insert into costs(costname,costdetails,cost_project,costdate,cost_user_id,cost_username,cost_fullname,cost_office_id)values
+insert into costs(costname,costdetails,cost_project,costdate,cost_user_id,cost_office_id)values
 ('${Costs.labelcontroller.text.trim()}',
 '${Costs.notescontroller.text.trim()}',
 '${Costs.projectcontroller.text.trim()}',
 '${Costs.bodieslistofadd[0]['date']}',
 '${BasicInfo.LogInInfo![0]}',
-'${BasicInfo.LogInInfo![1]}',
-'${DB.userinfotable![0]['users'][0]['fullname']}',
 $officeid
 );
 ''',

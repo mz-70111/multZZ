@@ -819,7 +819,9 @@ class Remind extends StatelessWidget {
     }
 
     updatetable() async {
-      DB.allremindinfotable = await dbController.getallremindinfo();
+      try {
+        DB.allremindinfotable = await dbController.getallremindinfo();
+      } catch (es) {}
       List dateslist = [];
       dateslist.clear();
       if (DB.allremindinfotable != null) {
@@ -848,51 +850,69 @@ class Remind extends StatelessWidget {
             i['reminddategetdate'] = dtt[0][1];
           } catch (o) {}
         }
-        buildeasyeditlist();
-        for (var i in DB.allremindinfotable![0]['remind']) {
-          i['visiblesearch'] = true;
-        }
-        PageTamplate01.searchcontroller.text = '';
-        PageTamplate01.selectedoffice = 'all';
-
-        for (var i in DB.allremindinfotable![0]['remind']) {
-          i['visible'] = true;
-        }
       }
-      print(DB.allremindinfotable);
+      buildeasyeditlist();
       return DB.allremindinfotable;
     }
 
-    return GetBuilder<DBController>(
-      init: dbController,
-      builder: (_) {
-        return PageTamplate01(
-          updatetable: () async => await updatetable(),
-          appbartitle: const ['التذكير', 'Remind'],
-          // searchwithdatevisible: false,
-          searchrangelist: const ['remindname', 'reminddetails'],
-          chooseofficevisible: true,
-          officechooselist: DB.allremindinfotable != null
-              ? DB.allremindinfotable![0]['remind']
-              : [],
-          officenameclm: 'remind_office_id',
-          conditionofview: (x) => conditionofview(x),
-          table: 'remind',
-          mainItem: (x) => mainItem(ctx: context, e: x),
+    return FutureBuilder(
+        future: Future(() async => await updatetable()),
+        builder: (_, snap) {
+          if (snap.connectionState == ConnectionState.waiting) {
+            return Scaffold(
+              body: Center(
+                child: WaitMz.waitmz0([1, 2, 3, 4, 5], context),
+              ),
+            );
+          } else if (snap.hasData) {
+            if (DB.allremindinfotable != null) {
+              for (var i in DB.allremindinfotable![0]['remind']) {
+                i['visiblesearch'] = true;
+              }
+            }
+            PageTamplate01.searchcontroller.text = '';
+            return GetBuilder<DBController>(
+              init: dbController,
+              builder: (_) {
+                buildeasyeditlist();
+                return PageTamplate01(
+                  updatetable: () async => await updatetable(),
+                  appbartitle: const ['التذكير', 'Remind'],
+                  // searchwithdatevisible: false,
+                  searchrangelist: const ['remindname', 'reminddetails'],
+                  chooseofficevisible: true,
+                  officechooselist: DB.allremindinfotable != null
+                      ? DB.allremindinfotable![0]['remind']
+                      : [],
+                  officenameclm: 'remind_office_id',
+                  conditionofview: (x) => conditionofview(x),
+                  tablename: 'remind',
+                  table: DB.allremindinfotable![0]['remind'],
+                  tableofsearch: DB.allremindinfotable![0]['remind'],
+                  mainItem: (x) => mainItem(ctx: context, e: x),
 
-          addactionvisible: addactionvisible(),
-          initialofadd: () => initialofdialog(),
-          addactiontitle: const ['إضافة تذكير', 'Add Remind'],
-          addactionmainlabelsofpages: maintitlesdialogMz01,
-          addactionpages: [
-            basics(),
-            remindoptions(),
-          ],
-          listofactionbuttonforadd: listofactionbuttonforadd,
-          listoffunctionforadd: (e) => listoffunctionforadd(e),
-          floateactionbuttonlist: floatactionbuttonlist,
-        );
-      },
-    );
+                  addactionvisible: addactionvisible(),
+                  initialofadd: () => initialofdialog(),
+                  addactiontitle: const ['إضافة تذكير', 'Add Remind'],
+                  addactionmainlabelsofpages: maintitlesdialogMz01,
+                  addactionpages: [
+                    basics(),
+                    remindoptions(),
+                  ],
+                  listofactionbuttonforadd: listofactionbuttonforadd,
+                  listoffunctionforadd: (e) => listoffunctionforadd(e),
+                  floateactionbuttonlist: floatactionbuttonlist,
+                );
+              },
+            );
+          } else {
+            Future(() => Get.toNamed('/'));
+            return Scaffold(
+              body: Center(
+                child: SizedBox(),
+              ),
+            );
+          }
+        });
   }
 }

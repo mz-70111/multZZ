@@ -34,11 +34,6 @@ class Costs extends StatelessWidget {
     {
       'selectedofficeindex': 0,
       'date': DateTime.now(),
-      'beginaccept': {
-        'group': ['', ''],
-        'accept': ['موافق', 'accept'],
-        'reject': ['مرفوض', 'reject']
-      },
       'tf': [
         {
           'label': ['البيان', 'label'],
@@ -60,11 +55,6 @@ class Costs extends StatelessWidget {
       ]
     },
     {
-      'finalaccept': {
-        'group': ['', ''],
-        'accept': ['موافق', 'accept'],
-        'reject': ['مرفوض', 'reject']
-      },
       'attachment': [],
       'cost': [
         {
@@ -114,7 +104,7 @@ class Costs extends StatelessWidget {
     {'index': 0, 'visible': false, 'type': 'wait', 'elevate': 0.0}
   ];
 
-  static List easyeditlist = [], exportfunctionlist = [];
+  static List easyeditlist = [], exportfunctionlist = [], acceptlist = [];
   @override
   Widget build(BuildContext context) {
     List offices = [];
@@ -242,6 +232,44 @@ class Costs extends StatelessWidget {
         });
       }
       return exportfunctionlist;
+    }
+
+    buildacceptlist() {
+      acceptlist.clear();
+      for (var i in DB.allcostsinfotable![0]['costs']) {
+        acceptlist.add([]);
+        acceptlist[DB.allcostsinfotable![0]['costs'].indexOf(i)].addAll({
+          {
+            'index': 0,
+            'visible0': true,
+            'visible': true,
+            'beginaccept': i['begin_acceptcost'] == null
+                ? ['', '']
+                : i['begin_acceptcost'] == '1'
+                    ? ['موافق', 'accept']
+                    : ['مرفوض', 'reject'],
+            'baccept': ['موافق', 'accept'],
+            'breject': ['مرفوض', 'reject'],
+            'type': 'do-it'
+          },
+          {
+            'index': 1,
+            'visible0': true,
+            'visible': i['begin_acceptcost'] == '1' ? true : false,
+            'finalaccept': i['final_acceptcost'] == null
+                ? ['', '']
+                : i['final_acceptcost'] == '1'
+                    ? ['موافق', 'accept']
+                    : ['مرفوض', 'reject'],
+            'faccept': ['موافق', 'accept'],
+            'freject': ['مرفوض', 'reject'],
+            'type': 'do-it'
+          },
+          {'index': 2, 'visible0': true, 'visible': false, 'type': 'wait'},
+        });
+      }
+      print(acceptlist);
+      return acceptlist;
     }
 
     buildeasyeditlist() {
@@ -444,10 +472,6 @@ class Costs extends StatelessWidget {
                             width: b['elevate'] == 3.0 ? b['length'] : 40,
                             backcolor: b['backcolor'],
                           );
-                        case 'wait':
-                          return WaitMz.waitmz0([1, 2, 3, 4], context);
-                        default:
-                          return SizedBox();
                       }
                     })
                   ],
@@ -456,7 +480,9 @@ class Costs extends StatelessWidget {
             ),
             children: [
               ...DB.allcostsinfotable![0]['costs']
-                  .where((c) => c['cost_user_id'] == e['user_id'])
+                  .where((c) =>
+                      c['cost_user_id'] == e['user_id'] &&
+                      c['visiblesearch'] == true)
                   .map((c) {
                 return Column(
                   children: [
@@ -532,32 +558,235 @@ class Costs extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                Text(
-                                    " ${c['cost_project']} _ ${DB.allofficeinfotable![0]['offices'].where((o) => o['office_id'] == c['cost_office_id']).toList()[0]['officename']}"),
+                                Expanded(
+                                  flex: 5,
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                              " ${c['cost_project']} _ ${DB.allofficeinfotable![0]['offices'].where((o) => o['office_id'] == c['cost_office_id']).toList()[0]['officename']}"),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                              child:
+                                                  Text(" ${c['costdetails']}")),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                              child: Text(
+                                                  "تاريخ الطلب ${c['costdate']}")),
+                                        ],
+                                      )
+                                    ],
+                                  ),
+                                ),
+                                Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        DB.allusersinfotable![0]
+                                                            ['users_priv_office']
+                                                        .where((us) =>
+                                                            us['upo_user_id'] == BasicInfo.LogInInfo![0] &&
+                                                            us['upo_office_id'] ==
+                                                                c['cost_office_id'])
+                                                        .toList()[0]
+                                                    ['acceptcosts'] ==
+                                                '1'
+                                            ? Column(
+                                                children: [
+                                                  Card(
+                                                    child: GetBuilder<
+                                                        MainController>(
+                                                      builder: (_) => Column(
+                                                        children: [
+                                                          ...acceptlist[DB
+                                                                  .allcostsinfotable![
+                                                                      0]
+                                                                      ['costs']
+                                                                  .indexOf(c)]
+                                                              .where((b) =>
+                                                                  b['visible'] == true &&
+                                                                  b['visible0'] ==
+                                                                      true &&
+                                                                  (b['index'] ==
+                                                                          0 ||
+                                                                      b['index'] ==
+                                                                          2))
+                                                              .map((b) {
+                                                            switch (b['type']) {
+                                                              case 'do-it':
+                                                                return Column(
+                                                                  children: [
+                                                                    Row(
+                                                                      children: [
+                                                                        Text(
+                                                                            'حالة الطلب'),
+                                                                        Radio(
+                                                                            value:
+                                                                                b['baccept'][BasicInfo.indexlang()],
+                                                                            groupValue: acceptlist[DB.allcostsinfotable![0]['costs'].indexOf(c)][0]['beginaccept'][BasicInfo.indexlang()],
+                                                                            onChanged: (x) {
+                                                                              mainController.changeradioacceptcost(x: x, list: acceptlist[DB.allcostsinfotable![0]['costs'].indexOf(c)], index: 0, costid: c['cost_id'], clmname: 'beginaccept');
+                                                                            }),
+                                                                        Text(acceptlist[DB
+                                                                            .allcostsinfotable![0][
+                                                                                'costs']
+                                                                            .indexOf(
+                                                                                c)][0]['baccept'][BasicInfo
+                                                                            .indexlang()]),
+                                                                        Radio(
+                                                                            value:
+                                                                                b['breject'][BasicInfo.indexlang()],
+                                                                            groupValue: acceptlist[DB.allcostsinfotable![0]['costs'].indexOf(c)][0]['beginaccept'][BasicInfo.indexlang()],
+                                                                            onChanged: (x) {
+                                                                              mainController.changeradioacceptcost(x: x, costid: c['cost_id'], list: acceptlist[DB.allcostsinfotable![0]['costs'].indexOf(c)], index: 0, clmname: 'beginaccept');
+                                                                            }),
+                                                                        Text(acceptlist[DB
+                                                                            .allcostsinfotable![0][
+                                                                                'costs']
+                                                                            .indexOf(
+                                                                                c)][0]['breject'][BasicInfo
+                                                                            .indexlang()])
+                                                                      ],
+                                                                    ),
+                                                                    Visibility(
+                                                                        visible: c['begin_acceptcost'] !=
+                                                                                null
+                                                                            ? true
+                                                                            : false,
+                                                                        child:
+                                                                            Row(
+                                                                          children: [
+                                                                            Text("${c['begin_acceptcost'] != null ? '${DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == c['begin_acceptcost_user']).toList()[0]['fullname']}' : ''}"),
+                                                                            Directionality(
+                                                                              textDirection: TextDirection.ltr,
+                                                                              child: Text("${c['begin_acceptcost'] != null ? c['begin_acceptcost_date'] : ''}"),
+                                                                            )
+                                                                          ],
+                                                                        )),
+                                                                  ],
+                                                                );
+                                                              case 'wait':
+                                                                return WaitMz
+                                                                    .waitmz0([
+                                                                  1,
+                                                                  2,
+                                                                  3
+                                                                ], context);
+                                                            }
+                                                          }),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  //pp
+                                                  Card(
+                                                    child: GetBuilder<
+                                                        MainController>(
+                                                      builder: (_) => Column(
+                                                        children: [
+                                                          ...acceptlist[DB
+                                                                  .allcostsinfotable![
+                                                                      0]
+                                                                      ['costs']
+                                                                  .indexOf(c)]
+                                                              .where((b) =>
+                                                                  b['visible'] == true &&
+                                                                  b['visible0'] ==
+                                                                      true &&
+                                                                  (b['index'] ==
+                                                                          1 ||
+                                                                      b['index'] ==
+                                                                          2))
+                                                              .map((b) {
+                                                            switch (b['type']) {
+                                                              case 'do-it':
+                                                                return Column(
+                                                                  children: [
+                                                                    Row(
+                                                                      children: [
+                                                                        Text(
+                                                                            'الموافقة النهائية'),
+                                                                        Radio(
+                                                                            value:
+                                                                                b['faccept'][BasicInfo.indexlang()],
+                                                                            groupValue: acceptlist[DB.allcostsinfotable![0]['costs'].indexOf(c)][1]['finalaccept'][BasicInfo.indexlang()],
+                                                                            onChanged: (x) {
+                                                                              mainController.changeradioacceptcost(x: x, list: acceptlist[DB.allcostsinfotable![0]['costs'].indexOf(c)], index: 1, costid: c['cost_id'], clmname: 'finalaccept');
+                                                                            }),
+                                                                        Text(acceptlist[DB
+                                                                            .allcostsinfotable![0][
+                                                                                'costs']
+                                                                            .indexOf(
+                                                                                c)][1]['faccept'][BasicInfo
+                                                                            .indexlang()]),
+                                                                        Radio(
+                                                                            value:
+                                                                                b['freject'][BasicInfo.indexlang()],
+                                                                            groupValue: acceptlist[DB.allcostsinfotable![0]['costs'].indexOf(c)][1]['finalaccept'][BasicInfo.indexlang()],
+                                                                            onChanged: (x) {
+                                                                              mainController.changeradioacceptcost(x: x, costid: c['cost_id'], list: acceptlist[DB.allcostsinfotable![0]['costs'].indexOf(c)], index: 1, clmname: 'finalaccept');
+                                                                            }),
+                                                                        Text(acceptlist[DB
+                                                                            .allcostsinfotable![0][
+                                                                                'costs']
+                                                                            .indexOf(
+                                                                                c)][1]['freject'][BasicInfo
+                                                                            .indexlang()])
+                                                                      ],
+                                                                    ),
+                                                                    Visibility(
+                                                                        visible: c['final_acceptcost'] !=
+                                                                                null
+                                                                            ? true
+                                                                            : false,
+                                                                        child:
+                                                                            Row(
+                                                                          children: [
+                                                                            Text("${c['final_acceptcost'] != null ? '${DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == c['final_acceptcost_user']).toList()[0]['fullname']}' : ''}"),
+                                                                            Directionality(
+                                                                              textDirection: TextDirection.ltr,
+                                                                              child: Text("${c['final_acceptcost'] != null ? c['final_acceptcost_date'] : ''}"),
+                                                                            )
+                                                                          ],
+                                                                        )),
+                                                                  ],
+                                                                );
+                                                              case 'wait':
+                                                                return WaitMz
+                                                                    .waitmz0([
+                                                                  1,
+                                                                  2,
+                                                                  3
+                                                                ], context);
+                                                            }
+                                                          }),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              )
+                                            : Text(c['begin_acceptcost'] == null
+                                                ? 'غير محدد'
+                                                : acceptlist[DB
+                                                            .allcostsinfotable![0]
+                                                                ['costs']
+                                                            .indexOf(c)][0]
+                                                        ['beginaccept']
+                                                    [BasicInfo.indexlang()])
+                                      ],
+                                    ),
+                                  ],
+                                )
                               ],
                             ),
-                            Row(
-                              children: [
-                                Text(" ${c['costdetails']}"),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Directionality(
-                                    textDirection: TextDirection.ltr,
-                                    child: Text('''
-                                        الرأي المبدأي: ${c['begin_acceptcost'] == '1' ? 'مقبول' : c['begin_acceptcost'] == '0' ? 'مرفوض' : 'غير محدد'}
-                                        ${c['begin_acceptcost'] == '1' || c['begin_acceptcost'] == '0' ? 'بواسطة ${DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == c['begin_acceptcost_user']).toList()[0]['fullname']}' : ''}
-                                        ''')),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Directionality(
-                                    textDirection: TextDirection.ltr,
-                                    child: Text(" ${c['costdate']}")),
-                              ],
-                            )
                           ],
                         ),
                       ),
@@ -578,14 +807,19 @@ class Costs extends StatelessWidget {
         }
       }
       for (var i in DB.allusersinfotable![0]['users_priv_office']
-          .where((u) => u['up o_user _id'] == x['user_id'])
+          .where((u) => u['upo_user_id'] == x['user_id'])
           .toList()) {
-        if (x['user_id'] == BasicInfo.LogInInfo![0] ||
-            officesii.contains(i['upo_office_id'])) {
-          return true;
-        } else {
-          return false;
+        if (i['upo_user_id'] != null) {
+          if (officesii.contains(i['upo_office_id'])) {
+            return true;
+          }
         }
+      }
+
+      if (x['user_id'] == BasicInfo.LogInInfo![0]) {
+        return true;
+      } else {
+        return false;
       }
     }
 
@@ -610,47 +844,74 @@ class Costs extends StatelessWidget {
     }
 
     updatetable() async {
-      DB.allusersinfotable = await DBController().getallusersinfo();
-      DB.allcostsinfotable = await DBController().getallcostinfo();
-      buildeasyeditlist();
-      buildexport();
-      print(DB.allusersinfotable);
-      return DB.allusersinfotable;
+      try {
+        DB.allusersinfotable = await DBController().getallusersinfo();
+        DB.allcostsinfotable = await DBController().getallcostinfo();
+
+        buildeasyeditlist();
+        buildacceptlist();
+        buildexport();
+      } catch (e) {}
+      return {DB.allusersinfotable, DB.allcostsinfotable};
     }
 
-    return GetBuilder<DBController>(
-      init: dbController,
-      builder: (_) {
-        if (DB.allusersinfotable != null) {
-          for (var i in DB.allusersinfotable![0]['users']) {
-            i['visiblesearch'] = true;
+    return FutureBuilder(
+        future: Future(() async => await updatetable()),
+        builder: (_, snap) {
+          if (snap.connectionState == ConnectionState.waiting) {
+            return Scaffold(
+              body: Center(
+                child: WaitMz.waitmz0([1, 2, 3, 4, 5], context),
+              ),
+            );
+          } else if (snap.hasData) {
+            if (DB.allusersinfotable != null) {
+              for (var i in DB.allusersinfotable![0]['users']) {
+                i['visiblesearch'] = true;
+              }
+            }
+            PageTamplate01.searchcontroller.text = '';
+            return GetBuilder<DBController>(
+              init: dbController,
+              builder: (_) {
+                buildeasyeditlist();
+                buildexport();
+                buildacceptlist();
+                return PageTamplate01(
+                    updatetable: () async => await updatetable(),
+                    appbartitle: const ['النفقات', 'Costs'],
+                    searchrangelist: const ['username', 'fullname'],
+                    chooseofficevisible: true,
+                    officechooselist: DB.allusersinfotable![0]['users'],
+                    officenameclm: 'upo_user_id',
+                    searchlist: DB.allcostsinfotable![0]['costs'],
+                    accountssearch: 'notnull',
+                    conditionofview: (x) => conditionofview(x),
+                    searchwithdatevisible: true,
+                    tablename: 'users',
+                    tableofsearch: DB.allusersinfotable![0]['users'],
+                    table: DB.allusersinfotable != null
+                        ? DB.allusersinfotable![0]['users']
+                        : [],
+                    mainItem: (x) => mainItem(e: x, ctx: context),
+                    addactionvisible: addactionvisible(),
+                    initialofadd: () => initialofdialog(),
+                    addactiontitle: const ['إضافة طلب', 'Add request'],
+                    addactionmainlabelsofpages: maintitlesdialogMz01,
+                    addactionpages: [basics(), attachmentandcost()],
+                    listofactionbuttonforadd: listofactionbuttonforadd,
+                    listoffunctionforadd: (e) => listoffunctionforadd(e),
+                    floateactionbuttonlist: floatactionbuttonlist);
+              },
+            );
+          } else {
+            Future(() => Get.toNamed('/'));
+            return Scaffold(
+              body: Center(
+                child: SizedBox(),
+              ),
+            );
           }
-        }
-        PageTamplate01.searchcontroller.text = '';
-        PageTamplate01.selectedoffice = 'all';
-        return PageTamplate01(
-            updatetable: () async => await updatetable(),
-            appbartitle: const ['النفقات', 'Costs'],
-            searchrangelist: const ['username', 'fullname'],
-            chooseofficevisible: true,
-            officechooselist: DB.allusersinfotable != null
-                ? DB.allusersinfotable![0]['users']
-                : [],
-            officenameclm: 'upo_user_id',
-            accountssearch: 'notnull',
-            conditionofview: (x) => conditionofview(x),
-            searchwithdatevisible: true,
-            table: 'users',
-            mainItem: (x) => mainItem(e: x, ctx: context),
-            addactionvisible: addactionvisible(),
-            initialofadd: () => initialofdialog(),
-            addactiontitle: const ['إضافة طلب', 'Add request'],
-            addactionmainlabelsofpages: maintitlesdialogMz01,
-            addactionpages: [basics(), attachmentandcost()],
-            listofactionbuttonforadd: listofactionbuttonforadd,
-            listoffunctionforadd: (e) => listoffunctionforadd(e),
-            floateactionbuttonlist: floatactionbuttonlist);
-      },
-    );
+        });
   }
 }

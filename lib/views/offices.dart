@@ -795,37 +795,61 @@ class Offices extends StatelessWidget {
       return DB.allofficeinfotable;
     }
 
-    return GetBuilder<DBController>(
-      init: dbController,
-      builder: (_) {
-        if (DB.allofficeinfotable != null) {
-          for (var i in DB.allofficeinfotable![0]['offices']) {
-            i['visiblesearch'] = true;
+    return FutureBuilder(
+      future: Future(() async => await updatetable()),
+      builder: (_, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            body: Center(
+              child: WaitMz.waitmz0([1, 2, 3, 4, 5], context),
+            ),
+          );
+        } else if (snap.hasData) {
+          if (DB.allofficeinfotable != null) {
+            for (var i in DB.allofficeinfotable![0]['offices']) {
+              i['visiblesearch'] = true;
+            }
           }
+          PageTamplate01.searchcontroller.text = '';
+
+          return GetBuilder<DBController>(
+            init: dbController,
+            builder: (_) {
+              buildeasyeditlist();
+
+              return PageTamplate01(
+                updatetable: () async => await updatetable(),
+                appbartitle: const ['المكاتب', 'Offices'],
+                // searchwithdatevisible: false,
+                searchrangelist: const ['officename'],
+                // chooseofficevisible: false,
+                // officechooselist: DB.allofficeinfotable[0]['offices'],
+                // officenameclmname: 'officename',
+                conditionofview: (x) => condition(x),
+                tablename: 'offices',
+                table: DB.allofficeinfotable![0]['offices'],
+                tableofsearch: DB.allofficeinfotable![0]['offices'],
+                mainItem: (x) => mainItem(e: x, ctx: context),
+
+                addactionvisible: true,
+                initialofadd: () => initialofdialog(),
+                addactiontitle: const ['إضافة مكتب', 'Add Office'],
+                addactionmainlabelsofpages: maintitlesdialogMz01,
+                addactionpages: [basics(), addemployee()],
+                listofactionbuttonforadd: listofactionbuttonforadd,
+                listoffunctionforadd: (e) => listoffunctionforadd(e),
+                floateactionbuttonlist: floatactionbuttonlist,
+              );
+            },
+          );
+        } else {
+          Future(() => Get.toNamed('/'));
+          return Scaffold(
+            body: Center(
+              child: SizedBox(),
+            ),
+          );
         }
-        PageTamplate01.searchcontroller.text = '';
-
-        return PageTamplate01(
-          updatetable: () async => await updatetable(),
-          appbartitle: const ['المكاتب', 'Offices'],
-          // searchwithdatevisible: false,
-          searchrangelist: const ['officename'],
-          // chooseofficevisible: false,
-          // officechooselist: DB.allofficeinfotable[0]['offices'],
-          // officenameclmname: 'officename',
-          conditionofview: (x) => condition(x),
-          table: 'offices',
-          mainItem: (x) => mainItem(e: x, ctx: context),
-
-          addactionvisible: true,
-          initialofadd: () => initialofdialog(),
-          addactiontitle: const ['إضافة مكتب', 'Add Office'],
-          addactionmainlabelsofpages: maintitlesdialogMz01,
-          addactionpages: [basics(), addemployee()],
-          listofactionbuttonforadd: listofactionbuttonforadd,
-          listoffunctionforadd: (e) => listoffunctionforadd(e),
-          floateactionbuttonlist: floatactionbuttonlist,
-        );
       },
     );
   }
