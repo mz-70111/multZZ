@@ -32,7 +32,7 @@ class DBController extends GetxController {
   static List remindinstream = [];
 
   autoupdate() {
-    Stream stream = Stream.periodic(Duration(minutes: 2), (x) => x++);
+    Stream stream = Stream.periodic(Duration(minutes: 30), (x) => x++);
     stream.listen((event) async {
       try {
         DB.allremindinfotable = await dbController.getallremindinfo();

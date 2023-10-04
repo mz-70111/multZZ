@@ -865,6 +865,7 @@ class Remind extends StatelessWidget {
               ),
             );
           } else if (snap.hasData) {
+            buildeasyeditlist();
             if (DB.allremindinfotable != null) {
               for (var i in DB.allremindinfotable![0]['remind']) {
                 i['visiblesearch'] = true;
@@ -874,7 +875,6 @@ class Remind extends StatelessWidget {
             return GetBuilder<DBController>(
               init: dbController,
               builder: (_) {
-                buildeasyeditlist();
                 return PageTamplate01(
                   updatetable: () async => await updatetable(),
                   appbartitle: const ['التذكير', 'Remind'],

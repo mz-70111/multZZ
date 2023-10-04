@@ -805,18 +805,16 @@ class Offices extends StatelessWidget {
             ),
           );
         } else if (snap.hasData) {
+          buildeasyeditlist();
           if (DB.allofficeinfotable != null) {
             for (var i in DB.allofficeinfotable![0]['offices']) {
               i['visiblesearch'] = true;
             }
           }
           PageTamplate01.searchcontroller.text = '';
-
           return GetBuilder<DBController>(
             init: dbController,
             builder: (_) {
-              buildeasyeditlist();
-
               return PageTamplate01(
                 updatetable: () async => await updatetable(),
                 appbartitle: const ['المكاتب', 'Offices'],

@@ -542,20 +542,20 @@ class MainController extends GetxController {
       list[2]['visible'] = true;
       list[0]['visible'] = false;
       update();
-      clmname=='beginaccept'?
-      await dbController.requestpost(type: 'crud', data: {
-        'customquery':
-            'update costs set begin_acceptcost=$st,begin_acceptcost_user=${BasicInfo.LogInInfo![0]},begin_acceptcost_date="${DateTime.now()}" where cost_id=$costid;'
-      }): await dbController.requestpost(type: 'crud', data: {
-        'customquery':
-            'update costs set final_acceptcost=$st,final_acceptcost_user=${BasicInfo.LogInInfo![0]},final_acceptcost_date="${DateTime.now()}" where cost_id=$costid;'
-      });
+      clmname == 'beginaccept'
+          ? await dbController.requestpost(type: 'crud', data: {
+              'customquery':
+                  'update costs set begin_acceptcost=$st,begin_acceptcost_user=${BasicInfo.LogInInfo![0]},begin_acceptcost_date="${DateTime.now()}" where cost_id=$costid;'
+            })
+          : await dbController.requestpost(type: 'crud', data: {
+              'customquery':
+                  'update costs set final_acceptcost=$st,final_acceptcost_user=${BasicInfo.LogInInfo![0]},final_acceptcost_date="${DateTime.now()}" where cost_id=$costid;'
+            });
       DB.allcostsinfotable = await dbController.getallcostinfo();
-    } catch (e) {
-    }
+    } catch (e) {}
     list[2]['visible'] = false;
     list[0]['visible'] = true;
-  dbController.update();
+    dbController.update();
     update();
   }
 
@@ -1819,6 +1819,7 @@ insert into logs(log,logdate)values
       dateslist.sort((a, b) => a.toString().compareTo(b.toString()));
       l:
       for (var i in dateslist) {
+        reminddate = i;
         if (i.difference(DateTime.now()).inDays >= 0) {
           reminddate = i;
           break l;

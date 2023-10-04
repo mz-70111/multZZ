@@ -865,6 +865,9 @@ class Costs extends StatelessWidget {
               ),
             );
           } else if (snap.hasData) {
+            buildeasyeditlist();
+            buildexport();
+            buildacceptlist();
             if (DB.allusersinfotable != null) {
               for (var i in DB.allusersinfotable![0]['users']) {
                 i['visiblesearch'] = true;
@@ -874,9 +877,6 @@ class Costs extends StatelessWidget {
             return GetBuilder<DBController>(
               init: dbController,
               builder: (_) {
-                buildeasyeditlist();
-                buildexport();
-                buildacceptlist();
                 return PageTamplate01(
                     updatetable: () async => await updatetable(),
                     appbartitle: const ['النفقات', 'Costs'],

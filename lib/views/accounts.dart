@@ -1117,6 +1117,7 @@ class Accounts extends StatelessWidget {
                   ),
                 );
               } else if (snap.hasData) {
+                buildeasyeditlist();
                 if (DB.allusersinfotable != null) {
                   for (var i in DB.allusersinfotable![0]['users']) {
                     i['visiblesearch'] = true;
