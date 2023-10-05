@@ -38,29 +38,33 @@ class Costs extends StatelessWidget {
         {
           'label': ['البيان', 'label'],
           'controller': labelcontroller,
-          'error': null
+          'error': null,
+          'readonly': false
         },
         {
           'label': ['الملاحظات', 'Notes'],
           'controller': notescontroller,
           'error': null,
+          'readonly': false,
           'lines': 2
         },
         {
           'label': ['العائدية', 'project'],
           'controller': projectcontroller,
           'error': null,
+          'readonly': false,
           'lines': 1
         },
       ]
     },
     {
       'attachment': [],
-      'cost': [
+      'tf': [
         {
           'label': ['الكلفة', 'cost'],
           'controller': costcontroller,
-          'error': null
+          'error': null,
+          'readonly': false
         },
       ],
     }
@@ -119,10 +123,9 @@ class Costs extends StatelessWidget {
         });
       }
     }
-    basics() {
-      List officesforadd = [];
+    List officesforadd = [];
+    basics({e}) {
       officesforadd.clear();
-
       for (var i in DB.userinfotable![0]['users_priv_office']
           .where((u) => u['addcost'] == '1')) {
         officesforadd.add({});
@@ -140,38 +143,51 @@ class Costs extends StatelessWidget {
         init: mainController,
         builder: (_) => Column(
           children: [
-            Row(
-              children: [
-                Text(['المكتب', 'office'][BasicInfo.indexlang()]),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: DropdownButton(
-                      value: officesforadd[bodieslistofadd[0]
-                          ['selectedofficeindex']]['office'],
-                      items: officesforadd
-                          .map((e) => DropdownMenuItem(
-                              value: e['office'], child: Text(e['office'])))
-                          .toList(),
-                      onChanged: (x) => mainController.dropdaownchhositem(
-                          list: bodieslistofadd[0],
-                          val: 'selectedofficeindex',
-                          x: officesforadd.indexWhere(
-                              (element) => element['office'] == x))),
-                )
-              ],
-            ),
+            officesforadd.isNotEmpty
+                ? Row(
+                    children: [
+                      Text(['المكتب', 'office'][BasicInfo.indexlang()]),
+                      e != null && e['begin_acceptcost'] == '1'
+                          ? Text(
+                              " ${e['cost_office_id'] != null ? DB.allofficeinfotable![0]['offices'].where((o) => o['office_id'] == e['cost_office_id']).toList()[0]['officename'] : 'مكتب محذوف'}")
+                          : Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: DropdownButton(
+                                  value: officesforadd[bodieslistofadd[0]
+                                      ['selectedofficeindex']]['office'],
+                                  items: officesforadd
+                                      .map((e) => DropdownMenuItem(
+                                          value: e['office'],
+                                          child: Text(e['office'])))
+                                      .toList(),
+                                  onChanged: (x) =>
+                                      mainController.dropdaownchhositem(
+                                          list: bodieslistofadd[0],
+                                          val: 'selectedofficeindex',
+                                          x: officesforadd.indexWhere(
+                                              (element) =>
+                                                  element['office'] == x))),
+                            )
+                    ],
+                  )
+                : SizedBox(),
             ...bodieslistofadd[0]['tf'].map((w) => TextFieldMz(
                 label: w['label'],
                 error: w['error'],
                 lines: w['lines'] ?? 1,
+                readOnly: w['readonly'],
                 onchange: (x) => null,
                 controller: w['controller'],
                 td: w['td'] ?? BasicInfo.lang())),
             Row(
               children: [
                 TextButton(
-                    onPressed: () => mainController.setdate(
-                        ctx: context, date: bodieslistofadd),
+                    onPressed: e != null && e['begin_acceptcost'] == '1'
+                        ? () {
+                            null;
+                          }
+                        : () => mainController.setdate(
+                            ctx: context, date: bodieslistofadd),
                     child: Text(
                         "التاريخ _ ${df.DateFormat("yyyy-MM-dd").format(bodieslistofadd[0]['date'])}"))
               ],
@@ -185,29 +201,75 @@ class Costs extends StatelessWidget {
     attachmentandcost({e}) {
       if (e == null) {
         return Text("بانتظار موافقة المشرف");
+      } else if (e['begin_acceptcost'] != '1') {
+        return Text("بانتظار موافقة المشرف");
       } else {
-        return SizedBox();
+        return Column(
+          children: [
+            ...bodieslistofadd[1]['tf'].map((w) => TextFieldMz(
+                label: w['label'],
+                error: w['error'],
+                lines: w['lines'] ?? 1,
+                readOnly: w['readonly'],
+                onchange: (x) => null,
+                controller: w['controller'],
+                td: w['td'] ?? BasicInfo.lang())),
+          ],
+        );
       }
     }
 
     initialofdialog({e}) {
       maintitlesdialogMz01[0]['selected'] = true;
       maintitlesdialogMz01[1]['selected'] = false;
+      if (e != null && e['begin_acceptcost'] == '1') {
+        maintitlesdialogMz01[0]['selected'] = false;
+        maintitlesdialogMz01[1]['selected'] = true;
+      }
       for (var i in bodieslistofadd[0]['tf']) {
         i['error'] = null;
         i['hint'] = null;
+        i['readonly'] = false;
+      }
+      for (var i in bodieslistofadd[1]['tf']) {
+        i['error'] = null;
+        i['hint'] = null;
+        i['readonly'] = false;
       }
       if (e == null) {
         labelcontroller.text = '';
         notescontroller.text = '';
         costcontroller.text = '';
+        projectcontroller.text = '';
         bodieslistofadd[0]['date'] = DateTime.now();
-        bodieslistofadd[0]['beginaccept']['group'] = ['', ''];
-        bodieslistofadd[1]['finalaccept']['group'] = ['', ''];
+        bodieslistofadd[0]['beginaccept'] = ['', ''];
+        bodieslistofadd[1]['finalaccept'] = ['', ''];
       } else {
+        e['cost_office_id'] != null
+            ? bodieslistofadd[0]['selectedofficeindex'] =
+                officesforadd.indexWhere((element) =>
+                    element['office'] ==
+                    DB.allofficeinfotable![0]['offices']
+                        .where((o) => o['office_id'] == e['cost_office_id'])
+                        .toList()[0]['officename'])
+            : null;
+
+        if (e['begin_acceptcost'] == '1') {
+          for (var i in bodieslistofadd[0]['tf']) {
+            i['readonly'] = true;
+          }
+        }
+        if (e['final_acceptcost'] == '1') {
+          for (var i in bodieslistofadd[1]['tf']) {
+            i['readonly'] = true;
+          }
+        }
+
         labelcontroller.text = e['costname'];
         notescontroller.text = e['costdetails'];
-        costcontroller.text = e['cost'];
+        projectcontroller.text = e['cost_project'];
+        costcontroller.text = e['cost'] ?? '';
+        bodieslistofadd[0]['date'] = DateTime.parse(e['costdate']);
       }
     }
 
@@ -268,8 +330,6 @@ class Costs extends StatelessWidget {
           {'index': 2, 'visible0': true, 'visible': false, 'type': 'wait'},
         });
       }
-      print(acceptlist);
-      return acceptlist;
     }
 
     buildeasyeditlist() {
@@ -312,7 +372,12 @@ class Costs extends StatelessWidget {
           (e) => Get.back(),
         ];
     List<Function> listoffunctionforedit(e) => [
-          (e) {},
+          (e) {
+            mainController.updatecost(
+                costid: e['cost_id'],
+                officeid:
+                    '${DB.allofficeinfotable![0]['offices'].where((element) => element['officename'] == offices[bodieslistofadd[0]['selectedofficeindex']]['office']).toList()[0]['office_id']}');
+          },
           (e) => Get.back(),
         ];
     listoffunctionforeasyeditpanel({e, ctx}) => [
@@ -339,7 +404,13 @@ class Costs extends StatelessWidget {
                     'visible': false,
                   }
                 ];
-                List functionofaction(e) => [(e) {}, (e) => Get.back()];
+                List functionofaction(e) => [
+                      (e) {
+                        mainController.removecost(
+                            costid: e['cost_id'], list: actionlist);
+                      },
+                      (e) => Get.back()
+                    ];
                 return GetBuilder<MainController>(
                   init: mainController,
                   builder: (_) => Directionality(
@@ -385,7 +456,7 @@ class Costs extends StatelessWidget {
                 builder: (_) => DialogMz01(
                     title: ['تعديل', 'edit'],
                     mainlabels: maintitlesdialogMz01,
-                    bodies: [basics(), attachmentandcost()],
+                    bodies: [basics(e: e), attachmentandcost(e: e)],
                     actionlist: GetBuilder<MainController>(
                       init: mainController,
                       builder: (_) => Row(
@@ -421,13 +492,16 @@ class Costs extends StatelessWidget {
     listoffunctionforexpot({e, ctx}) => [(e) {}];
     mainItem({e, ctx}) {
       bool ak = true;
+
       for (var i in DB.allcostsinfotable![0]['costs']
-          .where((c) => c['cost_user_id'] == e['user_id'])
+          .where((c) =>
+              c['cost_user_id'] != null && c['cost_user_id'] == e['user_id'])
           .toList()) {
         if (i['final_acceptcost'] != '1') {
           ak = false;
         }
       }
+
       return Padding(
           padding: const EdgeInsets.all(8.0),
           child: Card(
@@ -481,6 +555,7 @@ class Costs extends StatelessWidget {
             children: [
               ...DB.allcostsinfotable![0]['costs']
                   .where((c) =>
+                      c['cost_user_id'] != null &&
                       c['cost_user_id'] == e['user_id'] &&
                       c['visiblesearch'] == true)
                   .map((c) {
@@ -522,7 +597,7 @@ class Costs extends StatelessWidget {
                                         switch (b['type']) {
                                           case 'do-it':
                                             return IconbuttonMz(
-                                              e: e,
+                                              e: c,
                                               action:
                                                   listoffunctionforeasyeditpanel(
                                                       ctx: ctx,
@@ -565,7 +640,7 @@ class Costs extends StatelessWidget {
                                       Row(
                                         children: [
                                           Text(
-                                              " ${c['cost_project']} _ ${DB.allofficeinfotable![0]['offices'].where((o) => o['office_id'] == c['cost_office_id']).toList()[0]['officename']}"),
+                                              " ${c['cost_project']} _ ${c['cost_office_id'] == null ? '' : DB.allofficeinfotable![0]['offices'].where((o) => o['office_id'] == c['cost_office_id']).toList()[0]['officename']}"),
                                         ],
                                       ),
                                       Row(
@@ -590,14 +665,26 @@ class Costs extends StatelessWidget {
                                     Row(
                                       children: [
                                         DB.allusersinfotable![0]
-                                                            ['users_priv_office']
+                                                        ['users_priv_office']
+                                                    .where((us) =>
+                                                        us['upo_user_id'] ==
+                                                            BasicInfo.LogInInfo![
+                                                                0] &&
+                                                        us['upo_office_id'] ==
+                                                            c['cost_office_id'])
+                                                    .toList()
+                                                    .isNotEmpty &&
+                                                DB.allusersinfotable![0][
+                                                            'users_priv_office']
                                                         .where((us) =>
-                                                            us['upo_user_id'] == BasicInfo.LogInInfo![0] &&
+                                                            us['upo_user_id'] ==
+                                                                BasicInfo
+                                                                        .LogInInfo![
+                                                                    0] &&
                                                             us['upo_office_id'] ==
                                                                 c['cost_office_id'])
-                                                        .toList()[0]
-                                                    ['acceptcosts'] ==
-                                                '1'
+                                                        .toList()[0]['acceptcosts'] ==
+                                                    '1'
                                             ? Column(
                                                 children: [
                                                   Card(
@@ -625,7 +712,7 @@ class Costs extends StatelessWidget {
                                                                   children: [
                                                                     Row(
                                                                       children: [
-                                                                        Text(
+                                                                        const Text(
                                                                             'حالة الطلب'),
                                                                         Radio(
                                                                             value:
@@ -663,7 +750,7 @@ class Costs extends StatelessWidget {
                                                                         child:
                                                                             Row(
                                                                           children: [
-                                                                            Text("${c['begin_acceptcost'] != null ? '${DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == c['begin_acceptcost_user']).toList()[0]['fullname']}' : ''}"),
+                                                                            Text("${c['begin_acceptcost_user'] != null ? c['begin_acceptcost'] != null ? '${DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == c['begin_acceptcost_user']).toList()[0]['fullname']}' : '' : 'حساب محذوف'}"),
                                                                             Directionality(
                                                                               textDirection: TextDirection.ltr,
                                                                               child: Text("${c['begin_acceptcost'] != null ? c['begin_acceptcost_date'] : ''}"),
@@ -773,14 +860,32 @@ class Costs extends StatelessWidget {
                                                   ),
                                                 ],
                                               )
-                                            : Text(c['begin_acceptcost'] == null
-                                                ? 'غير محدد'
-                                                : acceptlist[DB
-                                                            .allcostsinfotable![0]
-                                                                ['costs']
-                                                            .indexOf(c)][0]
-                                                        ['beginaccept']
-                                                    [BasicInfo.indexlang()])
+                                            : Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(c['begin_acceptcost'] ==
+                                                          null
+                                                      ? 'حالة الطلب _ غير محدد'
+                                                      : """حالة الطلب _ ${acceptlist[DB.allcostsinfotable![0]['costs'].indexOf(c)][0]['beginaccept'][BasicInfo.indexlang()]}
+${c['begin_acceptcost_user'] != null ? DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == c['begin_acceptcost_user']).toList()[0]['fullname'] : 'حساب محذوف'}
+${c['begin_acceptcost_date']}"""),
+                                                  Visibility(
+                                                    visible:
+                                                        c['begin_acceptcost'] ==
+                                                                '1'
+                                                            ? true
+                                                            : false,
+                                                    child: Text(c[
+                                                                'final_acceptcost'] ==
+                                                            null
+                                                        ? 'الموافقة النهائية _ غير محدد'
+                                                        : """الموافقة النهائية _ ${acceptlist[DB.allcostsinfotable![0]['costs'].indexOf(c)][1]['finalaccept'][BasicInfo.indexlang()]}
+${c['final_acceptcost_user']!=null?DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == c['final_acceptcost_user']).toList()[0]['fullname']:'حساب محذوف'}
+${c['final_acceptcost_date']}"""),
+                                                  ),
+                                                ],
+                                              )
                                       ],
                                     ),
                                   ],
@@ -865,9 +970,6 @@ class Costs extends StatelessWidget {
               ),
             );
           } else if (snap.hasData) {
-            buildeasyeditlist();
-            buildexport();
-            buildacceptlist();
             if (DB.allusersinfotable != null) {
               for (var i in DB.allusersinfotable![0]['users']) {
                 i['visiblesearch'] = true;
@@ -877,6 +979,9 @@ class Costs extends StatelessWidget {
             return GetBuilder<DBController>(
               init: dbController,
               builder: (_) {
+                buildeasyeditlist();
+                buildexport();
+                buildacceptlist();
                 return PageTamplate01(
                     updatetable: () async => await updatetable(),
                     appbartitle: const ['النفقات', 'Costs'],

@@ -543,10 +543,18 @@ class MainController extends GetxController {
       list[0]['visible'] = false;
       update();
       clmname == 'beginaccept'
-          ? await dbController.requestpost(type: 'crud', data: {
-              'customquery':
-                  'update costs set begin_acceptcost=$st,begin_acceptcost_user=${BasicInfo.LogInInfo![0]},begin_acceptcost_date="${DateTime.now()}" where cost_id=$costid;'
-            })
+          ? {
+              await dbController.requestpost(type: 'crud', data: {
+                'customquery':
+                    'update costs set begin_acceptcost=$st,begin_acceptcost_user=${BasicInfo.LogInInfo![0]},begin_acceptcost_date="${DateTime.now()}" where cost_id=$costid;'
+              }),
+              st == 0
+                  ? await dbController.requestpost(type: 'crud', data: {
+                      'customquery':
+                          'update costs set final_acceptcost=null,final_acceptcost_user=null,final_acceptcost_date=null where cost_id=$costid;'
+                    })
+                  : null,
+            }
           : await dbController.requestpost(type: 'crud', data: {
               'customquery':
                   'update costs set final_acceptcost=$st,final_acceptcost_user=${BasicInfo.LogInInfo![0]},final_acceptcost_date="${DateTime.now()}" where cost_id=$costid;'
@@ -555,6 +563,7 @@ class MainController extends GetxController {
     } catch (e) {}
     list[2]['visible'] = false;
     list[0]['visible'] = true;
+
     dbController.update();
     update();
   }
@@ -850,7 +859,7 @@ update remind set remind_office_id=null where remind_office_id=$officeid;
 update todo set todo_office_id=null where todo_office_id=$officeid;
 ''',
       '''
-update cost set cost_office_id=null where cost_office_id=$officeid;
+update costs set cost_office_id=null where cost_office_id=$officeid;
 ''',
       '''
 delete from users_priv_office where upo_office_id=$officeid;
@@ -881,6 +890,7 @@ insert into logs(log,logdate)values
       dbController.update();
       Get.back();
     } catch (e) {
+      print(e);
       null;
     }
 
@@ -1453,6 +1463,115 @@ insert into logs(log,logdate)values
     update();
   }
 
+  removecost({costid, list}) async {
+    String costname = DB.allcostsinfotable![0]['costs'][DB.allcostsinfotable![0]
+            ['costs']
+        .indexWhere((r) => r['cost_id'] == costid)]['costname'];
+    List queries = [
+      '''
+delete from costs where cost_id=$costid;
+''',
+      '''
+insert into logs(log,logdate)values
+("${BasicInfo.LogInInfo![1]} delete cost _costname $costname",
+"${DateTime.now()}");
+      ''',
+    ];
+    list[0]['visible'] = false;
+    list[2]['visible'] = true;
+    update();
+    try {
+      for (var q in queries) {
+        await DBController()
+            .requestpost(type: 'curd', data: {'customquery': '$q'});
+      }
+      list[0]['visible'] = true;
+      list[2]['visible'] = false;
+      DB.allofficeinfotable = await DBController().getallofficeinfo();
+      DB.allusersinfotable = await DBController().getallusersinfo();
+      DB.allcostsinfotable = await DBController().getallcostinfo();
+      dbController.update();
+      Get.back();
+    } catch (e) {
+      null;
+    }
+
+    update();
+  }
+
+  updatecost({costid, officeid}) async {
+    Lang.mainerrormsg = null;
+    Offices.bodieslistofadd[0]['tf'][0]['error'] = null;
+    List queries = [
+      '''
+update costs set
+costname='${Costs.labelcontroller.text.trim()}',
+costdetails='${Costs.notescontroller.text.trim()}',
+cost_project='${Costs.projectcontroller.text.trim()}',
+cost='${Costs.costcontroller.text.trim()}',
+costdate='${Costs.bodieslistofadd[0]['date']}',
+cost_office_id='$officeid'
+where cost_id=$costid;
+'''
+    ];
+
+    queries.add('''
+insert into logs(log,logdate)values
+("${BasicInfo.LogInInfo![0]} edit costs info for cost_id $costid _name: costname ${Costs.labelcontroller.text.trim()}",
+"${DateTime.now()}");
+      ''');
+    if (Costs.labelcontroller.text.trim().isEmpty) {
+      Costs.bodieslistofadd[0]['tf'][0]['error'] =
+          Lang.errormsgs['emptyname-check'][BasicInfo.indexlang()];
+      for (var i in Costs.maintitlesdialogMz01) {
+        i['selected'] = false;
+      }
+      Costs.maintitlesdialogMz01[0]['selected'] = true;
+    } else {
+      Costs.listofactionbuttonforedit[0]['visible'] = false;
+      Costs.listofactionbuttonforedit[2]['visible'] = true;
+      update();
+      try {
+        l:
+        for (var q in queries) {
+          await DBController()
+              .requestpost(type: 'curd', data: {'customquery': '$q'});
+          {
+            if (Lang.mainerrormsg != null) {
+              if (Lang.mainerrormsg!.contains("Duplicate")) {
+                Lang.mainerrormsg = Costs.bodieslistofadd[0]['tf'][0]['error'] =
+                    "${Costs.labelcontroller.text} ${Lang.errormsgs['duplicate'][BasicInfo.indexlang()]}";
+                for (var i in Costs.maintitlesdialogMz01) {
+                  i['selected'] = false;
+                }
+                Costs.maintitlesdialogMz01[0]['selected'] = true;
+              } else {
+                Lang.mainerrormsg = Lang.mainerrormsg;
+              }
+              break l;
+            }
+          }
+        }
+        if (Lang.mainerrormsg == null) {
+          DB.allofficeinfotable = await DBController().getallofficeinfo();
+          DB.userinfotable =
+              await DBController().getuserinfo(userid: BasicInfo.LogInInfo![0]);
+          DB.allusersinfotable = await DBController().getallusersinfo();
+          DB.allcostsinfotable = await DBController().getallcostinfo();
+          dbController.update();
+          Get.back();
+        }
+      } catch (e) {
+        Lang.mainerrormsg =
+            Lang.errormsgs['server-error'][BasicInfo.indexlang()];
+      }
+    }
+    Costs.listofactionbuttonforedit[0]['visible'] = true;
+    Costs.listofactionbuttonforedit[2]['visible'] = false;
+
+    update();
+  }
+
   disableenableaccount({userid, list, listvisible, val}) async {
     String status = DB.allusersinfotable![0]['users_privileges']
         .where((u) => u['up_user_id'] == userid)
@@ -1510,7 +1629,7 @@ insert into logs(log,logdate)values
         .indexWhere((r) => r['user_id'] == userid)]['user_id'];
     List queries = [
       '''
-update users set password=$newpassword where user_id=$userid;
+update users set password="${codepassword(word:newpassword.text)}" where user_id=$userid;
 ''',
       '''
 insert into logs(log,logdate)values
@@ -1720,7 +1839,7 @@ update todo set createby_id=null where createby_id=$userid;
 update todo set editby_id=null where editby_id=$userid;
 ''',
       '''
-update cost set cost_user_id=null where cost_user_id=$userid;
+update costs set cost_user_id=null where cost_user_id=$userid;
 ''',
       '''
 update comments set uc_user_id=null where uc_user_id=$userid;

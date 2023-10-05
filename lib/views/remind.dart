@@ -875,6 +875,7 @@ class Remind extends StatelessWidget {
             return GetBuilder<DBController>(
               init: dbController,
               builder: (_) {
+                buildeasyeditlist();
                 return PageTamplate01(
                   updatetable: () async => await updatetable(),
                   appbartitle: const ['التذكير', 'Remind'],

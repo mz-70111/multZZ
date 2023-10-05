@@ -290,6 +290,7 @@ ${i['type'] == 'auto' ? "مصدر الشهادة :${i['certsrc']}" : ''}
     try {
       if (result['status'] != 'done') {
         Lang.mainerrormsg = result['status'];
+        print(result['status']);
       }
     } catch (e) {
       null;
