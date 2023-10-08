@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mz_flutter_07/controllers/dbcontroller.dart';
@@ -12,6 +15,7 @@ import 'package:mz_flutter_07/models/textfeild.dart';
 import 'package:mz_flutter_07/views/login.dart';
 import 'package:mz_flutter_07/views/wait.dart';
 import 'package:intl/intl.dart' as df;
+import 'package:url_launcher/url_launcher.dart';
 
 class Costs extends StatelessWidget {
   const Costs({super.key});
@@ -58,7 +62,7 @@ class Costs extends StatelessWidget {
       ]
     },
     {
-      'attachment': [],
+      'attachment': '',
       'tf': [
         {
           'label': ['الكلفة', 'cost'],
@@ -206,6 +210,55 @@ class Costs extends StatelessWidget {
       } else {
         return Column(
           children: [
+            Row(
+              children: [
+                TextButton(
+                    onPressed: () async => await mainController.addattachtocost(
+                        list: bodieslistofadd),
+                    child: Text("إضافة مرفق")),
+                GetBuilder<MainController>(
+                    init: mainController,
+                    builder: (_) {
+                      try {
+                        return GestureDetector(
+                          onTap: () async {
+                            bodieslistofadd[1]['attachment']
+                                        .path
+                                        .contains('jpg') ||
+                                    bodieslistofadd[1]['attachment']
+                                        .path
+                                        .contains('png') ||
+                                    bodieslistofadd[1]['attachment']
+                                        .path
+                                        .contains('jpeg')
+                                ? showDialog(
+                                    context: context,
+                                    builder: (_) {
+                                      return AlertDialog(
+                                        content: Image.file(
+                                          bodieslistofadd[1]['attachment'],
+                                        ),
+                                      );
+                                    })
+                                : await launchUrl(Uri.file(
+                                    bodieslistofadd[1]['attachment'].path));
+                          },
+                          child: bodieslistofadd[1]['attachment']
+                                  .path
+                                  .contains('pdf')
+                              ? Icon(Icons.picture_as_pdf)
+                              : Image.file(
+                                  bodieslistofadd[1]['attachment'],
+                                  width: 25,
+                                  height: 25,
+                                ),
+                        );
+                      } catch (x) {
+                        return SizedBox();
+                      }
+                    }),
+              ],
+            ),
             ...bodieslistofadd[1]['tf'].map((w) => TextFieldMz(
                 label: w['label'],
                 error: w['error'],
@@ -497,7 +550,9 @@ class Costs extends StatelessWidget {
           .where((c) =>
               c['cost_user_id'] != null && c['cost_user_id'] == e['user_id'])
           .toList()) {
-        if (i['final_acceptcost'] != '1') {
+        if (i['begin_acceptcost'] != null) {
+          ak = true;
+        } else {
           ak = false;
         }
       }
@@ -572,9 +627,9 @@ class Costs extends StatelessWidget {
                                   Container(
                                     width: 10,
                                     height: 20,
-                                    color: c['final_acceptcost'] != '1'
-                                        ? Colors.red
-                                        : Colors.green,
+                                    color: c['begin_acceptcost'] != null
+                                        ? Colors.transparent
+                                        : Colors.redAccent,
                                   ),
                                   Text("#_ ${c['cost_id']} ${c['costname']}"),
                                 ],
@@ -650,6 +705,15 @@ class Costs extends StatelessWidget {
                                                   Text(" ${c['costdetails']}")),
                                         ],
                                       ),
+                                      c['cost'] != null && c['cost'].isNotEmpty
+                                          ? Row(
+                                              children: [
+                                                Expanded(
+                                                    child: Text(
+                                                        "التكلفة: ${c['cost']}")),
+                                              ],
+                                            )
+                                          : const SizedBox(),
                                       Row(
                                         children: [
                                           Expanded(
@@ -881,7 +945,7 @@ ${c['begin_acceptcost_date']}"""),
                                                             null
                                                         ? 'الموافقة النهائية _ غير محدد'
                                                         : """الموافقة النهائية _ ${acceptlist[DB.allcostsinfotable![0]['costs'].indexOf(c)][1]['finalaccept'][BasicInfo.indexlang()]}
-${c['final_acceptcost_user']!=null?DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == c['final_acceptcost_user']).toList()[0]['fullname']:'حساب محذوف'}
+${c['final_acceptcost_user'] != null ? DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == c['final_acceptcost_user']).toList()[0]['fullname'] : 'حساب محذوف'}
 ${c['final_acceptcost_date']}"""),
                                                   ),
                                                 ],

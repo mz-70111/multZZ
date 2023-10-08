@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:mz_flutter_07/models/database.dart';
 import 'package:mz_flutter_07/models/lang_mode_theme.dart';
 import 'package:mz_flutter_07/views/login.dart';
+import 'package:mz_flutter_07/views/offices.dart';
+import 'package:mz_flutter_07/views/remind.dart';
 import 'package:mz_flutter_07/views/repare.dart';
 import 'package:teledart/teledart.dart';
 import 'package:teledart/telegram.dart';
@@ -35,7 +37,9 @@ class DBController extends GetxController {
     Stream stream = Stream.periodic(Duration(minutes: 30), (x) => x++);
     stream.listen((event) async {
       try {
-        DB.allremindinfotable = await dbController.getallremindinfo();
+        DB.allofficeinfotable = await getallofficeinfo();
+        DB.allremindinfotable = await getallremindinfo();
+        update();
       } catch (r) {}
       if (DB.allremindinfotable != null) {
         for (var i in DB.allremindinfotable![0]['remind']) {
@@ -164,11 +168,11 @@ ${i['type'] == 'auto' ? "مصدر الشهادة :${i['certsrc']}" : ''}
 
   sendalertremind() async {
     if (DB.allremindinfotable != null) {
-      remindinstream.clear();
       for (var i in DB.allremindinfotable![0]['remind']) {
-        remindinstream.add(i['remind_id']);
-        Stream stream = Stream.periodic(
-            Duration(minutes: int.parse(i['repeate'])), (x) => x++);
+        !remindinstream.contains(i['remind_id'])
+            ? remindinstream.add(i['remind_id'])
+            : null;
+        Stream stream = Stream.periodic(Duration(minutes: 5), (x) => x++);
         stream.listen((event) async {
           try {
             i['remind_id'] = DB.allremindinfotable![0]['remind']
@@ -182,9 +186,6 @@ ${i['type'] == 'auto' ? "مصدر الشهادة :${i['certsrc']}" : ''}
                 .where((u) => u['remind_id'] == i['remind_id'])
                 .toList()[0]['reminddetails'];
 
-            i['repeate'] = DB.allremindinfotable![0]['remind']
-                .where((u) => u['remind_id'] == i['remind_id'])
-                .toList()[0]['repeate'];
             i['lastsend'] = DB.allremindinfotable![0]['remind']
                 .where((u) => u['remind_id'] == i['remind_id'])
                 .toList()[0]['lastsend'];
@@ -200,10 +201,11 @@ ${i['type'] == 'auto' ? "مصدر الشهادة :${i['certsrc']}" : ''}
           } catch (r) {
             i['remind_id'] = null;
           }
-          if (DB.allofficeinfotable![0]['offices']
-                  .where((of) => of['office_id'] == i['remind_office_id'])
-                  .toList()[0]['notifi'] ==
-              '1') {
+          if (i['remind_office_id'] != null &&
+              DB.allofficeinfotable![0]['offices']
+                      .where((of) => of['office_id'] == i['remind_office_id'])
+                      .toList()[0]['notifi'] ==
+                  '1') {
             if (i['remind_id'] != null && i['notifi'] == '1') {
               if (i['lastsend'] == null) {
                 try {

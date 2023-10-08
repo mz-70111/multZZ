@@ -43,6 +43,8 @@ dependencies:
   url_launcher: ^6.1.14
   teledart: ^0.6.1
   foundation: ^0.0.5
+  file_picker: ^5.5.0
+
 
 dev_dependencies:
   flutter_test:

@@ -589,27 +589,6 @@ class Offices extends StatelessWidget {
       }
     }
 
-    buildeasyeditlist() {
-      easyeditlist.clear();
-      if (DB.allofficeinfotable != null) {
-        for (var i in DB.allofficeinfotable![0]['offices']) {
-          easyeditlist.add([]);
-          easyeditlist[DB.allofficeinfotable![0]['offices'].indexOf(i)].addAll({
-            {
-              'index': 0,
-              'visible': true,
-              'type': 'do-it',
-              'icon': Icons.delete_forever,
-              'label': ['حذف', 'delete'],
-              'elevate': 0.0,
-              'backcolor': Colors.transparent
-            },
-            {'visible': false, 'type': 'wait'},
-          });
-        }
-      }
-    }
-
     List<Function> listoffunctionforadd(e) => [
           (e) async => await mainController.addoffice(),
           (e) => Get.back(),
@@ -850,5 +829,26 @@ class Offices extends StatelessWidget {
         }
       },
     );
+  }
+
+  buildeasyeditlist() {
+    easyeditlist.clear();
+    if (DB.allofficeinfotable != null) {
+      for (var i in DB.allofficeinfotable![0]['offices']) {
+        easyeditlist.add([]);
+        easyeditlist[DB.allofficeinfotable![0]['offices'].indexOf(i)].addAll({
+          {
+            'index': 0,
+            'visible': true,
+            'type': 'do-it',
+            'icon': Icons.delete_forever,
+            'label': ['حذف', 'delete'],
+            'elevate': 0.0,
+            'backcolor': Colors.transparent
+          },
+          {'visible': false, 'type': 'wait'},
+        });
+      }
+    }
   }
 }

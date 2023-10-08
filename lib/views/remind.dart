@@ -356,59 +356,6 @@ class Remind extends StatelessWidget {
       }
     }
 
-    buildeasyeditlist() {
-      easyeditlist.clear();
-      if (DB.allremindinfotable != null) {
-        for (var i in DB.allremindinfotable![0]['remind']) {
-          easyeditlist.add([]);
-          easyeditlist[DB.allremindinfotable![0]['remind'].indexOf(i)].addAll({
-            {
-              'index': 0,
-              'visible0': true,
-              'visible': true,
-              'type': 'do-it',
-              'icon': Icons.delete_forever,
-              'label': ['حذف', 'delete'],
-              'elevate': 0.0,
-              'backcolor': Colors.transparent,
-              'length': 80.0
-            },
-            {
-              'index': 1,
-              'visible0': true,
-              'visible': true,
-              'type': 'do-it',
-              'icon': i['notifi'] == '1'
-                  ? Icons.notifications
-                  : Icons.notifications_off,
-              'label': DB.allremindinfotable![0]['remind']
-                          .where((y) => y['remind_id'] == i['remind_id'])
-                          .toList()[0]['notifi'] ==
-                      '1'
-                  ? ['تعطيل الاشعارات', 'disable notifi']
-                  : ['تفعيل الاشعارات', 'enable notifi'],
-              'elevate': 0.0,
-              'backcolor': Colors.transparent,
-              'length': 150.0
-            },
-            {
-              'index': 2,
-              'visible0': true,
-              'visible': true,
-              'type': 'do-it',
-              'icon': Icons.edit,
-              'label': ['تعديل', 'edit'],
-              'elevate': 0.0,
-              'backcolor': Colors.transparent,
-              'length': 80.0
-            },
-            {'visible0': true, 'visible': false, 'type': 'wait'},
-          });
-        }
-      }
-      return easyeditlist;
-    }
-
     List<Function> listoffunctionforadd(e) => [
           (e) async => await mainController.addremind(
               officeslistandindex:
@@ -915,5 +862,58 @@ class Remind extends StatelessWidget {
             );
           }
         });
+  }
+
+  buildeasyeditlist() {
+    easyeditlist.clear();
+    if (DB.allremindinfotable != null) {
+      for (var i in DB.allremindinfotable![0]['remind']) {
+        easyeditlist.add([]);
+        easyeditlist[DB.allremindinfotable![0]['remind'].indexOf(i)].addAll({
+          {
+            'index': 0,
+            'visible0': true,
+            'visible': true,
+            'type': 'do-it',
+            'icon': Icons.delete_forever,
+            'label': ['حذف', 'delete'],
+            'elevate': 0.0,
+            'backcolor': Colors.transparent,
+            'length': 80.0
+          },
+          {
+            'index': 1,
+            'visible0': true,
+            'visible': true,
+            'type': 'do-it',
+            'icon': i['notifi'] == '1'
+                ? Icons.notifications
+                : Icons.notifications_off,
+            'label': DB.allremindinfotable![0]['remind']
+                        .where((y) => y['remind_id'] == i['remind_id'])
+                        .toList()[0]['notifi'] ==
+                    '1'
+                ? ['تعطيل الاشعارات', 'disable notifi']
+                : ['تفعيل الاشعارات', 'enable notifi'],
+            'elevate': 0.0,
+            'backcolor': Colors.transparent,
+            'length': 150.0
+          },
+          {
+            'index': 2,
+            'visible0': true,
+            'visible': true,
+            'type': 'do-it',
+            'icon': Icons.edit,
+            'label': ['تعديل', 'edit'],
+            'elevate': 0.0,
+            'backcolor': Colors.transparent,
+            'length': 80.0
+          },
+          {'visible0': true, 'visible': false, 'type': 'wait'},
+        });
+      }
+    }
+    return easyeditlist;
   }
 }

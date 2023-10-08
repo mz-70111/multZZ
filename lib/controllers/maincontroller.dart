@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:mz_flutter_07/controllers/dbcontroller.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
 import 'package:mz_flutter_07/models/database.dart';
@@ -20,13 +22,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart' as df;
 import 'package:teledart/teledart.dart';
 import 'package:teledart/telegram.dart';
-import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' as foundation;
-// import 'dart:io' as io;
-
-import 'package:teledart/teledart.dart';
-import 'package:teledart/telegram.dart';
-import 'package:teledart/model.dart';
 
 class MainController extends GetxController {
   codepassword({required String word}) {
@@ -1629,7 +1625,7 @@ insert into logs(log,logdate)values
         .indexWhere((r) => r['user_id'] == userid)]['user_id'];
     List queries = [
       '''
-update users set password="${codepassword(word:newpassword.text)}" where user_id=$userid;
+update users set password="${codepassword(word: newpassword.text)}" where user_id=$userid;
 ''',
       '''
 insert into logs(log,logdate)values
@@ -2112,8 +2108,7 @@ insert into logs(log,logdate)values
     for (var o in DB.allremindinfotable![0]['remind']) {
       i = o;
     }
-    Stream stream =
-        Stream.periodic(Duration(minutes: int.parse(i['repeate'])), (x) => x++);
+    Stream stream = Stream.periodic(Duration(minutes: 5), (x) => x++);
     stream.listen((event) async {
       try {
         i['remind_id'] = DB.allremindinfotable![0]['remind']
@@ -2144,10 +2139,11 @@ insert into logs(log,logdate)values
       } catch (r) {
         i['remind_id'] = null;
       }
-      if (DB.allofficeinfotable![0]['offices']
-              .where((of) => of['office_id'] == i['remind_office_id'])
-              .toList()[0]['notifi'] ==
-          '1') {
+      if (i['remind_office_id'] != null &&
+          DB.allofficeinfotable![0]['offices']
+                  .where((of) => of['office_id'] == i['remind_office_id'])
+                  .toList()[0]['notifi'] ==
+              '1') {
         if (i['remind_id'] != null && i['notifi'] == '1') {
           if (i['lastsend'] == null) {
             try {
@@ -2208,5 +2204,42 @@ ${i['reminddetails']}
         }
       }
     });
+  }
+
+  addattachtocost({list}) async {
+    File result;
+    FilePickerResult? filepick =
+        await FilePicker.platform.pickFiles();
+    PlatformFile file;
+    if (filepick != null) {
+      file = filepick.files.single;
+      if (file.size / 1024 > 3072) {
+        Lang.mainerrormsg = "لا يمكن رفع ملف  بحجم اكبر من  3 ميغا";
+      } else {
+        result = File(file.path!);
+        list[1]['attachment'] = result;
+              }
+    } else {
+      null;
+    }
+    update();
+  }
+
+//    convertimagestodoTocode({image}) async {
+//     if (image.runtimeType == Image) {
+//       return Whattodo.imagcode[Whattodo.x];
+//     } else {
+//       Uint8List imagebytes = await image.readAsBytes();
+//       String base64string = base64.encode(imagebytes);
+//       return base64string;
+//     }
+//   }
+
+  convertimagestodoTodecode({image}) {
+    Uint8List imagei;
+    image =
+        "${image.toString().length % 4 != 0 ? image.toString().substring(0, image.toString().length - image.toString().length % 4) : image}";
+    imagei = base64.decode(image);
+    return Image.memory(imagei);
   }
 }

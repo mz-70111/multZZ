@@ -29,9 +29,9 @@ class ThemeMz {
         thumbColor: MaterialStatePropertyAll(Color.fromARGB(220, 23, 126, 130)),
       ),
       checkboxTheme: const CheckboxThemeData(
-          fillColor: MaterialStatePropertyAll(Colors.black54)),
+          fillColor: MaterialStatePropertyAll(Colors.blueGrey)),
       radioTheme: const RadioThemeData(
-          fillColor: MaterialStatePropertyAll(Colors.black54)),
+          fillColor: MaterialStatePropertyAll(Colors.blueGrey)),
       colorScheme: const ColorScheme.dark(
         error: Colors.orangeAccent,
       ));
