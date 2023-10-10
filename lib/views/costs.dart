@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -16,6 +17,7 @@ import 'package:mz_flutter_07/views/login.dart';
 import 'package:mz_flutter_07/views/wait.dart';
 import 'package:intl/intl.dart' as df;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:path_provider/path_provider.dart';
 
 class Costs extends StatelessWidget {
   const Costs({super.key});
@@ -62,7 +64,7 @@ class Costs extends StatelessWidget {
       ]
     },
     {
-      'attachment': '',
+      'attachment': {'filename': '', 'encoded': ''},
       'tf': [
         {
           'label': ['الكلفة', 'cost'],
@@ -208,66 +210,54 @@ class Costs extends StatelessWidget {
       } else if (e['begin_acceptcost'] != '1') {
         return Text("بانتظار موافقة المشرف");
       } else {
-        return Column(
-          children: [
-            Row(
-              children: [
+        return GetBuilder<MainController>(
+          init: mainController,
+          builder: (_) => Column(
+            children: [
+              Row(children: [
                 TextButton(
-                    onPressed: () async => await mainController.addattachtocost(
-                        list: bodieslistofadd),
+                    onPressed: () async {
+                      e['final_acceptcost'] == '1'
+                          ? null
+                          : await mainController.addattachtocost();
+                    },
                     child: Text("إضافة مرفق")),
-                GetBuilder<MainController>(
-                    init: mainController,
-                    builder: (_) {
-                      try {
-                        return GestureDetector(
-                          onTap: () async {
-                            bodieslistofadd[1]['attachment']
-                                        .path
-                                        .contains('jpg') ||
-                                    bodieslistofadd[1]['attachment']
-                                        .path
-                                        .contains('png') ||
-                                    bodieslistofadd[1]['attachment']
-                                        .path
-                                        .contains('jpeg')
-                                ? showDialog(
-                                    context: context,
-                                    builder: (_) {
-                                      return AlertDialog(
-                                        content: Image.file(
-                                          bodieslistofadd[1]['attachment'],
-                                        ),
-                                      );
-                                    })
-                                : await launchUrl(Uri.file(
-                                    bodieslistofadd[1]['attachment'].path));
-                          },
-                          child: bodieslistofadd[1]['attachment']
-                                  .path
-                                  .contains('pdf')
-                              ? Icon(Icons.picture_as_pdf)
-                              : Image.file(
-                                  bodieslistofadd[1]['attachment'],
-                                  width: 25,
-                                  height: 25,
-                                ),
-                        );
-                      } catch (x) {
-                        return SizedBox();
-                      }
-                    }),
-              ],
-            ),
-            ...bodieslistofadd[1]['tf'].map((w) => TextFieldMz(
-                label: w['label'],
-                error: w['error'],
-                lines: w['lines'] ?? 1,
-                readOnly: w['readonly'],
-                onchange: (x) => null,
-                controller: w['controller'],
-                td: w['td'] ?? BasicInfo.lang())),
-          ],
+              ]),
+              bodieslistofadd[1]['attachment']['filename'].isEmpty
+                  ? SizedBox()
+                  : Row(
+                      children: [
+                        IconButton(
+                            onPressed: () {
+                              e['final_acceptcost'] == '1'
+                                  ? null
+                                  : mainController.deleteattachment();
+                            },
+                            icon: Icon(Icons.delete_forever)),
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              children: [
+                                Icon(Icons.file_present),
+                                Text(bodieslistofadd[1]['attachment']
+                                    ['filename'])
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+              ...bodieslistofadd[1]['tf'].map((w) => TextFieldMz(
+                  label: w['label'],
+                  error: w['error'],
+                  lines: w['lines'] ?? 1,
+                  readOnly: w['readonly'],
+                  onchange: (x) => null,
+                  controller: w['controller'],
+                  td: w['td'] ?? BasicInfo.lang())),
+            ],
+          ),
         );
       }
     }
@@ -297,6 +287,8 @@ class Costs extends StatelessWidget {
         bodieslistofadd[0]['date'] = DateTime.now();
         bodieslistofadd[0]['beginaccept'] = ['', ''];
         bodieslistofadd[1]['finalaccept'] = ['', ''];
+        bodieslistofadd[1]['attachment']['filename'] = '';
+        bodieslistofadd[1]['attachment']['encoded'] = '';
       } else {
         e['cost_office_id'] != null
             ? bodieslistofadd[0]['selectedofficeindex'] =
@@ -323,6 +315,8 @@ class Costs extends StatelessWidget {
         projectcontroller.text = e['cost_project'];
         costcontroller.text = e['cost'] ?? '';
         bodieslistofadd[0]['date'] = DateTime.parse(e['costdate']);
+        bodieslistofadd[1]['attachment']['filename'] = e['attach_name'] ?? '';
+        bodieslistofadd[1]['attachment']['encoded'] = e['attch_file'] ?? '';
       }
     }
 
@@ -434,73 +428,84 @@ class Costs extends StatelessWidget {
           (e) => Get.back(),
         ];
     listoffunctionforeasyeditpanel({e, ctx}) => [
-          (e) => showDialog(
-              context: ctx,
-              builder: (_) {
-                List actionlist = [
-                  {
-                    'type': 'do-it',
-                    'visible': true,
-                    'label': ['حذف', 'delete'],
-                    'elevate': 0.0,
-                    'index': 0,
-                  },
-                  {
-                    'type': 'do-it',
-                    'visible': true,
-                    'label': ['رجوع', 'close'],
-                    'elevate': 0.0,
-                    'index': 1,
-                  },
-                  {
-                    'type': 'wait',
-                    'visible': false,
-                  }
-                ];
-                List functionofaction(e) => [
-                      (e) {
-                        mainController.removecost(
-                            costid: e['cost_id'], list: actionlist);
+          (e) {
+            if (e['final_acceptcost'] == '1') {
+              return showDialog(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                        content: Text(
+                            "لا يمكن حذف الطلب الآن بعد الموافقة النهائية"),
+                      ));
+            } else {
+              return showDialog(
+                  context: ctx,
+                  builder: (_) {
+                    List actionlist = [
+                      {
+                        'type': 'do-it',
+                        'visible': true,
+                        'label': ['حذف', 'delete'],
+                        'elevate': 0.0,
+                        'index': 0,
                       },
-                      (e) => Get.back()
+                      {
+                        'type': 'do-it',
+                        'visible': true,
+                        'label': ['رجوع', 'close'],
+                        'elevate': 0.0,
+                        'index': 1,
+                      },
+                      {
+                        'type': 'wait',
+                        'visible': false,
+                      }
                     ];
-                return GetBuilder<MainController>(
-                  init: mainController,
-                  builder: (_) => Directionality(
-                    textDirection: BasicInfo.lang(),
-                    child: AlertDialog(
-                      scrollable: true,
-                      title: Text([
-                        'هل أنت متأكد من حذف${e['costname']}?',
-                        'sure to delete ${e['costname']}?'
-                      ][BasicInfo.indexlang()]),
-                      actions: [
-                        ...actionlist
-                            .where((element) => element['visible'] == true)
-                            .map((y) {
-                          switch (y['type']) {
-                            case 'do-it':
-                              return IconbuttonMz(
-                                  e: e,
-                                  elevate: y['elevate'],
-                                  action: functionofaction(e)[y['index']],
-                                  label: y['label'],
-                                  buttonlist: actionlist,
-                                  index: y['index'],
-                                  height: 35,
-                                  width: 60,
-                                  backcolor: ThemeMz.iconbuttonmzbc());
-                            case 'wait':
-                              return WaitMz.waitmz0([1, 2, 3, 4], ctx);
-                            default:
-                              return SizedBox();
-                          }
-                        })
-                      ],
-                    ),
-                  ),
-                );
-              }),
+                    List functionofaction(e) => [
+                          (e) {
+                            mainController.removecost(
+                                costid: e['cost_id'], list: actionlist);
+                          },
+                          (e) => Get.back()
+                        ];
+                    return GetBuilder<MainController>(
+                      init: mainController,
+                      builder: (_) => Directionality(
+                        textDirection: BasicInfo.lang(),
+                        child: AlertDialog(
+                          scrollable: true,
+                          title: Text([
+                            'هل أنت متأكد من حذف${e['costname']}?',
+                            'sure to delete ${e['costname']}?'
+                          ][BasicInfo.indexlang()]),
+                          actions: [
+                            ...actionlist
+                                .where((element) => element['visible'] == true)
+                                .map((y) {
+                              switch (y['type']) {
+                                case 'do-it':
+                                  return IconbuttonMz(
+                                      e: e,
+                                      elevate: y['elevate'],
+                                      action: functionofaction(e)[y['index']],
+                                      label: y['label'],
+                                      buttonlist: actionlist,
+                                      index: y['index'],
+                                      height: 35,
+                                      width: 60,
+                                      backcolor: ThemeMz.iconbuttonmzbc());
+                                case 'wait':
+                                  return WaitMz.waitmz0([1, 2, 3, 4], ctx);
+                                default:
+                                  return SizedBox();
+                              }
+                            })
+                          ],
+                        ),
+                      ),
+                    );
+                  });
+            }
+          },
           (e) {
             Lang.mainerrormsg = null;
             initialofdialog(e: e);
@@ -542,7 +547,11 @@ class Costs extends StatelessWidget {
                     )));
           }
         ];
-    listoffunctionforexpot({e, ctx}) => [(e) {}];
+    listoffunctionforexpot({e, ctx}) => [
+          (e) {
+            mainController.exportexcel(userid: e['user_id']);
+          }
+        ];
     mainItem({e, ctx}) {
       bool ak = true;
 
@@ -561,171 +570,290 @@ class Costs extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           child: Card(
               child: ExpansionTile(
-            title: Column(
-              children: [
-                Row(children: [
-                  Container(
-                      width: 10,
-                      height: 15,
-                      color: ak == false ? Colors.red : Colors.transparent),
-                  Text("  # ${e['user_id']}_ "),
-                  Expanded(
-                      child: Text(
-                    e['fullname'],
-                    style: ThemeMz.titlemediumChanga(),
-                  )),
-                ]),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  title: Column(
+                    children: [
+                      Row(children: [
+                        Container(
+                            width: 10,
+                            height: 15,
+                            color:
+                                ak == false ? Colors.red : Colors.transparent),
+                        Text("  # ${e['user_id']}_ "),
+                        Expanded(
+                            child: Text(
+                          e['fullname'],
+                          style: ThemeMz.titlemediumChanga(),
+                        )),
+                      ]),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ...exportfunctionlist[
+                                  DB.allusersinfotable![0]['users'].indexWhere(
+                                      (r) => r['user_id'] == e['user_id'])]
+                              .where((b) =>
+                                  b['visible'] == true && b['visible0'] == true)
+                              .map((b) {
+                            switch (b['type']) {
+                              case 'do-it':
+                                return IconbuttonMz(
+                                  e: e,
+                                  action: listoffunctionforexpot(
+                                      ctx: ctx, e: e)[b['index']],
+                                  elevate: b['elevate'],
+                                  labelvisible:
+                                      b['elevate'] == 3.0 ? true : false,
+                                  label: b['label'],
+                                  icon: b['icon'],
+                                  buttonlist: exportfunctionlist[DB
+                                      .allusersinfotable![0]['users']
+                                      .indexWhere(
+                                          (r) => r['user_id'] == e['user_id'])],
+                                  index: b['index'],
+                                  height: 35,
+                                  width: b['elevate'] == 3.0 ? b['length'] : 40,
+                                  backcolor: b['backcolor'],
+                                );
+                            }
+                          })
+                        ],
+                      )
+                    ],
+                  ),
                   children: [
-                    ...exportfunctionlist[DB.allusersinfotable![0]['users']
-                            .indexWhere((r) => r['user_id'] == e['user_id'])]
-                        .where((b) =>
-                            b['visible'] == true && b['visible0'] == true)
-                        .map((b) {
-                      switch (b['type']) {
-                        case 'do-it':
-                          return IconbuttonMz(
-                            e: e,
-                            action: listoffunctionforexpot(
-                                ctx: ctx, e: e)[b['index']],
-                            elevate: b['elevate'],
-                            labelvisible: b['elevate'] == 3.0 ? true : false,
-                            label: b['label'],
-                            icon: b['icon'],
-                            buttonlist: exportfunctionlist[
-                                DB.allusersinfotable![0]['users'].indexWhere(
-                                    (r) => r['user_id'] == e['user_id'])],
-                            index: b['index'],
-                            height: 35,
-                            width: b['elevate'] == 3.0 ? b['length'] : 40,
-                            backcolor: b['backcolor'],
-                          );
-                      }
-                    })
-                  ],
-                )
-              ],
-            ),
-            children: [
-              ...DB.allcostsinfotable![0]['costs']
-                  .where((c) =>
-                      c['cost_user_id'] != null &&
-                      c['cost_user_id'] == e['user_id'] &&
-                      c['visiblesearch'] == true)
-                  .map((c) {
-                return Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 30, right: 30),
-                      child: Card(
-                        child: ExpansionTile(
-                          title: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 10,
-                                    height: 20,
-                                    color: c['begin_acceptcost'] != null
-                                        ? Colors.transparent
-                                        : Colors.redAccent,
-                                  ),
-                                  Text("#_ ${c['cost_id']} ${c['costname']}"),
-                                ],
-                              ),
-                              Visibility(
-                                visible:
-                                    c['cost_user_id'] == BasicInfo.LogInInfo![0]
-                                        ? true
-                                        : false,
-                                child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      ...easyeditlist[DB.allcostsinfotable![0]
-                                                  ['costs']
-                                              .indexOf(c)]
-                                          .where((b) =>
-                                              b['visible'] == true &&
-                                              b['visible0'] == true)
-                                          .map((b) {
-                                        switch (b['type']) {
-                                          case 'do-it':
-                                            return IconbuttonMz(
-                                              e: c,
-                                              action:
-                                                  listoffunctionforeasyeditpanel(
-                                                      ctx: ctx,
-                                                      e: e)[b['index']],
-                                              elevate: b['elevate'],
-                                              labelvisible: b['elevate'] == 3.0
-                                                  ? true
-                                                  : false,
-                                              label: b['label'],
-                                              icon: b['icon'],
-                                              buttonlist: easyeditlist[DB
-                                                  .allcostsinfotable![0]
-                                                      ['costs']
-                                                  .indexOf(c)],
-                                              index: b['index'],
-                                              height: 35,
-                                              width: b['elevate'] == 3.0
-                                                  ? b['length']
-                                                  : 40,
-                                              backcolor: b['backcolor'],
-                                            );
-                                          case 'wait':
-                                            return WaitMz.waitmz0(
-                                                [1, 2, 3, 4], context);
-                                          default:
-                                            return SizedBox();
-                                        }
-                                      })
-                                    ]),
-                              )
-                            ],
-                          ),
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  flex: 5,
-                                  child: Column(
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text(
-                                              " ${c['cost_project']} _ ${c['cost_office_id'] == null ? '' : DB.allofficeinfotable![0]['offices'].where((o) => o['office_id'] == c['cost_office_id']).toList()[0]['officename']}"),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                              child:
-                                                  Text(" ${c['costdetails']}")),
-                                        ],
-                                      ),
-                                      c['cost'] != null && c['cost'].isNotEmpty
-                                          ? Row(
-                                              children: [
-                                                Expanded(
-                                                    child: Text(
-                                                        "التكلفة: ${c['cost']}")),
-                                              ],
-                                            )
-                                          : const SizedBox(),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                              child: Text(
-                                                  "تاريخ الطلب ${c['costdate']}")),
-                                        ],
-                                      )
-                                    ],
-                                  ),
+                SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Column(children: [
+                      const Row(
+                        children: [
+                          SizedBox(
+                              width: 150,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  "المكتب",
                                 ),
-                                Column(
+                              )),
+                          SizedBox(
+                              width: 75,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text("المعرف"),
+                              )),
+                          SizedBox(
+                              width: 150,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  "البيان",
+                                  textAlign: TextAlign.center,
+                                ),
+                              )),
+                          SizedBox(
+                            width: 300,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                "الملاحظات",
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                              width: 200,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  "تاريخ الطلب",
+                                  textAlign: TextAlign.center,
+                                ),
+                              )),
+                          SizedBox(
+                              width: 100,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  "المبلغ",
+                                  textAlign: TextAlign.center,
+                                ),
+                              )),
+                          SizedBox(
+                              width: 200,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  "المرفقات",
+                                  textAlign: TextAlign.center,
+                                ),
+                              )),
+                          SizedBox(
+                              width: 150,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  "المشروع",
+                                  textAlign: TextAlign.center,
+                                ),
+                              )),
+                        ],
+                      ),
+                      Divider(),
+                      Column(
+                        children: [
+                          ...DB.allcostsinfotable![0]['costs']
+                              .where((c) =>
+                                  c['cost_user_id'] != null &&
+                                  c['cost_user_id'] == e['user_id'] &&
+                                  c['visiblesearch'] == true)
+                              .map((c) {
+                            return Card(
+                              elevation: 20,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    Visibility(
+                                      visible: c['cost_user_id'] ==
+                                              BasicInfo.LogInInfo![0]
+                                          ? true
+                                          : false,
+                                      child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          children: [
+                                            ...easyeditlist[DB
+                                                    .allcostsinfotable![0]
+                                                        ['costs']
+                                                    .indexOf(c)]
+                                                .where((b) =>
+                                                    b['visible'] == true &&
+                                                    b['visible0'] == true)
+                                                .map((b) {
+                                              switch (b['type']) {
+                                                case 'do-it':
+                                                  return IconbuttonMz(
+                                                    e: c,
+                                                    action:
+                                                        listoffunctionforeasyeditpanel(
+                                                            ctx: ctx,
+                                                            e: e)[b['index']],
+                                                    elevate: b['elevate'],
+                                                    labelvisible:
+                                                        b['elevate'] == 3.0
+                                                            ? true
+                                                            : false,
+                                                    label: b['label'],
+                                                    icon: b['icon'],
+                                                    buttonlist: easyeditlist[DB
+                                                        .allcostsinfotable![0]
+                                                            ['costs']
+                                                        .indexOf(c)],
+                                                    index: b['index'],
+                                                    height: 35,
+                                                    width: b['elevate'] == 3.0
+                                                        ? b['length']
+                                                        : 40,
+                                                    backcolor: b['backcolor'],
+                                                  );
+                                                case 'wait':
+                                                  return WaitMz.waitmz0(
+                                                      [1, 2, 3, 4], context);
+                                                default:
+                                                  return SizedBox();
+                                              }
+                                            })
+                                          ]),
+                                    ),
+                                    Row(children: [
+                                      SizedBox(
+                                          width: 150,
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Text(
+                                                "${c['cost_office_id'] == null ? '' : DB.allofficeinfotable![0]['offices'].where((o) => o['office_id'] == c['cost_office_id']).toList()[0]['officename']}"),
+                                          )),
+                                      SizedBox(
+                                          width: 75,
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Text("${c['cost_id']}"),
+                                          )),
+                                      SizedBox(
+                                          width: 150,
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Text("${c['costname']}"),
+                                          )),
+                                      SizedBox(
+                                        width: 300,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            "${c['costdetails']}",
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                          width: 200,
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Text(
+                                              "${c['costdate']}",
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          )),
+                                      SizedBox(
+                                          width: 100,
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Text(
+                                              "${c['cost'] ?? ''}",
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          )),
+                                      SizedBox(
+                                          width: 200,
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: c['attach_name'] != null &&
+                                                    c['attach_name'].isNotEmpty
+                                                ? GestureDetector(
+                                                    onTap: () {
+                                                      mainController
+                                                          .saveattachment(
+                                                              c: c,
+                                                              ctx: context);
+                                                    },
+                                                    child: MouseRegion(
+                                                        cursor:
+                                                            SystemMouseCursors
+                                                                .click,
+                                                        child: Row(
+                                                          children: [
+                                                            Icon(Icons
+                                                                .attach_file),
+                                                            Expanded(
+                                                                child: Text(c[
+                                                                    'attach_name']))
+                                                          ],
+                                                        )))
+                                                : SizedBox(),
+                                          )),
+                                      SizedBox(
+                                          width: 150,
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Text(
+                                              "${c['cost_project']}",
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ))
+                                    ]),
+                                    Divider(
+                                      color: Colors.white,
+                                    ),
                                     Row(
                                       children: [
                                         DB.allusersinfotable![0]
@@ -749,7 +877,7 @@ class Costs extends StatelessWidget {
                                                                 c['cost_office_id'])
                                                         .toList()[0]['acceptcosts'] ==
                                                     '1'
-                                            ? Column(
+                                            ? Row(
                                                 children: [
                                                   Card(
                                                     child: GetBuilder<
@@ -837,6 +965,10 @@ class Costs extends StatelessWidget {
                                                     ),
                                                   ),
                                                   //pp
+
+                                                  SizedBox(
+                                                    width: 100,
+                                                  ),
                                                   Card(
                                                     child: GetBuilder<
                                                         MainController>(
@@ -924,16 +1056,17 @@ class Costs extends StatelessWidget {
                                                   ),
                                                 ],
                                               )
-                                            : Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
+                                            : Row(
                                                 children: [
                                                   Text(c['begin_acceptcost'] ==
                                                           null
                                                       ? 'حالة الطلب _ غير محدد'
                                                       : """حالة الطلب _ ${acceptlist[DB.allcostsinfotable![0]['costs'].indexOf(c)][0]['beginaccept'][BasicInfo.indexlang()]}
-${c['begin_acceptcost_user'] != null ? DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == c['begin_acceptcost_user']).toList()[0]['fullname'] : 'حساب محذوف'}
-${c['begin_acceptcost_date']}"""),
+                            ${c['begin_acceptcost_user'] != null ? DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == c['begin_acceptcost_user']).toList()[0]['fullname'] : 'حساب محذوف'}
+                            ${c['begin_acceptcost_date']}"""),
+                                                  SizedBox(
+                                                    width: 100,
+                                                  ),
                                                   Visibility(
                                                     visible:
                                                         c['begin_acceptcost'] ==
@@ -945,26 +1078,24 @@ ${c['begin_acceptcost_date']}"""),
                                                             null
                                                         ? 'الموافقة النهائية _ غير محدد'
                                                         : """الموافقة النهائية _ ${acceptlist[DB.allcostsinfotable![0]['costs'].indexOf(c)][1]['finalaccept'][BasicInfo.indexlang()]}
-${c['final_acceptcost_user'] != null ? DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == c['final_acceptcost_user']).toList()[0]['fullname'] : 'حساب محذوف'}
-${c['final_acceptcost_date']}"""),
+                            ${c['final_acceptcost_user'] != null ? DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == c['final_acceptcost_user']).toList()[0]['fullname'] : 'حساب محذوف'}
+                            ${c['final_acceptcost_date']}"""),
                                                   ),
                                                 ],
                                               )
                                       ],
-                                    ),
+                                    )
                                   ],
-                                )
-                              ],
-                            ),
-                          ],
-                        ),
+                                ),
+                              ),
+                            );
+                          })
+                        ],
                       ),
-                    ),
-                  ],
-                );
-              })
-            ],
-          )));
+                    ]))
+              ])));
+
+//
     }
 
     conditionofview(x) {

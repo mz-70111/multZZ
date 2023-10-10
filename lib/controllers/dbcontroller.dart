@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mz_flutter_07/models/basicinfo.dart';
@@ -48,31 +49,23 @@ class DBController extends GetxController {
             mainController.streamsessionforadd(i: i);
           }
           try {
-            i['remind_id'] = DB.allremindinfotable![0]['remind']
-                .where((u) => u['remind_id'] == i['remind_id'])
-                .toList()[0]['remind_id'];
-            i['remindname'] = DB.allremindinfotable![0]['remind']
-                .where((u) => u['remind_id'] == i['remind_id'])
-                .toList()[0]['remindname'];
-            i['reminddetails'] = DB.allremindinfotable![0]['remind']
-                .where((u) => u['remind_id'] == i['remind_id'])
-                .toList()[0]['reminddetails'];
-            i['repeate'] = DB.allremindinfotable![0]['remind']
-                .where((u) => u['remind_id'] == i['remind_id'])
-                .toList()[0]['repeate'];
-            i['lastsend'] = DB.allremindinfotable![0]['remind']
-                .where((u) => u['remind_id'] == i['remind_id'])
-                .toList()[0]['lastsend'];
-            i['notifi'] = DB.allremindinfotable![0]['remind']
-                .where((u) => u['remind_id'] == i['remind_id'])
-                .toList()[0]['notifi'];
-            i['reminddate'] = DB.allremindinfotable![0]['remind']
-                .where((u) => u['remind_id'] == i['remind_id'])
-                .toList()[0]['reminddate'];
-            i['remind_office_id'] = DB.allremindinfotable![0]['remind']
-                .where((u) => u['remind_id'] == i['remind_id'])
-                .toList()[0]['remind_office_id'];
-          } catch (r) {
+            var t = await requestpost(type: 'select', data: {
+              'customquery':
+                  'select remind_id,remindname,reminddetails,lastsend,repeate,notifi,reminddate,remind_office_id,reminddategetdate,type,cersrc from remind where remind_id=${i['remind_id']};'
+            });
+            i['remind_id'] = t[0][0];
+            i['remindname'] = t[0][1];
+            i['reminddetails'] = t[0][2];
+            i['lastsend'] = t[0][3];
+            i['repeate'] = t[0][4];
+            i['notifi'] = t[0][5];
+            i['reminddate'] = t[0][6];
+            i['remind_office_id'] = t[0][7];
+            i['reminddategetdate'] = t[0][8];
+            i['type'] = t[0][9];
+            i['certsrc'] = t[0][10];
+            update();
+          } catch (e) {
             i['remind_id'] = null;
           }
         }
@@ -96,19 +89,31 @@ class DBController extends GetxController {
           DateTime? dt = await mainController.setreminddate(
               type: i['type'], host: i['certsrc'], dateslist: dateslist);
           try {
-            await requestpost(type: 'curd', data: {
+            if (dt != null) {
+              await requestpost(type: 'curd', data: {
+                'customquery':
+                    'update remind set reminddate="$dt",reminddategetdate="${DateTime.now()}" where remind_id=${i['remind_id']};'
+              });
+            }
+          } catch (o) {}
+          try {
+            var t = await dbController.requestpost(type: 'select', data: {
               'customquery':
-                  'update remind set reminddate="$dt",reminddategetdate="${DateTime.now()}" where remind_id=${i['remind_id']};'
+                  'select remind_id,remindname,reminddetails,lastsend,repeate,notifi,reminddate,remind_office_id,reminddategetdate,type,certsrc from remind where remind_id=${i['remind_id']};'
             });
-            var dtt = await requestpost(type: 'select', data: {
-              'customquery':
-                  'select reminddate,reminddategetdate from remind where remind_id=${i['remind_id']};'
-            });
-
-            i['reminddate'] = dtt[0][0];
-            i['reminddategetdate'] = dtt[0][1];
-          } catch (o) {
-            print(o);
+            i['remind_id'] = t[0][0];
+            i['remindname'] = t[0][1];
+            i['reminddetails'] = t[0][2];
+            i['lastsend'] = t[0][3];
+            i['repeate'] = t[0][4];
+            i['notifi'] = t[0][5];
+            i['reminddate'] = t[0][6];
+            i['remind_office_id'] = t[0][7];
+            i['reminddategetdate'] = t[0][8];
+            i['type'] = t[0][9];
+            i['certsrc'] = t[0][10];
+          } catch (e) {
+            i['remind_id'] = null;
           }
         }
         if (DateTime.now().hour == 9) {
@@ -127,7 +132,7 @@ ${i['reminddetails']}
 نوع تحديد تاريخ الانتهاء ${i['type']}
 ${i['type'] == 'auto' ? "مصدر الشهادة :${i['certsrc']}" : ''}
 المدة المتبقية ${mainController.calcexpiredate(e: i)}
-تاريخ الانتهاء : ${i['reminddate'] != null ? 'غير محدد' : '${i['reminddate']}'}
+تاريخ الانتهاء : ${i['reminddate'] == null ? 'غير محدد' : '${i['reminddate']}'}
 ------------------------
 ''';
                 }
@@ -172,33 +177,26 @@ ${i['type'] == 'auto' ? "مصدر الشهادة :${i['certsrc']}" : ''}
         !remindinstream.contains(i['remind_id'])
             ? remindinstream.add(i['remind_id'])
             : null;
-        Stream stream = Stream.periodic(Duration(minutes: 5), (x) => x++);
+        Stream stream = Stream.periodic(Duration(minutes: 1), (x) => x++);
         stream.listen((event) async {
           try {
-            i['remind_id'] = DB.allremindinfotable![0]['remind']
-                .where((u) => u['remind_id'] == i['remind_id'])
-                .toList()[0]['remind_id'];
-
-            i['remindname'] = DB.allremindinfotable![0]['remind']
-                .where((u) => u['remind_id'] == i['remind_id'])
-                .toList()[0]['remindname'];
-            i['reminddetails'] = DB.allremindinfotable![0]['remind']
-                .where((u) => u['remind_id'] == i['remind_id'])
-                .toList()[0]['reminddetails'];
-
-            i['lastsend'] = DB.allremindinfotable![0]['remind']
-                .where((u) => u['remind_id'] == i['remind_id'])
-                .toList()[0]['lastsend'];
-            i['notifi'] = DB.allremindinfotable![0]['remind']
-                .where((u) => u['remind_id'] == i['remind_id'])
-                .toList()[0]['notifi'];
-            i['reminddate'] = DB.allremindinfotable![0]['remind']
-                .where((u) => u['remind_id'] == i['remind_id'])
-                .toList()[0]['reminddate'];
-            i['remind_office_id'] = DB.allremindinfotable![0]['remind']
-                .where((u) => u['remind_id'] == i['remind_id'])
-                .toList()[0]['remind_office_id'];
-          } catch (r) {
+            var t = await requestpost(type: 'select', data: {
+              'customquery':
+                  'select remind_id,remindname,reminddetails,lastsend,repeate,notifi,reminddate,remind_office_id,reminddategetdate,type,certsrc from remind where remind_id=${i['remind_id']};'
+            });
+            i['remind_id'] = t[0][0];
+            i['remindname'] = t[0][1];
+            i['reminddetails'] = t[0][2];
+            i['lastsend'] = t[0][3];
+            i['repeate'] = t[0][4];
+            i['notifi'] = t[0][5];
+            i['reminddate'] = t[0][6];
+            i['remind_office_id'] = t[0][7];
+            i['reminddategetdate'] = t[0][8];
+            i['type'] = t[0][9];
+            i['certsrc'] = t[0][10];
+          } catch (e) {
+            print(e);
             i['remind_id'] = null;
           }
           if (i['remind_office_id'] != null &&
@@ -250,7 +248,7 @@ ${i['reminddetails']}
 نوع تحديد تاريخ الانتهاء ${i['type']}
 ${i['type'] == 'auto' ? "مصدر الشهادة :${i['certsrc']}" : ''}
 المدة المتبقية ${mainController.calcexpiredate(e: i)}
-تاريخ الانتهاء : ${i['reminddate'] != null ? 'غير محدد' : '${i['reminddate']}'}
+تاريخ الانتهاء : ${i['reminddate'] == null ? 'غير محدد' : '${i['reminddate']}'}
 ـــــــــــــــ
 ''');
                       await requestpost(type: 'curd', data: {

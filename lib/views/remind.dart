@@ -770,10 +770,11 @@ class Remind extends StatelessWidget {
         DB.allremindinfotable = await dbController.getallremindinfo();
       } catch (es) {}
       List dateslist = [];
-      dateslist.clear();
+
       if (DB.allremindinfotable != null) {
         for (var i in DB.allremindinfotable![0]['remind']) {
           if (i['type'] != 'auto') {
+            dateslist.clear();
             try {
               dateslist.addAll(DB.allremindinfotable![0]['reminddates']
                   .where((d) => d['remind_d_id'] == i['remind_id'])
@@ -785,17 +786,30 @@ class Remind extends StatelessWidget {
           DateTime? dt = await mainController.setreminddate(
               type: i['type'], host: i['certsrc'], dateslist: dateslist);
           try {
-            await dbController.requestpost(type: 'curd', data: {
+            dt != null
+                ? await dbController.requestpost(type: 'curd', data: {
+                    'customquery':
+                        'update remind set reminddate="$dt",reminddategetdate="${DateTime.now()}" where remind_id=${i['remind_id']};'
+                  })
+                : null;
+            var t = await dbController.requestpost(type: 'select', data: {
               'customquery':
-                  'update remind set reminddate="$dt",reminddategetdate="${DateTime.now()}" where remind_id=${i['remind_id']};'
+                  'select remind_id,remindname,reminddetails,lastsend,repeate,notifi,reminddate,remind_office_id,reminddategetdate,type,certsrc from remind where remind_id=${i['remind_id']};'
             });
-            var dtt = await dbController.requestpost(type: 'select', data: {
-              'customquery':
-                  'select reminddate,reminddategetdate from remind where remind_id=${i['remind_id']};'
-            });
-            i['reminddate'] = dtt[0][0];
-            i['reminddategetdate'] = dtt[0][1];
-          } catch (o) {}
+            i['remind_id'] = t[0][0];
+            i['remindname'] = t[0][1];
+            i['reminddetails'] = t[0][2];
+            i['lastsend'] = t[0][3];
+            i['repeate'] = t[0][4];
+            i['notifi'] = t[0][5];
+            i['reminddate'] = t[0][6];
+            i['remind_office_id'] = t[0][7];
+            i['reminddategetdate'] = t[0][8];
+            i['type'] = t[0][9];
+            i['certsrc'] = t[0][10];
+          } catch (e) {
+            i['remind_id'] = null;
+          }
         }
       }
       buildeasyeditlist();

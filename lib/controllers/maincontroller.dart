@@ -18,6 +18,7 @@ import 'package:mz_flutter_07/views/homepage.dart';
 import 'package:mz_flutter_07/views/login.dart';
 import 'package:mz_flutter_07/views/offices.dart';
 import 'package:mz_flutter_07/views/remind.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart' as df;
 import 'package:teledart/teledart.dart';
@@ -912,10 +913,9 @@ insert into logs(log,logdate)values
         i['selected'] = false;
       }
       Remind.maintitlesdialogMz01[0]['selected'] = true;
-    } else if ((Remind.bodieslistofadd[1]['details'][0]['type']['group']
+    } else if ((Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'auto' ||
+            Remind.bodieslistofadd[1]['details'][0]['type']['group']
                     [BasicInfo.indexlang()] ==
-                'auto' ||
-            Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] ==
                 'تلقائي') &&
         inerlist[0]['controller'].text.isEmpty) {
       inerlist[0]['error'] =
@@ -930,15 +930,16 @@ insert into logs(log,logdate)values
             Remind.bodieslistofadd[1]['details'][0]['type']['group']
                     [BasicInfo.indexlang()] ==
                 'تلقائي') &&
-        !inerlist[0]['controller'].text.toString().startsWith("https://")) {
+        !inerlist[0]['controller']
+            .text
+            .toString()
+            .isCaseInsensitiveContains("https://")) {
       inerlist[0]['controller'].text =
           'https://${inerlist[0]['controller'].text}';
     } else if ((Remind.bodieslistofadd[1]['details'][0]['type']['group']
                     [BasicInfo.indexlang()] ==
                 'manual' ||
-            Remind.bodieslistofadd[1]['details'][0]['type']['group']
-                    [BasicInfo.indexlang()] ==
-                'يدوي') &&
+            Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'يدوي') &&
         dateslist.isEmpty) {
       Lang.mainerrormsg =
           Lang.errormsgs['emptydays-check'][BasicInfo.indexlang()];
@@ -959,10 +960,8 @@ insert into logs(log,logdate)values
           Remind.bodieslistofadd[1]['details'][0]['type']['group']
                   [BasicInfo.indexlang()] ==
               'تلقائي') {
-        reminddate = !foundation.kIsWeb
-            ? await setreminddate(
-                type: 'auto', host: inerlist[0]['controller'].text)
-            : null;
+        reminddate = await setreminddate(
+            type: 'auto', host: inerlist[0]['controller'].text);
       } else {
         reminddate = await setreminddate(type: 'manual', dateslist: dateslist);
       }
@@ -1090,10 +1089,9 @@ insert into logs(log,logdate)values
         i['selected'] = false;
       }
       Remind.maintitlesdialogMz01[0]['selected'] = true;
-    } else if ((Remind.bodieslistofadd[1]['details'][0]['type']['group']
+    } else if ((Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'auto' ||
+            Remind.bodieslistofadd[1]['details'][0]['type']['group']
                     [BasicInfo.indexlang()] ==
-                'auto' ||
-            Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] ==
                 'تلقائي') &&
         inerlist[0]['controller'].text.isEmpty) {
       inerlist[0]['error'] =
@@ -1108,15 +1106,16 @@ insert into logs(log,logdate)values
             Remind.bodieslistofadd[1]['details'][0]['type']['group']
                     [BasicInfo.indexlang()] ==
                 'تلقائي') &&
-        !inerlist[0]['controller'].text.toString().startsWith("https://")) {
+        !inerlist[0]['controller']
+            .text
+            .toString()
+            .isCaseInsensitiveContains("https://")) {
       inerlist[0]['controller'].text =
           'https://${inerlist[0]['controller'].text}';
     } else if ((Remind.bodieslistofadd[1]['details'][0]['type']['group']
                     [BasicInfo.indexlang()] ==
                 'manual' ||
-            Remind.bodieslistofadd[1]['details'][0]['type']['group']
-                    [BasicInfo.indexlang()] ==
-                'يدوي') &&
+            Remind.bodieslistofadd[1]['details'][0]['type']['group'][BasicInfo.indexlang()] == 'يدوي') &&
         dateslist.isEmpty) {
       Lang.mainerrormsg =
           Lang.errormsgs['emptydays-check'][BasicInfo.indexlang()];
@@ -1506,6 +1505,8 @@ costdetails='${Costs.notescontroller.text.trim()}',
 cost_project='${Costs.projectcontroller.text.trim()}',
 cost='${Costs.costcontroller.text.trim()}',
 costdate='${Costs.bodieslistofadd[0]['date']}',
+attch_file='${Costs.bodieslistofadd[1]['attachment']['encoded']}',
+attach_name='${Costs.bodieslistofadd[1]['attachment']['filename']}',
 cost_office_id='$officeid'
 where cost_id=$costid;
 '''
@@ -1885,7 +1886,7 @@ insert into logs(log,logdate)values
   }
 
   getCert({required String host}) async {
-    if (foundation.kIsWeb == true) {
+    if (foundation.kIsWeb) {
       return null;
     } else {
       var getExpiredate;
@@ -1926,9 +1927,6 @@ insert into logs(log,logdate)values
   setreminddate({type, host, dateslist}) async {
     DateTime? reminddate;
     if (type == 'auto') {
-      if (foundation.kIsWeb) {
-        reminddate = null;
-      }
       reminddate = await getCert(host: host);
     } else {
       dateslist.sort((a, b) => a.toString().compareTo(b.toString()));
@@ -1981,10 +1979,9 @@ insert into logs(log,logdate)values
       if (days > 0) {
         result = ['$days يوم', '$days days'][BasicInfo.indexlang()];
       } else if (days == 0) {
-        int hours = 24 +
-            ((DateTime.parse(e['reminddate']).difference(DateTime.now()
-                    .add(Duration(days: int.parse(e['sendalertbefor'])))))
-                .inHours);
+        int hours = ((DateTime.parse(e['reminddate']).difference(DateTime.now()
+                .add(Duration(days: int.parse(e['sendalertbefor'])))))
+            .inHours);
         result = ['$hours ساعة', '$hours hour'][BasicInfo.indexlang()];
       } else {
         result = [
@@ -2006,7 +2003,7 @@ insert into logs(log,logdate)values
       if (days > 0) {
         result = ['$days يوم', '$days days'][BasicInfo.indexlang()];
       } else if (days == 0) {
-        int hours = 24 +
+        int hours =
             ((DateTime.parse(e['reminddate']).difference(DateTime.now()))
                 .inHours);
         result = ['$hours ساعة', '$hours hour'][BasicInfo.indexlang()];
@@ -2108,35 +2105,26 @@ insert into logs(log,logdate)values
     for (var o in DB.allremindinfotable![0]['remind']) {
       i = o;
     }
-    Stream stream = Stream.periodic(Duration(minutes: 5), (x) => x++);
+    Stream stream = Stream.periodic(Duration(minutes: 1), (x) => x++);
     stream.listen((event) async {
       try {
-        i['remind_id'] = DB.allremindinfotable![0]['remind']
-            .where((u) => u['remind_id'] == i['remind_id'])
-            .toList()[0]['remind_id'];
-
-        i['remindname'] = DB.allremindinfotable![0]['remind']
-            .where((u) => u['remind_id'] == i['remind_id'])
-            .toList()[0]['remindname'];
-        i['reminddetails'] = DB.allremindinfotable![0]['remind']
-            .where((u) => u['remind_id'] == i['remind_id'])
-            .toList()[0]['reminddetails'];
-        i['repeate'] = DB.allremindinfotable![0]['remind']
-            .where((u) => u['remind_id'] == i['remind_id'])
-            .toList()[0]['repeate'];
-        i['lastsend'] = DB.allremindinfotable![0]['remind']
-            .where((u) => u['remind_id'] == i['remind_id'])
-            .toList()[0]['lastsend'];
-        i['notifi'] = DB.allremindinfotable![0]['remind']
-            .where((u) => u['remind_id'] == i['remind_id'])
-            .toList()[0]['notifi'];
-        i['reminddate'] = DB.allremindinfotable![0]['remind']
-            .where((u) => u['remind_id'] == i['remind_id'])
-            .toList()[0]['reminddate'];
-        i['remind_office_id'] = DB.allremindinfotable![0]['remind']
-            .where((u) => u['remind_id'] == i['remind_id'])
-            .toList()[0]['remind_office_id'];
-      } catch (r) {
+        var t = await dbController.requestpost(type: 'select', data: {
+          'customquery':
+              'select remind_id,remindname,reminddetails,lastsend,repeate,notifi,reminddate,remind_office_id,reminddategetdate,type,certsrc from remind where remind_id=${i['remind_id']};'
+        });
+        i['remind_id'] = t[0][0];
+        i['remindname'] = t[0][1];
+        i['reminddetails'] = t[0][2];
+        i['lastsend'] = t[0][3];
+        i['repeate'] = t[0][4];
+        i['notifi'] = t[0][5];
+        i['reminddate'] = t[0][6];
+        i['remind_office_id'] = t[0][7];
+        i['reminddategetdate'] = t[0][8];
+        i['type'] = t[0][9];
+        i['certsrc'] = t[0][10];
+        update();
+      } catch (e) {
         i['remind_id'] = null;
       }
       if (i['remind_office_id'] != null &&
@@ -2206,40 +2194,111 @@ ${i['reminddetails']}
     });
   }
 
-  addattachtocost({list}) async {
-    File result;
-    FilePickerResult? filepick =
-        await FilePicker.platform.pickFiles();
-    PlatformFile file;
+  addattachtocost() async {
+    FilePickerResult? filepick = await FilePicker.platform.pickFiles();
     if (filepick != null) {
-      file = filepick.files.single;
-      if (file.size / 1024 > 3072) {
+      if (filepick.files.single.size / 1024 > 3072) {
         Lang.mainerrormsg = "لا يمكن رفع ملف  بحجم اكبر من  3 ميغا";
       } else {
-        result = File(file.path!);
-        list[1]['attachment'] = result;
-              }
-    } else {
-      null;
+        if (foundation.kIsWeb) {
+          Uint8List? fileBytes = filepick.files.first.bytes;
+          Costs.bodieslistofadd[1]['attachment']['filename'] =
+              filepick.files.first.name;
+          Costs.bodieslistofadd[1]['attachment']['encoded'] =
+              base64.encode(fileBytes!);
+        } else {
+          Uint8List? fileBytes =
+              await File(filepick.files.first.path!).readAsBytes();
+          Costs.bodieslistofadd[1]['attachment']['filename'] =
+              filepick.files.first.name;
+          Costs.bodieslistofadd[1]['attachment']['encoded'] =
+              base64.encode(fileBytes);
+        }
+      }
+    }
+
+    update();
+  }
+
+  deleteattachment() {
+    Costs.bodieslistofadd[1]['attachment']['filename'] =
+        Costs.bodieslistofadd[1]['attachment']['encoded'] = '';
+    Lang.mainerrormsg = null;
+    update();
+  }
+
+  saveattachment({ctx, c}) async {
+    try {
+      if (foundation.kIsWeb) {
+        await launchUrl(Uri.dataFromBytes(base64Decode("${c['attch_file']}")));
+      } else {
+        var s = await getApplicationDocumentsDirectory();
+        var ss = s.path;
+        await File('$ss\\${c['attach_name']}')
+            .writeAsBytes(base64Decode(c['attch_file']));
+        showDialog(
+            context: ctx,
+            builder: (_) {
+              return AlertDialog(
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text("تم حفظ الملف في المسار التالي "),
+                    InkWell(
+                      onTap: () {
+                        launchUrl(Uri.file("$ss\\${c['attach_name']}"));
+                      },
+                      child: Text("$ss\\${c['attach_name']}"),
+                    )
+                  ],
+                ),
+              );
+            });
+      }
+    } catch (r) {
+      print(r);
     }
     update();
   }
 
-//    convertimagestodoTocode({image}) async {
-//     if (image.runtimeType == Image) {
-//       return Whattodo.imagcode[Whattodo.x];
-//     } else {
-//       Uint8List imagebytes = await image.readAsBytes();
-//       String base64string = base64.encode(imagebytes);
-//       return base64string;
-//     }
-//   }
+  exportexcel({userid}) async {
+    String result = '';
+    if (foundation.kIsWeb) {
+      return null;
+    } else {
+      var s = await getApplicationDocumentsDirectory();
+      var ss = s.path;
+      var result;
+      try {
+        var t = await dbController.requestpost(type: 'select', data: {
+          'customquery':
+              "SELECT cost_id,costname,costdetails,cost,costdate,final_acceptcost_user FROM costs where final_acceptcost='1' and cost_user_id=$userid;"
+        });
+        result = '';
+        result =
+            '''
+المعرف|البيان|الملاحظات|المبلغ|التاريخ|المشرف
+''';
+        int total = 0;
+        for (var i in t) {
+          result +=
+              '${t[t.indexOf(i)][0]} | ${t[t.indexOf(i)][1]}| ${t[t.indexOf(i)][2]} | ${t[t.indexOf(i)][3]} | ${t[t.indexOf(i)][4]} | ${t[t.indexOf(i)][5]}\n';
+          try {
+            var x = int.parse(t[t.indexOf(i)][3]);
+            total += x;
+          } catch (r) {}
+        }
 
-  convertimagestodoTodecode({image}) {
-    Uint8List imagei;
-    image =
-        "${image.toString().length % 4 != 0 ? image.toString().substring(0, image.toString().length - image.toString().length % 4) : image}";
-    imagei = base64.decode(image);
-    return Image.memory(imagei);
+        result += "|||$total||\nاسم الموظف: ${DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == userid).toList()[0]['fullname']}";
+        await Process.run('Powershell.exe', [
+          '''
+"$result" > "$ss\\${DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == userid).toList()[0]['username']}.txt"
+import-csv "$ss\\${DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == userid).toList()[0]['username']}.txt" -delimiter "|" | export-csv "$ss\\${DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == userid).toList()[0]['username']}.csv" -NoTypeInformation -Encoding utf8
+    '''
+        ]);
+      } catch (r) {
+        print(r);
+      }
+    }
   }
 }
