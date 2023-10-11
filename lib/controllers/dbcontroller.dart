@@ -51,7 +51,7 @@ class DBController extends GetxController {
           try {
             var t = await requestpost(type: 'select', data: {
               'customquery':
-                  'select remind_id,remindname,reminddetails,lastsend,repeate,notifi,reminddate,remind_office_id,reminddategetdate,type,cersrc from remind where remind_id=${i['remind_id']};'
+                  'select remind_id,remindname,reminddetails,lastsend,repeate,notifi,reminddate,remind_office_id,reminddategetdate,type,certsrc from remind where remind_id=${i['remind_id']};'
             });
             i['remind_id'] = t[0][0];
             i['remindname'] = t[0][1];

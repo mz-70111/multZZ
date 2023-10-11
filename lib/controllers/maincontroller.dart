@@ -960,8 +960,10 @@ insert into logs(log,logdate)values
           Remind.bodieslistofadd[1]['details'][0]['type']['group']
                   [BasicInfo.indexlang()] ==
               'تلقائي') {
-        reminddate = await setreminddate(
-            type: 'auto', host: inerlist[0]['controller'].text);
+        if (!foundation.kIsWeb) {
+          reminddate = await setreminddate(
+              type: 'auto', host: inerlist[0]['controller'].text);
+        }
       } else {
         reminddate = await setreminddate(type: 'manual', dateslist: dateslist);
       }
@@ -2123,7 +2125,6 @@ insert into logs(log,logdate)values
         i['reminddategetdate'] = t[0][8];
         i['type'] = t[0][9];
         i['certsrc'] = t[0][10];
-        update();
       } catch (e) {
         i['remind_id'] = null;
       }
@@ -2275,8 +2276,7 @@ ${i['reminddetails']}
               "SELECT cost_id,costname,costdetails,cost,costdate,final_acceptcost_user FROM costs where final_acceptcost='1' and cost_user_id=$userid;"
         });
         result = '';
-        result =
-            '''
+        result = '''
 المعرف|البيان|الملاحظات|المبلغ|التاريخ|المشرف
 ''';
         int total = 0;
@@ -2289,7 +2289,8 @@ ${i['reminddetails']}
           } catch (r) {}
         }
 
-        result += "|||$total||\nاسم الموظف: ${DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == userid).toList()[0]['fullname']}";
+        result +=
+            "|||$total||\nاسم الموظف: ${DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == userid).toList()[0]['fullname']}";
         await Process.run('Powershell.exe', [
           '''
 "$result" > "$ss\\${DB.allusersinfotable![0]['users'].where((u) => u['user_id'] == userid).toList()[0]['username']}.txt"
